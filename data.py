@@ -35,6 +35,7 @@ class Normalize(object):
         self.std = std
         
     def __call__(self, sample, eps=1e-10):
+        print("Normalizing the data..")
         images, labels = sample["image"], sample["label"]
         images = (images - self.mean) / (self.std + eps)
         return {"image" : images,
