@@ -67,9 +67,6 @@ def train_model(net, criterion, optimizer, scheduler,
         
         # report training metrics after each epoch
         train_metrics = report_metrics(train_metrics, metrics, all_labels, all_preds, phase="Train")
-        #print(train_metrics)
-        #for metric in train_metrics:
-        #    print("Train {}: {:.2f} %".format(metric, train_metrics[metric][-1]))
 
         epoch_loss /= len(train_loader)
         total_loss.append(epoch_loss)
@@ -102,9 +99,6 @@ def train_model(net, criterion, optimizer, scheduler,
                 #    best_model_wts = deepcopy(net.state_dict())
 
                 val_metrics = report_metrics(val_metrics, metrics, all_labels, all_preds, phase="Val")
-                #for metric in val_metrics:
-                #    print("Val {}: {:.2f} %".format(metric, val_metrics[metric][-1]))
-                #print("Val acc: {0:.2f} %".format(acc))
                 validation_loss /= len(val_loader)
                 print("Val loss: {0:.4f}".format(validation_loss))
                 val_total_loss.append(validation_loss)
@@ -117,7 +111,7 @@ def train_model(net, criterion, optimizer, scheduler,
 
     # load best model weights
     #net.load_state_dict(best_model_wts)
-    return net, best_acc, [total_loss, val_total_loss, train_acc, val_acc]
+    return net, best_acc, [total_loss, val_total_loss, train_metrics, val_metrics]
 
 def visualize_training(report):
     plt.figure()
