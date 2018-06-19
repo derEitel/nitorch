@@ -21,8 +21,8 @@ def load_nifti(file_path, z_factor=None, dtype=None, incl_header=False, mask=Non
 def normalization_factors(data, train_idx, shape):
     """ shape should be of length 3 """
     samples = np.zeros([len(train_idx), 1, shape[0], shape[1], shape[2]], dtype=np.float32)
-    for idx, i in enumerate(train_idx):
-        samples[idx] = (data[i]['image'].numpy())
+    for c, value in enumerate(train_idx):
+        samples[c] = (data[value]['image'].numpy())
     mean = np.mean(samples, axis=0)
     std = np.std(samples, axis=0)
     return np.squeeze(mean), np.squeeze(std)

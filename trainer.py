@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from copy import deepcopy
 import torch
 from torch.autograd import Variable
@@ -11,13 +12,16 @@ def train_model(net, criterion, optimizer, scheduler,
                 train_loader, val_loader, 
                 train_sampler, val_sampler,
                 gpu=0, num_epochs=25, ignore_epochs=-1,
-                show_train_steps=25):
+                show_train_steps=25,
+                show_validation_epochs=1,
+                metrics=[], class_threshold=0.5):
     """ Main function to train a network."""
 
     total_loss = []
     val_total_loss = []
-    val_acc = []
-    train_acc = []
+
+    val_metrics = dict()
+    train_metrics = dict()
     
     start_time = time.time()
     best_acc = 0.0
@@ -25,10 +29,12 @@ def train_model(net, criterion, optimizer, scheduler,
     for epoch in range(num_epochs):
         running_loss = 0.0
         epoch_loss = 0.0
-        train_correct = 0
         scheduler.step(epoch)
+        # variables to compute metrics
+        all_preds = []
+        all_labels = []
         # train
-        net.train()        
+        net.train()
         for i, data in enumerate(train_loader):
             inputs, labels = data['image'], data['label']
             # wrap data in Variable
@@ -43,12 +49,13 @@ def train_model(net, criterion, optimizer, scheduler,
             optimizer.step()
             #print_gradients(net)
             
-            # compute training accuracy
+            # store results
             sigmoid = F.sigmoid(outputs)
-            for j, out in enumerate(sigmoid):
-                cls = 0 if out.data[0] < 0.5 else 1
-                if cls  == data['label'][j][0]:
-                    train_correct += 1
+            predicted = sigmoid.data >= class_threshold
+            for j in range(len(predicted)):
+                all_preds.append(predicted[j].cpu().numpy()[0])
+                all_labels.append(labels[j].cpu().numpy()[0])
+
                 
             # print statistics
             running_loss += loss.item()
@@ -58,16 +65,22 @@ def train_model(net, criterion, optimizer, scheduler,
                       (epoch + 1, i + 1, running_loss / show_train_steps))
                 running_loss = 0.0                
         
-        # report training accuracy after each epoch
-        acc = (train_correct / len(train_sampler)) * 100
-        train_acc.append(acc)
-        print("Train acc: {0:.2f} %".format(acc))
+        # report training metrics after each epoch
+        train_metrics = report_metrics(train_metrics, metrics, all_labels, all_preds, phase="Train")
+        #print(train_metrics)
+        #for metric in train_metrics:
+        #    print("Train {}: {:.2f} %".format(metric, train_metrics[metric][-1]))
 
+        epoch_loss /= len(train_loader)
+        total_loss.append(epoch_loss)
+        
         # validate every x iterations
-        if epoch % 1 == 0:
+        if epoch % show_validation_epochs == 0:
             net.eval()
             validation_loss = 0.0
-            val_correct = 0
+            all_preds = []
+            all_labels = []
+
             with torch.no_grad():
                 for i, data in enumerate(val_loader):
                     inputs, labels = data['image'], data['label']
@@ -77,33 +90,33 @@ def train_model(net, criterion, optimizer, scheduler,
                     outputs = net(inputs)                
                     # compute validation accuracy
                     sigmoid = F.sigmoid(outputs)
-                    for j, out in enumerate(sigmoid):
-                        cls = 0 if out.data[0] < 0.5 else 1
-                        if cls  == data['label'][j][0]:
-                            val_correct += 1
+                    predicted = sigmoid.data >= class_threshold
+                    for j in range(len(predicted)):
+                        all_preds.append(predicted[j].cpu().numpy()[0])
+                        all_labels.append(labels[j].cpu().numpy()[0])
                     loss = criterion(outputs, labels)
                     validation_loss += loss.item()
-                acc = (val_correct / len(val_sampler)) * 100
-                # store accuracy and save model weights if best
-                val_acc.append(acc)
-                if acc > best_acc and epoch > ignore_epochs:
-                    best_acc = acc
-                    best_model_wts = deepcopy(net.state_dict())
+                
+                #if acc > best_acc and epoch > ignore_epochs:
+                #    best_acc = acc
+                #    best_model_wts = deepcopy(net.state_dict())
 
-                print("Val acc: {0:.2f} %".format(acc))
+                val_metrics = report_metrics(val_metrics, metrics, all_labels, all_preds, phase="Val")
+                #for metric in val_metrics:
+                #    print("Val {}: {:.2f} %".format(metric, val_metrics[metric][-1]))
+                #print("Val acc: {0:.2f} %".format(acc))
                 validation_loss /= len(val_loader)
                 print("Val loss: {0:.4f}".format(validation_loss))
                 val_total_loss.append(validation_loss)
 
-        epoch_loss /= len(train_loader)
-        total_loss.append(epoch_loss)
+        
 
     total_time = ((time.time() - start_time) / 60)
     print("Time trained: {:.2f} minutes".format(total_time))
-    print('Best val Acc: {:4f}'.format(best_acc))
+    #print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
-    net.load_state_dict(best_model_wts)
+    #net.load_state_dict(best_model_wts)
     return net, best_acc, [total_loss, val_total_loss, train_acc, val_acc]
 
 def visualize_training(report):
@@ -121,7 +134,7 @@ def visualize_training(report):
     plt.title('Accuracy')
     plt.show()
 
-def evaluate_model(net, val_loader):
+def evaluate_model(net, val_loader, gpu=0):
     # predict on the validation set
     all_preds = []
     all_labels = []
@@ -158,3 +171,18 @@ def evaluate_model(net, val_loader):
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.show()
+
+def report_metrics(metrics_dict, metrics, all_labels, all_preds, phase):
+    """ Function to compute a list of metric functions. """
+    for metric in metrics:
+        result = metric(all_labels, all_preds)
+        if metric.__name__ in metrics_dict:
+            metrics_dict[metric.__name__].append(result)
+        else:
+            metrics_dict[metric.__name__] = [result]
+        # print result
+        if isinstance(result, float):
+            print("{} {}: {:.2f} %".format(phase, metric.__name__, result))
+        else:
+            print("{} {}: {} ".format(phase, metric.__name__, str(result)))        
+    return metrics_dict
