@@ -21,7 +21,7 @@ class SagittalFlip():
                 'label': labels}
 
 class Rotate():
-    def __call__(self, sample):
+    def __call__(self, batch):
         """ 
             Expects shape (X, Y, Z).
             Rotates along the X axis.
@@ -57,7 +57,6 @@ class ToTensor(object):
 
     def __call__(self, batch):
         images, labels = batch['image'], batch['label']
-
         # Expand with channel axis
         # numpy image: H x W x Z
         # torch image: C x H x W x Z

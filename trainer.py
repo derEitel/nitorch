@@ -1,20 +1,21 @@
 import time
 import numpy as np
-from copy import deepcopy
 import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
+from nitorch.callbacks import ModelCheckpoint
 
 def train_model(net, criterion, optimizer, scheduler,
                 train_loader, val_loader, 
                 train_sampler, val_sampler,
-                gpu=0, num_epochs=25, ignore_epochs=-1,
+                gpu=0, num_epochs=25,
                 show_train_steps=25,
                 show_validation_epochs=1,
-                metrics=[], class_threshold=0.5):
+                metrics=[], callbacks=[],
+                class_threshold=0.5):
     """ Main function to train a network."""
 
     total_loss = []
@@ -25,7 +26,6 @@ def train_model(net, criterion, optimizer, scheduler,
     
     start_time = time.time()
     best_acc = 0.0
-    best_model_wts = deepcopy(net.state_dict())
     for epoch in range(num_epochs):
         running_loss = 0.0
         epoch_loss = 0.0
@@ -44,7 +44,7 @@ def train_model(net, criterion, optimizer, scheduler,
             
             # forward + backward + optimize
             outputs = net(inputs)
-            loss = criterion(outputs, labels)
+            loss = criterion(outputs, labels) # BCEWithlogits computs sigmoid itself
             loss.backward()
             optimizer.step()
             #print_gradients(net)
@@ -84,36 +84,43 @@ def train_model(net, criterion, optimizer, scheduler,
                     # wrap data in Variable
                     inputs, labels = Variable(inputs.cuda(gpu)), Variable(labels.cuda(gpu))
                     # forward pass only
-                    outputs = net(inputs)                
+                    outputs = net(inputs)            
                     # compute validation accuracy
                     sigmoid = F.sigmoid(outputs)
                     predicted = sigmoid.data >= class_threshold
+                    loss = criterion(outputs, labels)
                     for j in range(len(predicted)):
                         all_preds.append(predicted[j].cpu().numpy()[0])
                         all_labels.append(labels[j].cpu().numpy()[0])
-                    loss = criterion(outputs, labels)
+
+                    
                     validation_loss += loss.item()
-                
-                #if acc > best_acc and epoch > ignore_epochs:
-                #    best_acc = acc
-                #    best_model_wts = deepcopy(net.state_dict())
 
                 val_metrics = report_metrics(val_metrics, metrics, all_labels, all_preds, phase="Val")
                 validation_loss /= len(val_loader)
                 print("Val loss: {0:.4f}".format(validation_loss))
                 val_total_loss.append(validation_loss)
-
-        
+        if callbacks is not None:
+            for callback in callbacks:
+                callback(epoch, net, val_metrics)
 
     total_time = ((time.time() - start_time) / 60)
     print("Time trained: {:.2f} minutes".format(total_time))
-    #print('Best val Acc: {:4f}'.format(best_acc))
-
-    # load best model weights
-    #net.load_state_dict(best_model_wts)
+    
+    # execute final methods of callbacks
+    if callbacks is not None:
+        for callback in callbacks:
+            # find all methods of the callback
+            method_list = [func for func in dir(callback) if callable(getattr(callback, func)) and not func.startswith("__")]
+            if "final" in method_list:
+                # in case of model checkpoint load best model
+                if isinstance(callback, ModelCheckpoint):
+                    net.load_state_dict(callback.final())
+                else:
+                    callback.final()
     return net, best_acc, [total_loss, val_total_loss, train_metrics, val_metrics]
 
-def visualize_training(report):
+def visualize_training(report, metrics=[]):
     plt.figure()
     plt.plot(report[0])
     plt.plot(report[1])
@@ -121,12 +128,13 @@ def visualize_training(report):
     plt.legend(["Train", "Val"])
     plt.show()
     
-    plt.figure()
-    plt.plot(report[2])
-    plt.plot(report[3])
-    plt.legend(["Train", "Val"])
-    plt.title('Accuracy')
-    plt.show()
+    for metric in metrics:
+        plt.figure()
+        plt.plot(report[2][metric.__name__])
+        plt.plot(report[3][metric.__name__])
+        plt.legend(["Train", "Val"])
+        plt.title(metric.__name__)
+        plt.show()
 
 def evaluate_model(net, val_loader, gpu=0):
     # predict on the validation set

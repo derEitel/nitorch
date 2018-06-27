@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 class ModelCheckpoint():
     def __init__(self, path, retain_metric, mode, ignore_before):
         self.path = path
@@ -11,14 +13,11 @@ class ModelCheckpoint():
         if epoch >= self.ignore_before:
             current_res = val_metrics[self.retain_metric.__name__][-1]
             if self.compare(current_res):
-                print("store better model")
                 self.best_res = current_res
-                self.best_model = model
+                self.best_model = deepcopy(model.state_dict())
 
     def compare(self, res):
         if self.mode == "max":
-            print(res)
-            print(self.best_res)
             return res >= self.best_res
         elif self.mode == "min":
             return res <= self.best_res
