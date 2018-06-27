@@ -36,7 +36,7 @@ class ModelCheckpoint():
     def final(self):
         print("Best validation {} at {} after training.".format(self.retain_metric.__name__, self.best_res))
         # get best model and reset parameters
-        if model is not None:
+        if self.best_model is not None:
             best_model = deepcopy(self.best_model.state_dict())
             self.reset()
             return best_model
