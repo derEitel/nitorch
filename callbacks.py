@@ -20,10 +20,22 @@ class ModelCheckpoint():
         if self.mode == "max":
             return res >= self.best_res
         elif self.mode == "min":
-            return res <= self.best_res
+            # check if still standard value
+            if self.best_res == -1:
+                return True
+            else:
+                return res <= self.best_res
         else:
             raise NotImplementedError("Only modes 'min' and 'max' available")
+
+    def reset(self):
+        """ Resets after training. Useful for cross validation """
+        self.best_res = -1
+        self.best_model = None
             
     def final(self):
         print("Best validation {} at {} after training.".format(self.retain_metric.__name__, self.best_res))
-        return self.best_model
+        # get best model and reset parameters
+        best_model = deepcopy(self.model.state_dict())
+        self.reset()
+        return best_model
