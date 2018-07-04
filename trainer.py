@@ -115,7 +115,8 @@ def train_model(net, criterion, optimizer, scheduler,
             if "final" in method_list:
                 # in case of model checkpoint load best model
                 if isinstance(callback, ModelCheckpoint):
-                    net.load_state_dict(callback.final())
+                    best_acc, best_model = callback.final()
+                    net.load_state_dict(best_model)
                 else:
                     callback.final()
     return net, best_acc, [total_loss, val_total_loss, train_metrics, val_metrics]

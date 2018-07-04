@@ -29,18 +29,18 @@ class ModelCheckpoint():
             raise NotImplementedError("Only modes 'min' and 'max' available")
 
     def reset(self):
-        """ Resets after training. Useful for cross validation """
+        """ Resets after training. Useful for cross validation. """
         self.best_res = -1
         self.best_model = None
             
     def final(self):
+        """ get best model and reset parameters. """
         print("Best validation {} at {} after training.".format(self.retain_metric.__name__, self.best_res))
-        # get best model and reset parameters
         if self.best_model is not None:
             best_model = deepcopy(self.best_model)
             self.reset()
-            return best_model
+            return self.best_res, best_model
         else:
             print("Minimum iterations to store model not reached.")
             self.reset()
-            return best_model
+            return self.best_res, best_model
