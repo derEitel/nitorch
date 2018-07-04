@@ -2,6 +2,7 @@ import numpy as np
 import nibabel as nib
 from scipy.ndimage.interpolation import zoom
 
+
 def load_nifti(file_path, z_factor=None, dtype=None, incl_header=False, mask=None):
     if dtype is None:
         dt = np.float32  
@@ -47,6 +48,7 @@ def normalization_factors(data, train_idx, shape, mode="slice"):
     std = np.std(samples, axis=axis)
     return np.squeeze(mean), np.squeeze(std)
 
+
 class Normalize(object):
     """
     Normalize tensor with first and second moments.
@@ -86,6 +88,7 @@ class Normalize(object):
         images = self.apply_transform(images)
         images[img_mask] = 0.
         return images
+
 
 class IntensityRescale():
     """

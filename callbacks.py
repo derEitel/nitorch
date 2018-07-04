@@ -38,8 +38,9 @@ class ModelCheckpoint():
         print("Best validation {} at {} after training.".format(self.retain_metric.__name__, self.best_res))
         if self.best_model is not None:
             best_model = deepcopy(self.best_model)
+            best_res = self.best_res
             self.reset()
-            return self.best_res, best_model
+            return best_res, best_model
         else:
             print("Minimum iterations to store model not reached.")
             self.reset()
