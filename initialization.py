@@ -17,9 +17,9 @@ def weights_init(m, func=he):
             init.constant_(m.bias, 0)
     elif isinstance(m, BatchNorm3d):
         init.constant_(m.weight, 1)
-		if m.bias is not None:
+        if m.bias is not None:
             init.constant_(m.bias, 0)
     elif isinstance(m, Linear):
-	    m.reset_parameters()
-		# if m.bias is not None:
-        #	init.constant_(m.bias, 0)
+        m.reset_parameters()
+        # if m.bias is not None:
+        #    init.constant_(m.bias, 0)

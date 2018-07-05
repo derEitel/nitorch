@@ -1,6 +1,7 @@
 from copy import deepcopy
 
-class ModelCheckpoint():
+
+class ModelCheckpoint:
     def __init__(self, path, retain_metric, mode, ignore_before):
         self.path = path
         self.retain_metric = retain_metric
@@ -8,7 +9,7 @@ class ModelCheckpoint():
         self.ignore_before = ignore_before
         self.best_res = -1
         self.best_model = None
-        
+
     def __call__(self, epoch, model, val_metrics):
         if epoch >= self.ignore_before:
             current_res = val_metrics[self.retain_metric.__name__][-1]
@@ -32,10 +33,14 @@ class ModelCheckpoint():
         """ Resets after training. Useful for cross validation. """
         self.best_res = -1
         self.best_model = None
-            
+
     def final(self):
         """ get best model and reset parameters. """
-        print("Best validation {} at {} after training.".format(self.retain_metric.__name__, self.best_res))
+        print(
+            "Best validation {} at {} after training.".format(
+                self.retain_metric.__name__, self.best_res
+            )
+        )
         if self.best_model is not None:
             best_model = deepcopy(self.best_model)
             best_res = self.best_res
