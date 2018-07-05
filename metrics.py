@@ -10,6 +10,6 @@ def sensitivity(y_true, y_pred):
 
 
 def balanced_accuracy(y_true, y_pred):
-    specificity = specificity(y_true, y_pred)
-    sensitivity = sensitivity(y_true, y_pred)
-    return (specificity + sensitivity) / 2
+    spec = specificity(y_true, y_pred)
+    sens = sensitivity(y_true, y_pred)
+    return (spec + sens) / 2
