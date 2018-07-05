@@ -185,7 +185,7 @@ def report_metrics(metrics_dict, metrics, all_labels, all_preds, phase):
             metrics_dict[metric.__name__] = [result]
         # print result
         if isinstance(result, float):
-            print("{} {}: {:.2f} %".format(phase, metric.__name__, result))
+            print("{} {}: {:.2f} %".format(phase, metric.__name__, result * 100))
         else:
             print("{} {}: {} ".format(phase, metric.__name__, str(result)))        
     return metrics_dict
