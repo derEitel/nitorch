@@ -101,22 +101,22 @@ class IntensityRescale:
     def __init__(self, masked=True):
         self.masked = masked
 
-    def __call__(self, batch):
-        images, labels = batch["image"], batch["label"]
+    def __call__(self, sample):
+        image, label = sample["image"], sample["label"]
         if self.masked:
-            images = self.zero_masked_transform(images)
+            image = self.zero_masked_transform(image)
         else:
-            images = self.apply_transform(images)
+            image = self.apply_transform(image)
 
-        return {"image": images, "label": labels}
+        return {"image": image, "label": label}
 
     def apply_transform(self, images):
         return normalize_float(images, min=0)
 
-    def zero_masked_transform(self, images):
+    def zero_masked_transform(self, image):
         """ Only apply transform where input is not zero. """
-        img_mask = images == 0
+        img_mask = image == 0
         # do transform
-        images = self.apply_transform(images)
-        images[img_mask] = 0.
-        return images
+        image = self.apply_transform(image)
+        image[img_mask] = 0.
+        return image
