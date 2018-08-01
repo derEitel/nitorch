@@ -33,12 +33,15 @@ class ModelCheckpoint:
             raise NotImplementedError("Only modes 'min' and 'max' available")
 
     def reset(self):
-        """ Resets after training. Useful for cross validation. """
+        """
+        Reset module after training.
+        Useful for cross validation.
+        """
         self.best_res = -1
         self.best_model = None
 
     def final(self):
-        """ get best model and reset parameters. """
+        """ get best model and reset parameters."""
         if isinstance(self.retain_metric, str):
             name = self.retain_metric
         else:
@@ -63,9 +66,10 @@ class EarlyStopping:
     """ Stop training when a monitored quantity has stopped improving.
 
     # Arguments
-        patience: number of iterations without improvement after which to stop
+        patience: number of iterations without improvement after which
+            to stop
         retain_metric: the metric which you want to monitor
-        mode: {min or max}; defines if you want to maximise or minimise 
+        mode: {min or max}; defines if you want to maximise or minimise
             your metric
         ignore_before: does not start the first window until this epoch.
             Can be useful when training spikes a lot in early epochs.
@@ -108,7 +112,7 @@ class EarlyStopping:
             raise NotImplementedError("Only modes 'min' and 'max' available")
 
     def reset(self):
-        """ Resets after training. Useful for cross validation. """
+        """ Resets after training. Useful for cross validation."""
         self.best_res = -1
         self.best_epoch = self.ignore_before
 

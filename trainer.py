@@ -19,8 +19,25 @@ class Trainer:
         scheduler,
         metrics=[], 
         callbacks=[],
-        class_threshold=0.5
+        class_threshold=0.5,
+        prediction_type="binary"
         ):
+        """ Main class for training.
+
+        # Arguments
+            model: neural network to train. 
+            criterion: loss function. 
+            optimizer: optimization function.
+            scheduler: schedules the optimizer.
+            metrics: list of metrics to report. Default is None.
+            callbacks: list of callbacks to execute. Default is None.
+            class_threshold: classification threshold for binary 
+                classification. Default is 0.5.
+            prediction_type: accepts one of ["binary", "classification",
+                "regression", "reconstruction", "other"]. This is used
+                to determine output.
+
+        """
         if not isinstance(model, Module):
             raise ValueError('Expects model type to be torch.nn.Module')
         self.model = model
@@ -32,6 +49,7 @@ class Trainer:
         self.class_threshold = class_threshold
         self.stop_training = False
         self.start_time = None
+        self.prediction_type = prediction_type
 
     def train_model(
         self,
@@ -56,7 +74,8 @@ class Trainer:
             if self.stop_training:
                 # TODO: check position of this
                 print("Early stopping in epoch {}".format(epoch - 1))
-                return self.finish_training([train_metrics, val_metrics])
+                return self.finish_training([train_metrics, 
+                                             val_metrics])
             else:
                 running_loss = 0.0
                 epoch_loss = 0.0
@@ -69,13 +88,15 @@ class Trainer:
                 for i, data in enumerate(train_loader):
                     inputs, labels = data["image"], data["label"]
                     # wrap data in Variable
-                    inputs, labels = Variable(inputs.cuda(gpu)), Variable(labels.cuda(gpu))
+                    inputs = Variable(inputs.cuda(gpu))
+                    labels = Variable(labels.cuda(gpu))
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
 
                     # forward + backward + optimize
                     outputs = self.model(inputs)
-                    loss = self.criterion(outputs, labels)  # BCEWithlogits computs sigmoid itself
+                    # BCEWithlogits computes sigmoid itself
+                    loss = self.criterion(outputs, labels)  
                     loss.backward()
                     self.optimizer.step()
 
@@ -89,16 +110,22 @@ class Trainer:
                     # print statistics
                     running_loss += loss.item()
                     epoch_loss += loss.item()
-                    if i % show_train_steps == 0:  # print every X mini-batches
+                    # print every X mini-batches
+                    if i % show_train_steps == 0:  
                         print(
                             "[%d, %5d] loss: %.3f"
-                            % (epoch + 1, i + 1, running_loss / show_train_steps)
+                            % (epoch + 1, i + 1, 
+                               running_loss / show_train_steps)
                         )
                         running_loss = 0.0
 
                 # report training metrics after each epoch
                 train_metrics = self.report_metrics(
-                    train_metrics, self.metrics, all_labels, all_preds, phase="Train"
+                    train_metrics,
+                    self.metrics,
+                    all_labels,
+                    all_preds,
+                    phase="Train"
                 )
 
                 epoch_loss /= len(train_loader)
@@ -137,7 +164,11 @@ class Trainer:
                         validation_loss += loss.item()
 
                     val_metrics = self.report_metrics(
-                        val_metrics, self.metrics, all_labels, all_preds, phase="Val"
+                        val_metrics,
+                        self.metrics,
+                        all_labels,
+                        all_preds,
+                        phase="Val"
                     )
                     validation_loss /= len(val_loader)
                     print("Val loss: {0:.4f}".format(validation_loss))
@@ -162,7 +193,8 @@ class Trainer:
                 method_list = [
                     func
                     for func in dir(callback)
-                    if callable(getattr(callback, func)) and not func.startswith("__")
+                    if (callable(getattr(callback, func)) 
+                        and not func.startswith("__"))
                 ]
                 if "final" in method_list:
                     # in case of model checkpoint load best model
@@ -201,7 +233,8 @@ class Trainer:
             for i, data in enumerate(val_loader):
                 inputs, labels = data["image"], data["label"]
                 # wrap data in Variable
-                inputs, labels = Variable(inputs.cuda(gpu)), Variable(labels.cuda(gpu))
+                inputs = Variable(inputs.cuda(gpu))
+                labels = Variable(labels.cuda(gpu))
                 # forward + backward + optimize
                 outputs = self.model(inputs)
                 sigmoid = F.sigmoid(outputs)
@@ -236,7 +269,13 @@ class Trainer:
         plt.show()
 
 
-    def report_metrics(self, metrics_dict, metrics, all_labels, all_preds, phase):
+    def report_metrics(
+        self,
+        metrics_dict,
+        metrics,
+        all_labels,
+        all_preds, phase
+        ):
         """ Function to compute a list of metric functions. """
         for metric in metrics:
             # report everything but loss
@@ -248,7 +287,9 @@ class Trainer:
                     metrics_dict[metric.__name__] = [result]
                 # print result
                 if isinstance(result, float):
-                    print("{} {}: {:.2f} %".format(phase, metric.__name__, result * 100))
+                    print("{} {}: {:.2f} %".format(
+                        phase, metric.__name__, result * 100))
                 else:
-                    print("{} {}: {} ".format(phase, metric.__name__, str(result)))
+                    print("{} {}: {} ".format(
+                        phase, metric.__name__, str(result)))
         return metrics_dict

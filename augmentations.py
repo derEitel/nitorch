@@ -29,7 +29,12 @@ class Rotate:
         images, labels = batch["image"], batch["label"]
         min_rot, max_rot = -3, 3
         rand = np.random.randint(min_rot, max_rot + 1)
-        batch_augmented = rotate(images, angle=rand, axes=(1, 0), reshape=False).copy()
+        batch_augmented = rotate(
+            images,
+            angle=rand,
+            axes=(1, 0),
+            reshape=False
+            ).copy()
         return {"image": batch_augmented, "label": labels}
 
 
@@ -53,7 +58,10 @@ class Translate:
 
 
 class ToTensor(object):
-    """Convert ndarrays in sample to Tensors."""
+    """
+    Convert ndarrays in sample to Tensors.
+    Expects labels to be scalar i.e. not tensors.
+    """
 
     def __call__(self, batch):
         images, labels = batch["image"], batch["label"]
