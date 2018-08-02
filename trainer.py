@@ -2,11 +2,11 @@ import time
 import numpy as np
 import torch
 from torch.autograd import Variable
-import torch.nn.functional as F
-from torch.nn import Module
+from torch import nn
 from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
+from nitorch.inference import predict
 from nitorch.callbacks import ModelCheckpoint
 
 
@@ -38,7 +38,7 @@ class Trainer:
                 to determine output.
 
         """
-        if not isinstance(model, Module):
+        if not isinstance(model, nn.Module):
             raise ValueError('Expects model type to be torch.nn.Module')
         self.model = model
         self.criterion = criterion
@@ -55,8 +55,6 @@ class Trainer:
         self,
         train_loader,
         val_loader,
-        train_sampler,
-        val_sampler,
         gpu=0,
         num_epochs=25,
         show_train_steps=25,
@@ -68,7 +66,8 @@ class Trainer:
         train_metrics = dict()
 
         self.start_time = time.time()
-        best_acc = 0.0
+        self.best_acc = 0.0
+        self.best_model = None
         
         for epoch in range(num_epochs):
             if self.stop_training:
@@ -86,27 +85,36 @@ class Trainer:
                 # train
                 self.model.train()
                 for i, data in enumerate(train_loader):
-                    inputs, labels = data["image"], data["label"]
+                    try:
+                        inputs, labels = data["image"], data["label"]
+                    except TypeError:
+                        # if data does not come in dictionary, assume
+                        # that data is ordered like [input, label]
+                        try:
+                            inputs, labels = data[0], data[1]
+                        except TypeError:
+                            raise TypeError
                     # wrap data in Variable
                     inputs = Variable(inputs.cuda(gpu))
                     labels = Variable(labels.cuda(gpu))
+
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
-
                     # forward + backward + optimize
                     outputs = self.model(inputs)
-                    # BCEWithlogits computes sigmoid itself
                     loss = self.criterion(outputs, labels)  
                     loss.backward()
                     self.optimizer.step()
 
                     # store results
-                    sigmoid = F.sigmoid(outputs)
-                    predicted = sigmoid.data >= self.class_threshold
-                    for j in range(len(predicted)):
-                        all_preds.append(predicted[j].cpu().numpy()[0])
-                        all_labels.append(labels[j].cpu().numpy()[0])
-
+                    all_preds, all_labels = predict(
+                                outputs,
+                                labels,
+                                all_preds,
+                                all_labels,
+                                self.prediction_type,
+                                self.criterion
+                            )
                     # print statistics
                     running_loss += loss.item()
                     epoch_loss += loss.item()
@@ -145,21 +153,32 @@ class Trainer:
 
                 with torch.no_grad():
                     for i, data in enumerate(val_loader):
-                        inputs, labels = data["image"], data["label"]
+                        try:
+                            inputs, labels = data["image"], data["label"]
+                        except TypeError:
+                            # if data does not come in dictionary, assume
+                            # that data is ordered like [input, label]
+                            try:
+                                inputs, labels = data[0], data[1]
+                            except TypeError:
+                                raise TypeError("Data not in correct \
+                                 sequence format.")
                         # wrap data in Variable
-                        inputs, labels = (
-                            Variable(inputs.cuda(gpu)),
-                            Variable(labels.cuda(gpu)),
-                        )
+                        inputs = Variable(inputs.cuda(gpu))
+                        labels = Variable(labels.cuda(gpu))
+                        
                         # forward pass only
                         outputs = self.model(inputs)
-                        # compute validation accuracy
-                        sigmoid = F.sigmoid(outputs)
-                        predicted = sigmoid.data >= self.class_threshold
                         loss = self.criterion(outputs, labels)
-                        for j in range(len(predicted)):
-                            all_preds.append(predicted[j].cpu().numpy()[0])
-                            all_labels.append(labels[j].cpu().numpy()[0])
+                        # compute validation accuracy
+                        all_preds, all_labels = predict(
+                                outputs,
+                                labels,
+                                all_preds,
+                                all_labels,
+                                self.prediction_type,
+                                self.criterion
+                            )
 
                         validation_loss += loss.item()
 
@@ -181,9 +200,13 @@ class Trainer:
             if self.callbacks is not None:
                 for callback in self.callbacks:
                     callback(self, epoch, val_metrics)
-        return self.model, self.finish_training([train_metrics, val_metrics])
+        self.finish_training()
+        return (self.model, 
+                [train_metrics, val_metrics], 
+                [self.best_model, self.best_acc]
+                )
 
-    def finish_training(self, report):
+    def finish_training(self):
         total_time = (time.time() - self.start_time) / 60
         print("Time trained: {:.2f} minutes".format(total_time))
         # execute final methods of callbacks
@@ -199,11 +222,10 @@ class Trainer:
                 if "final" in method_list:
                     # in case of model checkpoint load best model
                     if isinstance(callback, ModelCheckpoint):
-                        best_acc, best_model = callback.final()
+                        self.best_acc, best_model = callback.final()
                         self.model.load_state_dict(best_model)
                     else:
                         callback.final()
-        return self.model, best_acc, report
 
 
     def visualize_training(self, report, metrics=None):
@@ -237,11 +259,15 @@ class Trainer:
                 labels = Variable(labels.cuda(gpu))
                 # forward + backward + optimize
                 outputs = self.model(inputs)
-                sigmoid = F.sigmoid(outputs)
-                for j, out in enumerate(sigmoid):
-                    cls = 0 if out.data[0] < 0.5 else 1
-                    all_preds.append(cls)
-                    all_labels.append(data["label"][j][0])
+                # run inference
+                all_preds, all_labels = predict(
+                                outputs,
+                                labels,
+                                all_preds,
+                                all_labels,
+                                self.prediction_type,
+                                self.criterion
+                            )
 
         # compute confusion matrix
         cm = confusion_matrix(all_labels, all_preds)
