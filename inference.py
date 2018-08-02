@@ -1,5 +1,6 @@
 import numpy
 import torch
+from torch import nn
 
 def predict(
     outputs,
@@ -7,23 +8,26 @@ def predict(
     all_preds,
     all_labels,
     prediction_type,
-    criterion
+    criterion,
+    **kwargs
     ):
     """ Predict according to loss and prediction type."""
     if prediction_type == "binary":
-        if isinstance(criterion, nn.BCEWithlogits):
+        if isinstance(criterion, nn.BCEWithLogitsLoss):
             all_preds, all_labels = bce_with_logits_inference(
                 outputs,
                 labels,
                 all_preds,
-                all_labels
+                all_labels,
+                **kwargs
             )
-        elif isinstance(criterion, nn.BCE):
+        elif isinstance(criterion, nn.BCELoss):
             all_preds, all_labels = bce_inference(
                 outputs,
                 labels,
                 all_preds,
-                all_labels
+                all_labels,
+                **kwargs
             )
         return all_preds, all_labels
     elif prediction_type == "classification":
@@ -52,16 +56,25 @@ def predict(
         raise NotImplementedError
 
 
-def bce_with_logits_inference(outputs, labels, all_preds, all_labels):
+def bce_with_logits_inference(outputs, labels, all_preds, all_labels, **kwargs):
     sigmoid = torch.sigmoid(outputs)
-    predicted = sigmoid.data >= self.class_threshold
+    if kwargs["class_threshold"]:
+        class_threshold = kwargs["class_threshold"]
+    else:
+        class_threshold = 0.5
+    print
+    predicted = sigmoid.data >= class_threshold
     for j in range(len(predicted)):
         all_preds.append(predicted[j].cpu().numpy()[0])
         all_labels.append(labels[j].cpu().numpy()[0])
     return all_preds, all_labels
 
-def bce_inference(outputs, labels, all_preds, all_labels):
-    predicted = outputs.data >= self.class_threshold
+def bce_inference(outputs, labels, all_preds, all_labels, **kwargs):
+    if kwargs["class_threshold"]:
+        class_threshold = kwargs["class_threshold"]
+    else:
+        class_threshold = 0.5
+    predicted = outputs.data >= class_threshold
     for j in range(len(predicted)):
         all_preds.append(predicted[j].cpu().numpy()[0])
         all_labels.append(labels[j].cpu().numpy()[0])

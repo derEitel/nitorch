@@ -16,11 +16,11 @@ class Trainer:
         model, 
         criterion,
         optimizer,
-        scheduler,
+        scheduler=None,
         metrics=[], 
         callbacks=[],
-        class_threshold=0.5,
-        prediction_type="binary"
+        prediction_type="binary",
+        **kwargs
         ):
         """ Main class for training.
 
@@ -46,7 +46,9 @@ class Trainer:
         self.scheduler = scheduler
         self.metrics = metrics
         self.callbacks = callbacks
-        self.class_threshold = class_threshold
+        self.class_threshold = None
+        if "class_threshold" in kwargs.keys():
+            self.class_threshold = kwargs["class_threshold"]
         self.stop_training = False
         self.start_time = None
         self.prediction_type = prediction_type
@@ -66,7 +68,7 @@ class Trainer:
         train_metrics = dict()
 
         self.start_time = time.time()
-        self.best_acc = 0.0
+        self.best_metric = 0.0
         self.best_model = None
         
         for epoch in range(num_epochs):
@@ -78,7 +80,8 @@ class Trainer:
             else:
                 running_loss = 0.0
                 epoch_loss = 0.0
-                self.scheduler.step(epoch)
+                if self.scheduler:
+                    self.scheduler.step(epoch)
                 # variables to compute metrics
                 all_preds = []
                 all_labels = []
@@ -113,7 +116,8 @@ class Trainer:
                                 all_preds,
                                 all_labels,
                                 self.prediction_type,
-                                self.criterion
+                                self.criterion,
+                                class_threshold=self.class_threshold
                             )
                     # print statistics
                     running_loss += loss.item()
@@ -166,7 +170,7 @@ class Trainer:
                         # wrap data in Variable
                         inputs = Variable(inputs.cuda(gpu))
                         labels = Variable(labels.cuda(gpu))
-                        
+
                         # forward pass only
                         outputs = self.model(inputs)
                         loss = self.criterion(outputs, labels)
@@ -177,7 +181,8 @@ class Trainer:
                                 all_preds,
                                 all_labels,
                                 self.prediction_type,
-                                self.criterion
+                                self.criterion,
+                                class_threshold=self.class_threshold
                             )
 
                         validation_loss += loss.item()
@@ -200,13 +205,16 @@ class Trainer:
             if self.callbacks is not None:
                 for callback in self.callbacks:
                     callback(self, epoch, val_metrics)
-        self.finish_training()
+        self.finish_training(val_metrics)
         return (self.model, 
-                [train_metrics, val_metrics], 
-                [self.best_model, self.best_acc]
+                {
+                 "train_metrics" : train_metrics,
+                 "val_metrics" : val_metrics,
+                 "best_model" : self.best_model,
+                 "best_metric" : self.best_metric}
                 )
 
-    def finish_training(self):
+    def finish_training(self, val_metrics):
         total_time = (time.time() - self.start_time) / 60
         print("Time trained: {:.2f} minutes".format(total_time))
         # execute final methods of callbacks
@@ -222,17 +230,22 @@ class Trainer:
                 if "final" in method_list:
                     # in case of model checkpoint load best model
                     if isinstance(callback, ModelCheckpoint):
-                        self.best_acc, best_model = callback.final()
+                        self.best_metric, best_model = callback.final()
                         self.model.load_state_dict(best_model)
                     else:
                         callback.final()
+        # in case of no model selection, pick the last loss
+        if self.best_metric == 0.0:
+            self.best_metric = val_metrics["loss"][-1]
+            self.best_model = self.model
+
 
 
     def visualize_training(self, report, metrics=None):
         # Plot loss first
         plt.figure()
-        plt.plot(report[0]["loss"])
-        plt.plot(report[1]["loss"])
+        plt.plot(report["train_metrics"]["loss"])
+        plt.plot(report["val_metrics"]["loss"])
         plt.title("Loss during training")
         plt.legend(["Train", "Val"])
         plt.show()
@@ -240,8 +253,8 @@ class Trainer:
             metrics = self.metrics
         for metric in metrics:
             plt.figure()
-            plt.plot(report[0][metric.__name__])
-            plt.plot(report[1][metric.__name__])
+            plt.plot(report["train_metrics"][metric.__name__])
+            plt.plot(report["val_metrics"][metric.__name__])
             plt.legend(["Train", "Val"])
             plt.title(metric.__name__)
             plt.show()
@@ -266,7 +279,8 @@ class Trainer:
                                 all_preds,
                                 all_labels,
                                 self.prediction_type,
-                                self.criterion
+                                self.criterion,
+                                class_threshold=self.class_threshold
                             )
 
         # compute confusion matrix
