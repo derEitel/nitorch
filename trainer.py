@@ -75,8 +75,7 @@ class Trainer:
             if self.stop_training:
                 # TODO: check position of this
                 print("Early stopping in epoch {}".format(epoch - 1))
-                return self.finish_training([train_metrics, 
-                                             val_metrics])
+                return self.finish_training(train_metrics, val_metrics)
             else:
                 running_loss = 0.0
                 epoch_loss = 0.0
@@ -201,20 +200,14 @@ class Trainer:
                         val_metrics["loss"].append(validation_loss)
                     else:
                         val_metrics["loss"] = [validation_loss]
-
             if self.callbacks is not None:
                 for callback in self.callbacks:
                     callback(self, epoch, val_metrics)
-        self.finish_training(val_metrics)
-        return (self.model, 
-                {
-                 "train_metrics" : train_metrics,
-                 "val_metrics" : val_metrics,
-                 "best_model" : self.best_model,
-                 "best_metric" : self.best_metric}
-                )
+        # End training
+        return self.finish_training(train_metrics, val_metrics)
+        
 
-    def finish_training(self, val_metrics):
+    def finish_training(self, train_metrics, val_metrics):
         total_time = (time.time() - self.start_time) / 60
         print("Time trained: {:.2f} minutes".format(total_time))
         # execute final methods of callbacks
@@ -238,6 +231,14 @@ class Trainer:
         if self.best_metric == 0.0:
             self.best_metric = val_metrics["loss"][-1]
             self.best_model = self.model
+
+        return (self.model, 
+                {
+                 "train_metrics" : train_metrics,
+                 "val_metrics" : val_metrics,
+                 "best_model" : self.best_model,
+                 "best_metric" : self.best_metric}
+                )
 
 
 
