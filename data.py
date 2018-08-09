@@ -67,29 +67,27 @@ class Normalize(object):
         # set epsilon only if using std scaling
         self.eps = eps if np.all(std) != 1 else 0
 
-    def __call__(self, sample):
-        images, labels = sample["image"], sample["label"]
+    def __call__(self, image):
         if self.masked:
-            images = self.zero_masked_transform(images)
+            image = self.zero_masked_transform(image)
         else:
-            images = self.apply_transform(images)
-        return {"image": images, "label": labels}
+            image = self.apply_transform(image)
+        return image
 
-    def denormalize(self, sample):
-        images, labels = sample["image"], sample["label"]
-        images = images * (self.std + self.eps) + self.mean
-        return {"image": images, "label": labels}
+    def denormalize(self, image):
+        image = image * (self.std + self.eps) + self.mean
+        return image
 
-    def apply_transform(self, images):
-        return (images - self.mean) / (self.std + self.eps)
+    def apply_transform(self, image):
+        return (image - self.mean) / (self.std + self.eps)
 
-    def zero_masked_transform(self, images):
+    def zero_masked_transform(self, image):
         """ Only apply transform where input is not zero. """
-        img_mask = images == 0
+        img_mask = image == 0
         # do transform
-        images = self.apply_transform(images)
-        images[img_mask] = 0.
-        return images
+        image = self.apply_transform(image)
+        image[img_mask] = 0.
+        return image
 
 
 class IntensityRescale:
@@ -101,17 +99,16 @@ class IntensityRescale:
     def __init__(self, masked=True):
         self.masked = masked
 
-    def __call__(self, sample):
-        image, label = sample["image"], sample["label"]
+    def __call__(self, image):
         if self.masked:
             image = self.zero_masked_transform(image)
         else:
             image = self.apply_transform(image)
 
-        return {"image": image, "label": label}
+        return image
 
-    def apply_transform(self, images):
-        return normalize_float(images, min=0)
+    def apply_transform(self, image):
+        return normalize_float(image, min=0)
 
     def zero_masked_transform(self, image):
         """ Only apply transform where input is not zero. """

@@ -124,7 +124,7 @@ class Trainer:
                     # print every X mini-batches
                     if i % show_train_steps == 0:  
                         print(
-                            "[%d, %5d] loss: %.3f"
+                            "[%d, %5d] loss: %.5f"
                             % (epoch + 1, i + 1, 
                                running_loss / show_train_steps)
                         )
@@ -194,7 +194,7 @@ class Trainer:
                         phase="Val"
                     )
                     validation_loss /= len(val_loader)
-                    print("Val loss: {0:.4f}".format(validation_loss))
+                    print("Val loss: {0:.6f}".format(validation_loss))
                     # add loss to metrics data
                     if "loss" in val_metrics:
                         val_metrics["loss"].append(validation_loss)

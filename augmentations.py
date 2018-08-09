@@ -5,56 +5,53 @@ from scipy.ndimage.interpolation import rotate
 
 # Data augmentations
 class SagittalFlip:
-    def __call__(self, batch):
+    def __call__(self, image):
         """ 
             Expects shape (X, Y, Z).
             Flips along the X axis (sagittal).
         """
-        images, labels = batch["image"], batch["label"]
         thresh = 0.5
         rand = np.random.uniform()
         if rand > thresh:
-            batch_augmented = np.flip(images, axis=0).copy()
+            augmented = np.flip(image, axis=0).copy()
         else:
-            batch_augmented = images
-        return {"image": batch_augmented, "label": labels}
+            augmented = image
+        return augmented
 
 
 class Rotate:
-    def __call__(self, batch):
+    def __call__(self, image):
         """ 
             Expects shape (X, Y, Z).
             Rotates along the X axis.
         """
-        images, labels = batch["image"], batch["label"]
         min_rot, max_rot = -3, 3
         rand = np.random.randint(min_rot, max_rot + 1)
-        batch_augmented = rotate(
-            images,
+        augmented = rotate(
+            image,
             angle=rand,
             axes=(1, 0),
             reshape=False
             ).copy()
-        return {"image": batch_augmented, "label": labels}
+        return augmented
 
 
 class Translate:
-    def __call__(self, batch):
+    def __call__(self, image):
         """ 
             Expects shape (X, Y, Z).
             Translates the X axis.
         """
-        images, labels = batch["image"], batch["label"]
         min_trans, max_trans = -3, 3
         rand = np.random.randint(min_trans, max_trans + 1)
-        batch_augmented = np.zeros_like(images)
+        augmented = np.zeros_like(image)
         if rand < 0:
-            batch_augmented[-rand:, :] = images[:rand, :]
+            augmented[-rand:, :] = image[:rand, :]
         elif rand > 0:
-            batch_augmented[:-rand, :] = images[rand:, :]
+            augmented[:-rand, :] = image[rand:, :]
         else:
-            batch_augmented = images
-        return {"image": batch_augmented, "label": labels}
+            augmented = image
+        return augmented
 
 
 class ToTensor(object):
@@ -63,14 +60,11 @@ class ToTensor(object):
     Expects labels to be scalar i.e. not tensors.
     """
 
-    def __call__(self, batch):
-        images, labels = batch["image"], batch["label"]
+    def __call__(self, image):
         # Expand with channel axis
         # numpy image: H x W x Z
         # torch image: C x H x W x Z
 
-        images = torch.from_numpy(images).unsqueeze(0)
-        images = images.float()
-        labels = torch.FloatTensor([labels])
-
-        return {"image": images, "label": labels}
+        image = torch.from_numpy(image).unsqueeze(0)
+        image = image.float()
+        return image
