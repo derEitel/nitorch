@@ -34,8 +34,8 @@ class Trainer:
             class_threshold: classification threshold for binary 
                 classification. Default is 0.5.
             prediction_type: accepts one of ["binary", "classification",
-                "regression", "reconstruction", "other"]. This is used
-                to determine output.
+                "regression", "reconstruction", "variational", "other"]. 
+                This is used to determine output type.
 
         """
         if not isinstance(model, nn.Module):

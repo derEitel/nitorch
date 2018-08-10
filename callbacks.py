@@ -3,6 +3,8 @@ from copy import deepcopy
 
 class ModelCheckpoint:
     def __init__(self, path, retain_metric, mode, ignore_before=0):
+
+        # TODO: implement saving
         self.path = path
         self.retain_metric = retain_metric
         self.mode = mode

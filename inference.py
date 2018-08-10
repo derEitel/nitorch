@@ -52,6 +52,15 @@ def predict(
                 all_labels
         )
         return all_preds, all_labels
+    elif prediction_type == "variational":
+        # TODO: test different loss functions
+        all_preds, all_labels = variational_inference(
+                outputs,
+                labels,
+                all_preds,
+                all_labels
+        )
+        return all_preds, all_labels
     else:
         raise NotImplementedError
 
@@ -82,6 +91,16 @@ def bce_inference(outputs, labels, all_preds, all_labels, **kwargs):
 
 def regression_inference(outputs, labels, all_preds, all_labels):
     predicted = outputs.data
+    # TODO: replace for loop with something faster
+    for j in range(len(predicted)):
+        all_preds.append(predicted[j].cpu().numpy()[0])
+        all_labels.append(labels[j].cpu().numpy()[0])
+    return all_preds, all_labels
+
+def variational_inference(outputs, labels, all_preds, all_labels):
+    """ Inference for variational autoencoders. """
+    # VAE outputs reconstruction, mu and std
+    predicted = outputs[0].data # select reconstruction only
     # TODO: replace for loop with something faster
     for j in range(len(predicted)):
         all_preds.append(predicted[j].cpu().numpy()[0])
