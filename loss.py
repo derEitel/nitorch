@@ -62,21 +62,31 @@ class Multihead_loss(torch.nn.Module):
     Arguments:
         outputs: List of network outputs.
         target: List of targets where len(outputs) = len(target).
-        loss_function: either list of loss functions with
-        len(loss_function) = len(targets) or len(loss_function) = 1.
+        loss_function: List of loss functions with either
+            len(loss_function) = len(targets) or len(loss_function) = 1.
+        weights: List of weights for each loss. Default = [1]
     """
-    def __init__(self):
+    def __init__(self, loss_function, weights=[1]):
         super(Multihead_loss, self).__init__()
-
-    def forward(self, outputs, target, loss_function):
-        assert(len(outputs) == len(target))
-        assert(len(loss_function) == len(target) or len(loss_function) == 1)
+        
         # expand loss_function list if univariate
-        if len(loss_function) == 1:
-            loss_function = [loss_function[0] for i in range(len(target))]
+        self.loss_function = loss_function
+        self.weights = weights
+
+    def forward(self, outputs, target):
+        assert(len(outputs) == len(target))
+        assert(len(self.loss_function) == len(target) \
+            or len(self.loss_function) == 1)
+    
+        if len(self.loss_function) == 1:
+            loss_function = [self.loss_function[0] for i in range(len(target))]
+
+        if len(self.weights) == 1:
+            weights = [self.weights[0] for i in range(len(target))]
+
         # compute loss for each head
         total_loss = 0.
-        for out, gt, loss_func in zip(outputs, target, loss_function):
+        for out, gt, loss_func, weight in zip(outputs, target, loss_function, weights):
             loss = loss_func(out, gt)
-            total_loss += loss
+            total_loss += loss * weight
         return total_loss

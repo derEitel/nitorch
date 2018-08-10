@@ -90,17 +90,35 @@ def bce_inference(outputs, labels, all_preds, all_labels, **kwargs):
     return all_preds, all_labels
 
 def regression_inference(outputs, labels, all_preds, all_labels):
-    predicted = outputs.data
-    # TODO: replace for loop with something faster
-    for j in range(len(predicted)):
-        all_preds.append(predicted[j].cpu().numpy()[0])
-        all_labels.append(labels[j].cpu().numpy()[0])
-    return all_preds, all_labels
+    # Multi-head case
+    if len(outputs) > 1:
+        predicted = [output.data for output in outputs]
+
+        for head in range(len(predicted)):
+            for j in range(len(predicted)):
+                try:
+                    all_preds[head].append(predicted[j].cpu().numpy()[0])
+                    all_labels[head].append(labels[j].cpu().numpy()[0])
+                except IndexError:
+                    # create inner lists if needed
+                    all_preds.append([predicted[j].cpu().numpy()[0]])
+                    all_labels.append([labels[j].cpu().numpy()[0]])
+        return all_preds, all_labels
+    # Single-head case
+    else:
+        predicted = outputs.data
+        # TODO: replace for loop with something faster
+        for j in range(len(predicted)):
+            all_preds.append(predicted[j].cpu().numpy()[0])
+            all_labels.append(labels[j].cpu().numpy()[0])
+        return all_preds, all_labels
 
 def variational_inference(outputs, labels, all_preds, all_labels):
     """ Inference for variational autoencoders. """
     # VAE outputs reconstruction, mu and std
-    predicted = outputs[0].data # select reconstruction only
+    # select reconstruction only
+    outputs = outputs[0]
+    predicted = outputs.data 
     # TODO: replace for loop with something faster
     for j in range(len(predicted)):
         all_preds.append(predicted[j].cpu().numpy()[0])

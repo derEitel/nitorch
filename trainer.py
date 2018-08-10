@@ -97,8 +97,15 @@ class Trainer:
                         except TypeError:
                             raise TypeError
                     # wrap data in Variable
-                    inputs = Variable(inputs.cuda(gpu))
-                    labels = Variable(labels.cuda(gpu))
+                    # in case of multi-input or output create a list
+                    if isinstance(inputs, list):
+                        inputs = [Variable(inp.cuda(gpu)) for inp in inputs]
+                    else:
+                        inputs = Variable(inputs.cuda(gpu))
+                    if isinstance(labels, list):
+                        labels = [Variable(label.cuda(gpu)) for label in labels]
+                    else:
+                        labels = Variable(labels.cuda(gpu))
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
@@ -167,8 +174,15 @@ class Trainer:
                                 raise TypeError("Data not in correct \
                                  sequence format.")
                         # wrap data in Variable
-                        inputs = Variable(inputs.cuda(gpu))
-                        labels = Variable(labels.cuda(gpu))
+                        # in case of multi-input or output create a list
+                        if isinstance(inputs, list):
+                            inputs = [Variable(inp.cuda(gpu)) for inp in inputs]
+                        else:
+                            inputs = Variable(inputs.cuda(gpu))
+                        if isinstance(labels, list):
+                            labels = [Variable(label.cuda(gpu)) for label in labels]
+                        else:
+                            labels = Variable(labels.cuda(gpu))
 
                         # forward pass only
                         outputs = self.model(inputs)
