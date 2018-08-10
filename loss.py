@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-def bce_kl_loss(outputs, target):
+class BCE_KL_loss(torch.nn.Module):
     """ 
     Reconstruction loss for variational auto-encoders.
     Binary-cross entropy reconstruction + KL divergence losses summed
@@ -13,18 +13,22 @@ def bce_kl_loss(outputs, target):
         outputs: List of the form [reconstruction, mean, logvariance].
         x: ground-truth.
     """
-    recon_x, mu, logvar = outputs
-    BCE = F.binary_cross_entropy(recon_x, target, size_average=False)
+    def __init__(self):
+        super(BCE_KL_loss, self).__init__()
 
-    # see Appendix B from VAE paper:
-    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-    # https://arxiv.org/abs/1312.6114
-    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    def forward(self, outputs, target):
+        recon_x, mu, logvar = outputs
+        BCE = F.binary_cross_entropy(recon_x, target, size_average=False)
 
-    return BCE + KLD
+        # see Appendix B from VAE paper:
+        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+        # https://arxiv.org/abs/1312.6114
+        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-def mse_kl_loss(outputs, target):
+        return BCE + KLD
+
+class MSE_KL_loss(torch.nn.Module):
     """ 
     Reconstruction loss for variational auto-encoders.
     Mean squared error reconstruction + KL divergence losses summed
@@ -36,18 +40,22 @@ def mse_kl_loss(outputs, target):
         outputs: List of the form [reconstruction, mean, logvariance].
         x: ground-truth.
     """
-    recon_x, mu, logvar = outputs
-    MSE = F.mse_loss(recon_x, target, size_average=False)
+    def __init__(self):
+        super(MSE_KL_loss, self).__init__()
 
-    # see Appendix B from VAE paper:
-    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-    # https://arxiv.org/abs/1312.6114
-    # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    def forward(self, outputs, target):
+        recon_x, mu, logvar = outputs
+        MSE = F.mse_loss(recon_x, target, size_average=False)
 
-    return MSE + KLD
+        # see Appendix B from VAE paper:
+        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+        # https://arxiv.org/abs/1312.6114
+        # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-def multihead_loss(outputs, target, loss_function):
+        return MSE + KLD
+
+class Multihead_loss(torch.nn.Module):
     """
     Compute the loss on multiple outputs.
 
@@ -57,14 +65,18 @@ def multihead_loss(outputs, target, loss_function):
         loss_function: either list of loss functions with
         len(loss_function) = len(targets) or len(loss_function) = 1.
     """
-    assert(len(outputs) == len(target))
-    assert(len(loss_function) == len(target) or len(loss_function) == 1)
-    # expand loss_function list if univariate
-    if len(loss_function) == 1:
-        loss_function = [loss_function[0] for i in range(len(target))]
-    # compute loss for each head
-    total_loss = 0.
-    for out, gt, loss_func in zip(outputs, target, loss_function):
-        loss = loss_func(out, gt)
-        total_loss += loss
-    return total_loss
+    def __init__(self):
+        super(Multihead_loss, self).__init__()
+
+    def forward(self, outputs, target, loss_function):
+        assert(len(outputs) == len(target))
+        assert(len(loss_function) == len(target) or len(loss_function) == 1)
+        # expand loss_function list if univariate
+        if len(loss_function) == 1:
+            loss_function = [loss_function[0] for i in range(len(target))]
+        # compute loss for each head
+        total_loss = 0.
+        for out, gt, loss_func in zip(outputs, target, loss_function):
+            loss = loss_func(out, gt)
+            total_loss += loss
+        return total_loss
