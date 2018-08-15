@@ -10,6 +10,13 @@ def load_nifti(file_path, z_factor=None, dtype=None, incl_header=False, mask=Non
         dt = dtype
     img = nib.load(file_path)
     struct_arr = img.get_data().astype(dt)
+
+    if np.inf in struct_arr:
+        # replace infinite values with 0
+        struct_arr[struct_arr == np.inf] = 0.
+    if np.isnan(struct_arr).any() == True:
+        # replace NaN values with 0
+        struct_arr[np.isnan(struct_arr)] = 0.
     if mask is not None:
         struct_arr *= mask
     if z_factor is not None:
@@ -26,7 +33,27 @@ def normalize_float(x, min=-1):
         norm = 2 * (x - np.min(x)) / (np.max(x) - np.min(x)) - 1
         return norm
     elif min == 0:
-        norm = (x - np.min(x)) / (np.max(x) - np.min(x))
+        if np.max(x) == 0 and np.min(x) == 0:
+            norm = x
+        else:
+            norm = (x - np.min(x)) / (np.max(x) - np.min(x))
+    return norm
+
+
+def normalize_float_torch(x, min=-1):
+    '''
+     Function to normalize a matrix of floats.
+     Can also deal with Pytorch dictionaries where the data matrix
+     key is 'image'.
+    '''
+    import torch
+    if min == -1:
+        norm = 2 * (x - torch.min(x)) / (torch.max(x) - torch.min(x)) - 1
+    elif min == 0:
+        if torch.max(x) == 0 and torch.min(x) == 0:
+            norm = x
+        else:    
+            norm = (x - torch.min(x)) / (torch.max(x) - torch.min(x))
     return norm
 
 
@@ -96,8 +123,9 @@ class IntensityRescale:
     masked = False if this is undesired.
     """
 
-    def __init__(self, masked=True):
+    def __init__(self, masked=True, on_gpu=False):
         self.masked = masked
+        self.on_gpu = on_gpu
 
     def __call__(self, image):
         if self.masked:
@@ -108,7 +136,10 @@ class IntensityRescale:
         return image
 
     def apply_transform(self, image):
-        return normalize_float(image, min=0)
+        if self.on_gpu:
+            return normalize_float_torch(image, min=0)
+        else:
+            return normalize_float(image, min=0)
 
     def zero_masked_transform(self, image):
         """ Only apply transform where input is not zero. """
