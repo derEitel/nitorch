@@ -68,8 +68,7 @@ class Multihead_loss(torch.nn.Module):
     """
     def __init__(self, loss_function, weights=[1]):
         super(Multihead_loss, self).__init__()
-        
-        # expand loss_function list if univariate
+
         self.loss_function = loss_function
         self.weights = weights
 
@@ -77,10 +76,11 @@ class Multihead_loss(torch.nn.Module):
         assert(len(outputs) == len(target))
         assert(len(self.loss_function) == len(target) \
             or len(self.loss_function) == 1)
-    
+
+        # expand loss_function list if univariate
         if len(self.loss_function) == 1:
             loss_function = [self.loss_function[0] for i in range(len(target))]
-
+        # expand weights list if univariate
         if len(self.weights) == 1:
             weights = [self.weights[0] for i in range(len(target))]
 

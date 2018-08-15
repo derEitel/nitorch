@@ -119,8 +119,13 @@ class Normalize(object):
 
 class IntensityRescale:
     """
-    By default will only normalize on non-zero voxels. Set 
-    masked = False if this is undesired.
+    Rescale images itensities between 0 and 1 for a single image.
+
+    Arguments:
+        masked: applies normalization only on non-zero voxels. Default
+            is True.
+        on_gpu: speed up computation by using GPU. Requires torch.Tensor
+             instead of np.array. Default is False.
     """
 
     def __init__(self, masked=True, on_gpu=False):
