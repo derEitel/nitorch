@@ -1,2 +1,5 @@
 from nitorch.data import IntensityRescale
-intensity = IntensityRescale(masked=False, on_gpu=True)
+
+if __name__ == "__main__":
+    intensity = IntensityRescale(masked=False, on_gpu=True)
+    print("hello world")

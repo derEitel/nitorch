@@ -1,6 +1,5 @@
 numpy
 pandas
-torch
 sklearn
 scipy
 nibabel
