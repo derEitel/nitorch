@@ -79,14 +79,14 @@ class Multihead_loss(torch.nn.Module):
 
         # expand loss_function list if univariate
         if len(self.loss_function) == 1:
-            loss_function = [self.loss_function[0] for i in range(len(target))]
+            self.loss_function = [self.loss_function[0] for i in range(len(target))]
         # expand weights list if univariate
         if len(self.weights) == 1:
-            weights = [self.weights[0] for i in range(len(target))]
+            self.weights = [self.weights[0] for i in range(len(target))]
 
         # compute loss for each head
         total_loss = 0.
-        for out, gt, loss_func, weight in zip(outputs, target, loss_function, weights):
+        for out, gt, loss_func, weight in zip(outputs, target, self.loss_function, self.weights):
             loss = loss_func(out, gt)
             total_loss += loss * weight
         return total_loss

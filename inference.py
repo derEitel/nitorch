@@ -65,7 +65,13 @@ def predict(
         raise NotImplementedError
 
 
-def bce_with_logits_inference(outputs, labels, all_preds, all_labels, **kwargs):
+def bce_with_logits_inference(
+    outputs,
+    labels,
+    all_preds,
+    all_labels,
+    **kwargs
+    ):
     sigmoid = torch.sigmoid(outputs)
     if kwargs["class_threshold"]:
         class_threshold = kwargs["class_threshold"]
@@ -78,7 +84,13 @@ def bce_with_logits_inference(outputs, labels, all_preds, all_labels, **kwargs):
         all_labels.append(labels[j].cpu().numpy()[0])
     return all_preds, all_labels
 
-def bce_inference(outputs, labels, all_preds, all_labels, **kwargs):
+def bce_inference(
+    outputs,
+    labels,
+    all_preds,
+    all_labels,
+    **kwargs
+    ):
     if kwargs["class_threshold"]:
         class_threshold = kwargs["class_threshold"]
     else:
@@ -89,31 +101,41 @@ def bce_inference(outputs, labels, all_preds, all_labels, **kwargs):
         all_labels.append(labels[j].cpu().numpy()[0])
     return all_preds, all_labels
 
-def regression_inference(outputs, labels, all_preds, all_labels):
+def regression_inference(
+    outputs,
+    labels,
+    all_preds,
+    all_labels
+    ):
     # Multi-head case
-    if len(outputs) > 1:
+    # network returns a tuple of outputs
+    if isinstance(outputs, tuple):
         predicted = [output.data for output in outputs]
-
         for head in range(len(predicted)):
-            for j in range(len(predicted)):
+            for j in range(len(predicted[head])):
                 try:
-                    all_preds[head].append(predicted[j].cpu().numpy()[0])
-                    all_labels[head].append(labels[j].cpu().numpy()[0])
+                    all_preds[head].append(predicted[head][j].cpu().numpy()[0])
+                    all_labels[head].append(labels[head][j].cpu().numpy()[0])
                 except IndexError:
                     # create inner lists if needed
-                    all_preds.append([predicted[j].cpu().numpy()[0]])
-                    all_labels.append([labels[j].cpu().numpy()[0]])
+                    all_preds.append([predicted[head][j].cpu().numpy()[0]])
+                    all_labels.append([labels[head][j].cpu().numpy()[0]])
         return all_preds, all_labels
     # Single-head case
     else:
-        predicted = outputs.data
+        predicted = outputs[0].data
         # TODO: replace for loop with something faster
         for j in range(len(predicted)):
             all_preds.append(predicted[j].cpu().numpy()[0])
             all_labels.append(labels[j].cpu().numpy()[0])
         return all_preds, all_labels
 
-def variational_inference(outputs, labels, all_preds, all_labels):
+def variational_inference(
+    outputs,
+    labels,
+    all_preds,
+    all_labels
+    ):
     """ Inference for variational autoencoders. """
     # VAE outputs reconstruction, mu and std
     # select reconstruction only

@@ -84,6 +84,7 @@ class Trainer:
                 # variables to compute metrics
                 all_preds = []
                 all_labels = []
+                multi_batch_metrics = dict()
                 # train
                 self.model.train()
                 for i, data in enumerate(train_loader):
@@ -125,10 +126,10 @@ class Trainer:
                                 self.criterion,
                                 class_threshold=self.class_threshold
                             )
-                    # print statistics
+                    # update loss
                     running_loss += loss.item()
                     epoch_loss += loss.item()
-                    # print every X mini-batches
+                    # print loss every X mini-batches
                     if i % show_train_steps == 0:  
                         print(
                             "[%d, %5d] loss: %.5f"
@@ -137,15 +138,26 @@ class Trainer:
                         )
                         running_loss = 0.0
 
-                # report training metrics after each epoch
-                train_metrics = self.report_metrics(
-                    train_metrics,
-                    self.metrics,
-                    all_labels,
-                    all_preds,
-                    phase="Train"
-                )
+                    # compute training metrics for X/2 mini-batches
+                    # useful for large outputs (e.g. reconstructions)
+                    if i % int(show_train_steps/2) == 0:
+                        multi_batch_metrics = self.estimate_metrics(
+                            multi_batch_metrics,
+                            all_labels,
+                            all_preds,
+                        )
+                        # TODO: test if del helps
+                        all_labels = []
+                        all_preds = []
 
+                # report training metrics
+                train_metrics = self._on_epoch_end(
+                        train_metrics,
+                        multi_batch_metrics,
+                        all_labels,
+                        all_preds,
+                        phase="train"
+                    )
                 epoch_loss /= len(train_loader)
 
                 # add loss to metrics data
@@ -160,6 +172,7 @@ class Trainer:
                 validation_loss = 0.0
                 all_preds = []
                 all_labels = []
+                multi_batch_metrics = dict()
 
                 with torch.no_grad():
                     for i, data in enumerate(val_loader):
@@ -200,13 +213,25 @@ class Trainer:
 
                         validation_loss += loss.item()
 
-                    val_metrics = self.report_metrics(
+                        if i % int(show_train_steps/2) == 0:
+                            multi_batch_metrics = self.estimate_metrics(
+                                multi_batch_metrics,
+                                all_labels,
+                                all_preds,
+                            )
+                            # TODO: test if del helps
+                            all_labels = []
+                            all_preds = []
+
+                    # report validation metrics
+                    val_metrics = self._on_epoch_end(
                         val_metrics,
-                        self.metrics,
+                        multi_batch_metrics,
                         all_labels,
                         all_preds,
-                        phase="Val"
+                        phase="val"
                     )
+
                     validation_loss /= len(val_loader)
                     print("Val loss: {0:.6f}".format(validation_loss))
                     # add loss to metrics data
@@ -327,15 +352,15 @@ class Trainer:
     def report_metrics(
         self,
         metrics_dict,
-        metrics,
-        all_labels,
-        all_preds, phase
+        multi_batch_metrics,
+        phase
         ):
-        """ Function to compute a list of metric functions. """
-        for metric in metrics:
+        """ Store and report a list of metric functions. """
+        for metric in self.metrics:
             # report everything but loss
-            if metric.__name__ is not "loss": 
-                result = metric(all_labels, all_preds)
+            if metric.__name__ is not "loss":
+                # average over previous batches
+                result = np.mean(multi_batch_metrics[metric.__name__])
                 if metric.__name__ in metrics_dict:
                     metrics_dict[metric.__name__].append(result)
                 else:
@@ -347,4 +372,48 @@ class Trainer:
                 else:
                     print("{} {}: {} ".format(
                         phase, metric.__name__, str(result)))
+        return metrics_dict
+
+    def estimate_metrics(
+        self,
+        metrics_dict,
+        all_labels,
+        all_preds
+        ):
+        """ Estimate a list of metric functions. """
+        for metric in self.metrics:
+            # report everything but loss
+            if metric.__name__ is not "loss": 
+                result = metric(all_labels, all_preds)
+                if metric.__name__ in metrics_dict:
+                    metrics_dict[metric.__name__].append(result)
+                else:
+                    metrics_dict[metric.__name__] = [result]
+        return metrics_dict
+
+    def _on_epoch_end(
+        self,
+        metrics_dict,
+        multi_batch_metrics,
+        all_labels,
+        all_preds,
+        phase
+        ):
+        # check for unreported metrics
+        if len(all_preds) > 0:
+            multi_batch_metrics = self.estimate_metrics(
+                    multi_batch_metrics,
+                    all_labels,
+                    all_preds,
+                )
+            # TODO: test if del helps
+            all_labels = []
+            all_preds = []
+
+        metrics_dict = self.report_metrics(
+            metrics_dict,
+            multi_batch_metrics,
+            phase
+        )
+
         return metrics_dict
