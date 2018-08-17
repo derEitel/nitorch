@@ -1,155 +1,103 @@
 import numpy as np
 import nibabel as nib
 from scipy.ndimage.interpolation import zoom
+import matplotlib.pyplot as plt
+import nibabel
+from nilearn import plotting
+from niwidgets import NiftiWidget
+import os
 
 
-def load_nifti(file_path, z_factor=None, dtype=None, incl_header=False, mask=None):
-    if dtype is None:
-        dt = np.float32
-    else:
-        dt = dtype
+def load_nifti(file_path, dtype=np.float32, incl_header=False, z_factor=None, mask=None):
+    """
+    Loads a volumetric image in nifti format (extensions .nii, .nii.gz etc.)
+    as a 3D numpy.ndarray.
+    
+    Args:
+        file_path: absolute path to the nifti file
+        
+        dtype(optional): datatype of the loaded numpy.ndarray
+        
+        incl_header(bool, optional): If True, the nifTI object of the image is 
+        also returned
+        
+        z_factor(float or sequence, optional): The zoom factor along the axes. 
+        If a float, zoom is the same for each axis. If a sequence, zoom should 
+        contain one value for each axis.
+        
+        mask(ndarray, optional): A mask with the same shape as the image. 
+        If provided then the mask is element-wise multiplied with the image ndarray
+    
+    Returns:
+        3D numpy.ndarray with axis order (saggital x coronal x axial)
+    """
+    
     img = nib.load(file_path)
-    struct_arr = img.get_data().astype(dt)
-
+    struct_arr = img.get_data().astype(dtype)
+    
+    # replace infinite values with 0
     if np.inf in struct_arr:
-        # replace infinite values with 0
         struct_arr[struct_arr == np.inf] = 0.
+    
+    # replace NaN values with 0    
     if np.isnan(struct_arr).any() == True:
-        # replace NaN values with 0
         struct_arr[np.isnan(struct_arr)] = 0.
+        
     if mask is not None:
         struct_arr *= mask
+        
     if z_factor is not None:
         struct_arr = zoom(struct_arr, z_factor)
+    
     if incl_header:
         return struct_arr, img
     else:
         return struct_arr
 
 
-def normalize_float(x, min=-1):
-    """ Function to normalize a matrix of floats. """
-    if min == -1:
-        norm = 2 * (x - np.min(x)) / (np.max(x) - np.min(x)) - 1
-        return norm
-    elif min == 0:
-        if np.max(x) == 0 and np.min(x) == 0:
-            norm = x
-        else:
-            norm = (x - np.min(x)) / (np.max(x) - np.min(x))
-    return norm
-
-
-def normalize_float_torch(x, min=-1):
-    '''
-     Function to normalize a matrix of floats.
-     Can also deal with Pytorch dictionaries where the data matrix
-     key is 'image'.
-    '''
-    import torch
-    if min == -1:
-        norm = 2 * (x - torch.min(x)) / (torch.max(x) - torch.min(x)) - 1
-    elif min == 0:
-        if torch.max(x) == 0 and torch.min(x) == 0:
-            norm = x
-        else:    
-            norm = (x - torch.min(x)) / (torch.max(x) - torch.min(x))
-    return norm
-
-
-def normalization_factors(data, train_idx, shape, mode="slice"):
-    """ 
-    Shape should be of length 3. 
-    mode : either "slice" or "voxel" - defines the granularity of the normalization.
-        Voxelwise normalization does not work well with only linear registered data.
-    """
-    print("Computing the normalization factors of the training data..")
-    if mode == "slice":
-        axis = (0, 1, 2, 3)
-    elif mode == "voxel":
-        axis = 0
+def show_brain(img, cut_coords=(0,0,0), 
+               nifti_affine = None, interactive=False, 
+               figure=None, axes=None, cmap="nipy_spectral"):
+    """Displays plot cuts (by default Frontal, Axial, and Lateral) of a 3D image 
+    Arg:
+        img: can be (1) path to the image file stored in nifTI format
+                    (2) nibabel.Nifti1Image object
+                    (3) 3-dimensional numpy.ndarray
+        cut_coords(optional): The MNI coordinates (in range [-90, +90]) 
+        of the point where the cut will be is performed. 
+        Should be a 3-tuple: (x, y, z). Default is center (0,0,0). 
+        Is ignored in interactive mode.
+        
+        nifti_affine(optional): The 
+        
+        figure (optional): matplotlib figure to draw on
+        axes (optional): matplotlib axes to draw on
+        cmap (optional): matplotlib colormap to be used
+        
+        example:
+            >>> f = plt.figure(figsize=(10, 4))
+            >>> show_brain(img, interactive=True, figure=f)
+            >>> plt.show()
+        """
+    
+    if(isinstance(img, str) and os.path.isfile(img)) or (isinstance(img, nibabel.Nifti1Image)):
+        img_nii = img
+        
+    elif(isinstance(img, np.ndarray)):
+        assert img.ndim == 3, "The numpy.ndarray must be 3 dimensional of shape (H x W x Z)"
+        
+        if(nifti_affine == None):
+            nifti_affine = np.eye(4)
+            
+        img_nii = nib.Nifti1Image(img, affine=nifti_affine)
+        # convert cut co-ordinates in range [-90,90] to reflect the index range of numpy
+        cut_coords = np.multiply(np.add(cut_coords, 90), tuple(img.shape))//180
     else:
-        raise NotImplementedError("Normalization mode unknown.")
-    samples = np.zeros(
-        [len(train_idx), 1, shape[0], shape[1], shape[2]], dtype=np.float32
-    )
-    for c, value in enumerate(train_idx):
-        samples[c] = data[value]["image"].numpy()
-    mean = np.mean(samples, axis=axis)
-    std = np.std(samples, axis=axis)
-    return np.squeeze(mean), np.squeeze(std)
+        raise ValueError("Invalid value provided for 'img_pointer'- {}. Either provide a 3-dimensional numpy.ndarray of a MRI image or path to the image file stored in nifTI format.".format(type(img)))
+        
 
-
-class Normalize(object):
-    """
-    Normalize tensor with first and second moments.
-    By default will only normalize on non-zero voxels. Set 
-    masked = False if this is undesired.
-    """
-
-    def __init__(self, mean, std=1, masked=True, eps=1e-10):
-        self.mean = mean
-        self.std = std
-        self.masked = masked
-        # set epsilon only if using std scaling
-        self.eps = eps if np.all(std) != 1 else 0
-
-    def __call__(self, image):
-        if self.masked:
-            image = self.zero_masked_transform(image)
-        else:
-            image = self.apply_transform(image)
-        return image
-
-    def denormalize(self, image):
-        image = image * (self.std + self.eps) + self.mean
-        return image
-
-    def apply_transform(self, image):
-        return (image - self.mean) / (self.std + self.eps)
-
-    def zero_masked_transform(self, image):
-        """ Only apply transform where input is not zero. """
-        img_mask = image == 0
-        # do transform
-        image = self.apply_transform(image)
-        image[img_mask] = 0.
-        return image
-
-
-class IntensityRescale:
-    """
-    Rescale images itensities between 0 and 1 for a single image.
-
-    Arguments:
-        masked: applies normalization only on non-zero voxels. Default
-            is True.
-        on_gpu: speed up computation by using GPU. Requires torch.Tensor
-             instead of np.array. Default is False.
-    """
-
-    def __init__(self, masked=True, on_gpu=False):
-        self.masked = masked
-        self.on_gpu = on_gpu
-
-    def __call__(self, image):
-        if self.masked:
-            image = self.zero_masked_transform(image)
-        else:
-            image = self.apply_transform(image)
-
-        return image
-
-    def apply_transform(self, image):
-        if self.on_gpu:
-            return normalize_float_torch(image, min=0)
-        else:
-            return normalize_float(image, min=0)
-
-    def zero_masked_transform(self, image):
-        """ Only apply transform where input is not zero. """
-        img_mask = image == 0
-        # do transform
-        image = self.apply_transform(image)
-        image[img_mask] = 0.
-        return image
+    if interactive:
+        widget = NiftiWidget(img_nii)
+        widget.nifti_plotter(figure=figure, axes=axes, cmap=cmap)
+    else:                                
+        plotting.plot_img(img_nii, cut_coords, figure=figure, axes=axes, cmap=cmap)
