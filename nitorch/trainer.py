@@ -19,6 +19,7 @@ class Trainer:
         scheduler=None,
         metrics=[], 
         callbacks=[],
+        gpu=None,
         prediction_type="binary",
         **kwargs
         ):
@@ -46,6 +47,7 @@ class Trainer:
         self.scheduler = scheduler
         self.metrics = metrics
         self.callbacks = callbacks
+        self.gpu = gpu
         self.class_threshold = None
         if "class_threshold" in kwargs.keys():
             self.class_threshold = kwargs["class_threshold"]
@@ -57,7 +59,6 @@ class Trainer:
         self,
         train_loader,
         val_loader,
-        gpu=0,
         num_epochs=25,
         show_train_steps=25,
         show_validation_epochs=1,
@@ -75,7 +76,7 @@ class Trainer:
             if self.stop_training:
                 # TODO: check position of this
                 print("Early stopping in epoch {}".format(epoch - 1))
-                return self.finish_training(train_metrics, val_metrics)
+                return self.finish_training(train_metrics, val_metrics, epoch)
             else:
                 running_loss = 0.0
                 epoch_loss = 0.0
@@ -100,13 +101,13 @@ class Trainer:
                     # wrap data in Variable
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
-                        inputs = [Variable(inp.cuda(gpu)) for inp in inputs]
+                        inputs = [Variable(inp.cuda(self.gpu)) for inp in inputs]
                     else:
-                        inputs = Variable(inputs.cuda(gpu))
+                        inputs = Variable(inputs.cuda(self.gpu))
                     if isinstance(labels, list):
-                        labels = [Variable(label.cuda(gpu)) for label in labels]
+                        labels = [Variable(label.cuda(self.gpu)) for label in labels]
                     else:
-                        labels = Variable(labels.cuda(gpu))
+                        labels = Variable(labels.cuda(self.gpu))
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
@@ -189,13 +190,13 @@ class Trainer:
                         # wrap data in Variable
                         # in case of multi-input or output create a list
                         if isinstance(inputs, list):
-                            inputs = [Variable(inp.cuda(gpu)) for inp in inputs]
+                            inputs = [Variable(inp.cuda(self.gpu)) for inp in inputs]
                         else:
-                            inputs = Variable(inputs.cuda(gpu))
+                            inputs = Variable(inputs.cuda(self.gpu))
                         if isinstance(labels, list):
-                            labels = [Variable(label.cuda(gpu)) for label in labels]
+                            labels = [Variable(label.cuda(self.gpu)) for label in labels]
                         else:
-                            labels = Variable(labels.cuda(gpu))
+                            labels = Variable(labels.cuda(self.gpu))
 
                         # forward pass only
                         outputs = self.model(inputs)
@@ -243,10 +244,13 @@ class Trainer:
                 for callback in self.callbacks:
                     callback(self, epoch, val_metrics)
         # End training
-        return self.finish_training(train_metrics, val_metrics)
+        return self.finish_training(train_metrics, val_metrics, epoch)
         
 
-    def finish_training(self, train_metrics, val_metrics):
+    def finish_training(self, train_metrics, val_metrics, epoch):
+        """
+        End the training cyle, return a model and finish callbacks.
+        """
         total_time = (time.time() - self.start_time) / 60
         print("Time trained: {:.2f} minutes".format(total_time))
         # execute final methods of callbacks
@@ -260,12 +264,7 @@ class Trainer:
                         and not func.startswith("__"))
                 ]
                 if "final" in method_list:
-                    # in case of model checkpoint load best model
-                    if isinstance(callback, ModelCheckpoint):
-                        self.best_metric, best_model = callback.final()
-                        self.model.load_state_dict(best_model)
-                    else:
-                        callback.final()
+                    callback.final(trainer=self, epoch=epoch)
         # in case of no model selection, pick the last loss
         if self.best_metric == 0.0:
             self.best_metric = val_metrics["loss"][-1]

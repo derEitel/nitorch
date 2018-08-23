@@ -352,6 +352,3 @@ class AxialTranslate(Translate):
     """
     def __init__(self, dist=(-3, 3)):
         super().__init__(axis=2, dist=dist)
-
-
-
