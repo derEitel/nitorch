@@ -67,7 +67,7 @@ class ModelCheckpoint:
 class EarlyStopping:
     """ Stop training when a monitored quantity has stopped improving.
 
-    # Arguments
+    Arguments
         patience: number of iterations without improvement after which
             to stop
         retain_metric: the metric which you want to monitor

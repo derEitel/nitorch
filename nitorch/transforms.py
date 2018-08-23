@@ -97,7 +97,7 @@ class Normalize(object):
 
 class IntensityRescale:
     """
-    Rescale images itensities between 0 and 1 for a single image.
+    Rescale image itensities between 0 and 1 for a single image.
 
     Arguments:
         masked: applies normalization only on non-zero voxels. Default
@@ -134,19 +134,66 @@ class IntensityRescale:
 
 
 # Data augmentations
-class SagittalFlip:
+
+class Flip:
+    """
+    Flip the image along a given axis.
+
+    Arguments:
+        axis: axis to flip over.
+            Default is 0
+        prob: probability threshold. Always executed if set to 1.
+            Default is 0.5
+    """
+    def __init__(self, axis=0, prob=0.5):
+        self.axis = axis
+        self.prob = prob
+
     def __call__(self, image):
-        """ 
-            Expects shape (X, Y, Z).
-            Flips along the X axis (sagittal).
-        """
-        thresh = 0.5
         rand = np.random.uniform()
-        if rand > thresh:
-            augmented = np.flip(image, axis=0).copy()
+        if rand <= self.prob:
+            augmented = np.flip(image, axis=self.axis).copy()
         else:
             augmented = image
         return augmented
+
+
+class SagittalFlip(Flip):
+    """
+    Flip image along the sagittal axis (x-axis). 
+    Expects input shape (X, Y, Z).
+    """
+    def __init__(self, prob=0.5):
+        super().__init__(axis=0, prob=prob)
+    
+    def __call__(self, image):
+        assert(len(image.shape) == 3)
+        return super().__call__(image)
+
+class CoronalFlip(Flip):
+    """
+    Flip image along the coronal axis (y-axis). 
+    Expects input shape (X, Y, Z).
+    """
+    def __init__(self, prob=0.5):
+        super().__init__(axis=1, prob=prob)
+
+    def __call__(self, image):
+        assert(len(image.shape) == 3)
+        return super().__call__(image)
+
+
+class AxialFlip(Flip):
+    """
+    Flip image along the axial axis (z-axis). 
+    Expects input shape (X, Y, Z).
+    """
+    def __init__(self, prob=0.5):
+        super().__init__(axis=2, prob=prob)
+
+    def __call__(self, image):
+        assert(len(image.shape) == 3)
+        return super().__call__(image)
 
 
 class Rotate:
