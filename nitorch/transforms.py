@@ -133,17 +133,19 @@ class IntensityRescale:
         return image
 
 
+########################################################################
 # Data augmentations
+########################################################################
+
 
 class Flip:
     """
     Flip the image along a given axis.
 
     Arguments:
-        axis: axis to flip over.
-            Default is 0
-        prob: probability threshold. Always executed if set to 1.
-            Default is 0.5
+        axis: axis to flip over. Default is 0
+        prob: probability to flip the image. Executes always when set to
+             1. Default is 0.5
     """
     def __init__(self, axis=0, prob=0.5):
         self.axis = axis
@@ -197,20 +199,77 @@ class AxialFlip(Flip):
 
 
 class Rotate:
+    """ 
+    Rotate the image along a given axis.
+
+    Arguments:
+        axis: axis to rotate. Default is 0
+        deg: min and max rotation angles in degrees. Randomly rotates 
+            within that range. Can be scalar, list or tuple. In case of 
+            scalar it rotates between -abs(deg) and abs(deg). Default is
+            (-3, 3).
+    """
+    def __init__(self, axis=0, deg=(-3, 3)):
+        if isinstance(deg, tuple) or isinstance(deg, list):
+            assert(len(deg) == 2)
+            self.min_rot = np.min(deg)
+            self.max_rot = np.max(deg)
+        else:
+            self.min_rot = -int(abs(deg))
+            self.max_rot = int(abs(deg))
+
+        if axis == 0:
+            self.axes = (1, 0)
+        elif axis == 1:
+            self.axes = (2, 1)
+        elif axis == 2:
+            self.axes = (0, 2)
+
     def __call__(self, image):
-        """ 
-            Expects shape (X, Y, Z).
-            Rotates along the X axis.
-        """
-        min_rot, max_rot = -3, 3
-        rand = np.random.randint(min_rot, max_rot + 1)
+        rand = np.random.randint(self.min_rot, self.max_rot + 1)
         augmented = rotate(
             image,
             angle=rand,
-            axes=(1, 0),
+            axes=self.axes,
             reshape=False
             ).copy()
         return augmented
+
+
+class SagittalRotate(Rotate):
+    """
+    Rotate image's sagittal axis (x-axis). 
+    Expects input shape (X, Y, Z).
+    """
+    def __init__(self, deg=(-3, 3)):
+        super().__init__(axis=0, deg=deg)
+
+    def __call__(self, image):
+        return super().__call__(image)
+
+
+class CoronalRotate(Rotate):
+    """
+    Rotate image's coronal axis (y-axis). 
+    Expects input shape (X, Y, Z).
+    """
+    def __init__(self, deg=(-3, 3)):
+        super().__init__(axis=1, deg=deg)
+
+    def __call__(self, image):
+        return super().__call__(image)
+
+
+class AxialRotate(Rotate):
+    """
+    Rotate image's axial axis (z-axis). 
+    Expects input shape (X, Y, Z).
+    """
+    def __init__(self, deg=(-3, 3)):
+        super().__init__(axis=2, deg=deg)
+
+    def __call__(self, image):
+        return super().__call__(image)
 
 
 class Translate:
