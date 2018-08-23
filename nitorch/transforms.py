@@ -6,7 +6,8 @@ from scipy.ndimage.interpolation import zoom
 
 def normalize_float(x, min=-1):
     """ 
-    Function that performs min-max normalization on a `numpy.ndarray` matrix. 
+    Function that performs min-max normalization on a `numpy.ndarray` 
+    matrix. 
     """
     if min == -1:
         norm = (2 * (x - np.min(x)) / (np.max(x) - np.min(x))) - 1
@@ -20,9 +21,9 @@ def normalize_float(x, min=-1):
 
 def normalize_float_torch(x, min=-1):
     '''
-     Function that performs min-max normalization on a Pytorch tensor matrix.
-     Can also deal with Pytorch dictionaries where the data matrix
-     key is 'image'.
+    Function that performs min-max normalization on a Pytorch tensor 
+    matrix. Can also deal with Pytorch dictionaries where the data
+    matrix key is 'image'.
     '''
     import torch
     if min == -1:
@@ -38,8 +39,9 @@ def normalize_float_torch(x, min=-1):
 def normalization_factors(data, train_idx, shape, mode="slice"):
     """ 
     Shape should be of length 3. 
-    mode : either "slice" or "voxel" - defines the granularity of the normalization.
-        Voxelwise normalization does not work well with only linear registered data.
+    mode : either "slice" or "voxel" - defines the granularity of the 
+    normalization. Voxelwise normalization does not work well with only
+    linear registered data.
     """
     print("Computing the normalization factors of the training data..")
     if mode == "slice":
@@ -137,10 +139,23 @@ class IntensityRescale:
 # Data augmentations
 ########################################################################
 
+class ToTensor(object):
+    """
+    Convert ndarrays to Tensors.
+    Expands channel axis
+    # numpy image: H x W x Z
+    # torch image: C x H x W x Z
+    """
+
+    def __call__(self, image):
+        image = torch.from_numpy(image).unsqueeze(0)
+        image = image.float()
+        return image
+
 
 class Flip:
     """
-    Flip the image along a given axis.
+    Flip the input along a given axis.
 
     Arguments:
         axis: axis to flip over. Default is 0
@@ -200,7 +215,7 @@ class AxialFlip(Flip):
 
 class Rotate:
     """ 
-    Rotate the image along a given axis.
+    Rotate the input along a given axis.
 
     Arguments:
         axis: axis to rotate. Default is 0
@@ -210,6 +225,13 @@ class Rotate:
             (-3, 3).
     """
     def __init__(self, axis=0, deg=(-3, 3)):
+        if axis == 0:
+            self.axes = (1, 0)
+        elif axis == 1:
+            self.axes = (2, 1)
+        elif axis == 2:
+            self.axes = (0, 2)
+
         if isinstance(deg, tuple) or isinstance(deg, list):
             assert(len(deg) == 2)
             self.min_rot = np.min(deg)
@@ -217,13 +239,6 @@ class Rotate:
         else:
             self.min_rot = -int(abs(deg))
             self.max_rot = int(abs(deg))
-
-        if axis == 0:
-            self.axes = (1, 0)
-        elif axis == 1:
-            self.axes = (2, 1)
-        elif axis == 2:
-            self.axes = (0, 2)
 
     def __call__(self, image):
         rand = np.random.randint(self.min_rot, self.max_rot + 1)
@@ -244,9 +259,6 @@ class SagittalRotate(Rotate):
     def __init__(self, deg=(-3, 3)):
         super().__init__(axis=0, deg=deg)
 
-    def __call__(self, image):
-        return super().__call__(image)
-
 
 class CoronalRotate(Rotate):
     """
@@ -255,9 +267,6 @@ class CoronalRotate(Rotate):
     """
     def __init__(self, deg=(-3, 3)):
         super().__init__(axis=1, deg=deg)
-
-    def __call__(self, image):
-        return super().__call__(image)
 
 
 class AxialRotate(Rotate):
@@ -268,39 +277,81 @@ class AxialRotate(Rotate):
     def __init__(self, deg=(-3, 3)):
         super().__init__(axis=2, deg=deg)
 
-    def __call__(self, image):
-        return super().__call__(image)
-
 
 class Translate:
-    def __call__(self, image):
-        """ 
-            Expects shape (X, Y, Z).
-            Translates the X axis.
-        """
-        min_trans, max_trans = -3, 3
-        rand = np.random.randint(min_trans, max_trans + 1)
-        augmented = np.zeros_like(image)
-        if rand < 0:
-            augmented[-rand:, :] = image[:rand, :]
-        elif rand > 0:
-            augmented[:-rand, :] = image[rand:, :]
+    """
+    Translate the input along a given axis.
+
+    Arguments:
+        axis: axis to rotate. Default is 0
+        dist: min and max translation distance in pixels. Randomly 
+            translates within that range. Can be scalar, list or tuple. 
+            In case of scalar it translates between -abs(dist) and 
+            abs(dist). Default is (-3, 3).
+    """
+    def __init__(self, axis=0, dist=(-3, 3)):
+        self.axis = axis
+
+        if isinstance(dist, tuple) or isinstance(dist, list):
+            assert(len(dist) == 2)
+            self.min_trans = np.min(dist)
+            self.max_trans = np.max(dist)
         else:
-            augmented = image
+            self.min_trans = -int(abs(dist))
+            self.max_trans = int(abs(dist))
+
+    def __call__(self, image):
+        rand = np.random.randint(self.min_trans, self.max_trans + 1)
+        augmented = np.zeros_like(image)
+        if self.axis == 0:
+            if rand < 0:
+                augmented[-rand:, :] = image[:rand, :]
+            elif rand > 0:
+                augmented[:-rand, :] = image[rand:, :]
+            else:
+                augmented = image
+        elif self.axis == 1:
+            if rand < 0:
+                augmented[:,-rand:, :] = image[:,:rand, :]
+            elif rand > 0:
+                augmented[:,:-rand, :] = image[:,rand:, :]
+            else:
+                augmented = image
+        elif self.axis == 2:
+            if rand < 0:
+                augmented[:,:,-rand:] = image[:,:,:rand]
+            elif rand > 0:
+                augmented[:,:,:-rand] = image[:,:,rand:]
+            else:
+                augmented = image
         return augmented
 
 
-class ToTensor(object):
+class SagittalTranslate(Translate):
     """
-    Convert ndarrays in sample to Tensors.
-    Expects labels to be scalar i.e. not tensors.
+    Translate image along the sagittal axis (x-axis).
+    Expects input shape (X, Y, Z).
     """
+    def __init__(self, dist=(-3, 3)):
+        super().__init__(axis=0, dist=dist)
 
-    def __call__(self, image):
-        # Expand with channel axis
-        # numpy image: H x W x Z
-        # torch image: C x H x W x Z
 
-        image = torch.from_numpy(image).unsqueeze(0)
-        image = image.float()
-        return image
+class CoronalTranslate(Translate):
+    """
+    Translate image along the coronal axis (y-axis).
+    Expects input shape (X, Y, Z).
+    """
+    def __init__(self, dist=(-3, 3)):
+        super().__init__(axis=1, dist=dist)
+
+
+class AxialTranslate(Translate):
+    """
+    Translate image along the axial axis (z-axis).
+    Expects input shape (X, Y, Z).
+    """
+    def __init__(self, dist=(-3, 3)):
+        super().__init__(axis=2, dist=dist)
+
+
+
