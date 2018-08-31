@@ -4,5 +4,3 @@ pandas
 sklearn
 scipy
 nibabel
-nilearn
-niwidgets

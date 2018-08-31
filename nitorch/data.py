@@ -3,8 +3,6 @@ import nibabel as nib
 from scipy.ndimage.interpolation import zoom
 import matplotlib.pyplot as plt
 import nibabel
-from nilearn import plotting
-from niwidgets import NiftiWidget
 import os
 
 def load_nifti(file_path, dtype=np.float32, incl_header=False, z_factor=None, mask=None):

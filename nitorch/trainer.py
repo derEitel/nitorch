@@ -18,7 +18,6 @@ class Trainer:
         scheduler=None,
         metrics=[], 
         callbacks=[],
-        gpu=None,
         prediction_type="binary",
         **kwargs
         ):
@@ -46,7 +45,6 @@ class Trainer:
         self.scheduler = scheduler
         self.metrics = metrics
         self.callbacks = callbacks
-        self.gpu = gpu
         if "class_threshold" in kwargs.keys():
             self.class_threshold = kwargs["class_threshold"]
         else:            
@@ -64,7 +62,8 @@ class Trainer:
         labels_key = "label",
         num_epochs=25,
         show_train_steps=25,
-        show_validation_epochs=1,
+        show_validation_epochs=1,        
+        device=torch.device('cuda'),
         ):
         """ Main function to train a network for one epoch.
         Args:
@@ -74,6 +73,8 @@ class Trainer:
                             either be a dict of format data_loader[X_key] = inputs and 
                             data_loader[y_key] = labels or a list with data_loader[0] = inputs 
                             and data_loader[1] = labels. The default keys are "image" and "label".
+            device: The device to use for training. Must be a torch.device object. 
+                    By default, GPU with current node is used.
         """
 
         val_metrics = dict()
@@ -112,13 +113,13 @@ class Trainer:
                     # wrap data in Variable
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
-                        inputs = [Variable(inp.cuda(self.gpu)) for inp in inputs]
+                        inputs = [Variable(inp.to(device)) for inp in inputs]
                     else:
-                        inputs = Variable(inputs.cuda(self.gpu))
+                        inputs = Variable(inputs.to(device))
                     if isinstance(labels, list):
-                        labels = [Variable(label.cuda(self.gpu)) for label in labels]
+                        labels = [Variable(label.to(device)) for label in labels]
                     else:
-                        labels = Variable(labels.cuda(self.gpu))
+                        labels = Variable(labels.to(device))
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
@@ -179,7 +180,7 @@ class Trainer:
                     train_metrics["loss"] = [epoch_loss]
 
             # validate every x iterations
-            if epoch % show_validation_epochs == 0:
+            if (epoch % show_validation_epochs == 0) and (epoch != 0) :
                 self.model.eval()
                 validation_loss = 0.0
                 all_preds = []
@@ -201,13 +202,13 @@ class Trainer:
                         # wrap data in Variable
                         # in case of multi-input or output create a list
                         if isinstance(inputs, list):
-                            inputs = [Variable(inp.cuda(self.gpu)) for inp in inputs]
+                            inputs = [Variable(inp.to(device)) for inp in inputs]
                         else:
-                            inputs = Variable(inputs.cuda(self.gpu))
+                            inputs = Variable(inputs.to(device))
                         if isinstance(labels, list):
-                            labels = [Variable(label.cuda(self.gpu)) for label in labels]
+                            labels = [Variable(label.to(device)) for label in labels]
                         else:
-                            labels = Variable(labels.cuda(self.gpu))
+                            labels = Variable(labels.to(device))
 
                         # forward pass only
                         outputs = self.model(inputs)
@@ -311,7 +312,7 @@ class Trainer:
             plt.show()
 
 
-    def evaluate_model(self, val_loader, gpu=0
+    def evaluate_model(self, val_loader, device=torch.device('cuda')
                        , inputs_key = "image", labels_key = "label"
                       ):
         # predict on the validation set
@@ -321,8 +322,8 @@ class Trainer:
             for i, data in enumerate(val_loader):
                 inputs, labels = data[inputs_key], data[labels_key]
                 # wrap data in Variable
-                inputs = Variable(inputs.cuda(gpu))
-                labels = Variable(labels.cuda(gpu))
+                inputs = Variable(inputs.to(device))
+                labels = Variable(labels.to(device))
                 # forward + backward + optimize
                 outputs = self.model(inputs)
                 # run inference
@@ -368,10 +369,11 @@ class Trainer:
         multi_batch_metrics,
         phase
         ):
-
-        time_elapsed = int(time.time() - self.start_time)
-        print("Time elapsed: {}h:{}m:{}s".format(
-            time_elapsed//3600, (time_elapsed//60)%60, time_elapsed%60))
+        # report execution time only in training phase
+        if(phase=="train"):
+            time_elapsed = int(time.time() - self.start_time)
+            print("Time elapsed: {}h:{}m:{}s".format(
+                time_elapsed//3600, (time_elapsed//60)%60, time_elapsed%60))
         """ Store and report a list of metric functions. """
         for metric in self.metrics:
             # report everything but loss
