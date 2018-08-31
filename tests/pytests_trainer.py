@@ -13,9 +13,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, random_split, DataLoader
 
-sys.path.insert(0, os.path.abspath("../"))
+NITORCH_DIR = os.getcwd()
+sys.path.insert(0, NITORCH_DIR)
 #nitorch
-from nitorch.transforms import IntensityRescale
 from nitorch.trainer import Trainer
 from nitorch.initialization import weights_init
 
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 	    val_loader,
 	    device=device,
 	    num_epochs=EPOCHS,
-	    show_train_steps=9,
+	    show_train_steps=50,
 	    show_validation_epochs=5
 	    )
 

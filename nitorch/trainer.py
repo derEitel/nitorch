@@ -76,7 +76,8 @@ class Trainer:
             device: The device to use for training. Must be a torch.device object. 
                     By default, GPU with current node is used.
         """
-
+        assert show_validation_epochs < num_epochs,"\
+'show_validation_epochs' value should be less than 'num_epochs'"
         val_metrics = dict()
         train_metrics = dict()
 
