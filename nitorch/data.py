@@ -7,7 +7,6 @@ from nilearn import plotting
 from niwidgets import NiftiWidget
 import os
 
-
 def load_nifti(file_path, dtype=np.float32, incl_header=False, z_factor=None, mask=None):
     """
     Loads a volumetric image in nifti format (extensions .nii, .nii.gz etc.)
@@ -55,49 +54,99 @@ def load_nifti(file_path, dtype=np.float32, incl_header=False, z_factor=None, ma
         return struct_arr
 
 
-def show_brain(img, cut_coords=(0,0,0), 
-               nifti_affine = None, interactive=False, 
-               figure=None, axes=None, cmap="nipy_spectral"):
-    """Displays plot cuts (by default Frontal, Axial, and Lateral) of a 3D image 
+def show_brain(img, cut_coords=None, 
+               figsize=(10,5), cmap="nipy_spectral",
+               draw_cross = True
+               ):
+    """Displays 2D cross-sections of a 3D image along all 3 axis
     Arg:
-        img: can be (1) path to the image file stored in nifTI format
+        img: can be (1) 3-dimensional numpy.ndarray
                     (2) nibabel.Nifti1Image object
-                    (3) 3-dimensional numpy.ndarray
-        cut_coords(optional): The MNI coordinates (in range [-90, +90]) 
-        of the point where the cut will be is performed. 
-        Should be a 3-tuple: (x, y, z). Default is center (0,0,0). 
-        Is ignored in interactive mode.
+                    (3) path to the image file stored in nifTI format
+
+        cut_coords (optional): The voxel coordinates
+        of the axes where the cross-section cuts will be performed. 
+        Should be a 3-tuple: (x, y, z). Default is the center = img_shape/2 
         
-        nifti_affine(optional): The 
-        
-        figure (optional): matplotlib figure to draw on
-        axes (optional): matplotlib axes to draw on
+        figsize (optional): matplotlib figsize. Default is (10,5)
         cmap (optional): matplotlib colormap to be used
         
+        draw_cross (optional): Draws horizontal and vertical lines which
+        show where the cross-sections have been performed. D
+        
+
         example:
-            >>> f = plt.figure(figsize=(10, 4))
-            >>> show_brain(img, interactive=True, figure=f)
+            >>> show_brain(img, figsize=(7, 3), draw_cross=False)
             >>> plt.show()
         """
     
-    if(isinstance(img, str) and os.path.isfile(img)) or (isinstance(img, nibabel.Nifti1Image)):
-        img_nii = img
+    if(isinstance(img, str) and os.path.isfile(img)):
+        img_arr = load_nifti(img)
+    elif(isinstance(img, nibabel.Nifti1Image)):
+        img_arr = img.get_data()
         
     elif(isinstance(img, np.ndarray)):
-        assert img.ndim == 3, "The numpy.ndarray must be 3 dimensional of shape (H x W x Z)"
-        
-        if(nifti_affine == None):
-            nifti_affine = np.eye(4)
-            
-        img_nii = nib.Nifti1Image(img, affine=nifti_affine)
-        # convert cut co-ordinates in range [-90,90] to reflect the index range of numpy
-        cut_coords = np.multiply(np.add(cut_coords, 90), tuple(img.shape))//180
+        assert img.ndim == 3, "The numpy.ndarray must be 3-dimensional with shape (H x W x Z)"
+        img_arr = img
     else:
-        raise ValueError("Invalid value provided for 'img_pointer'- {}. Either provide a 3-dimensional numpy.ndarray of a MRI image or path to the image file stored in nifTI format.".format(type(img)))
+        raise TypeError("Invalid type provided for 'img'- {}. \
+Either provide a 3-dimensional numpy.ndarray of a MRI image or path to \
+the image file stored as a nifTI format.".format(type(img)))
         
+    # print(img_arr.shape)
+    # img_arr = np.moveaxis(img_arr, 0, 1)
+    # print(img_arr.shape)
 
-    if interactive:
-        widget = NiftiWidget(img_nii)
-        widget.nifti_plotter(figure=figure, axes=axes, cmap=cmap)
-    else:                                
-        plotting.plot_img(img_nii, cut_coords, figure=figure, axes=axes, cmap=cmap)
+    x_len, y_len, z_len = img_arr.shape
+    # if cut_coordinates is not specified set it to the center of the image
+    if(cut_coords == None):
+        cut_coords = (x_len//2, y_len//2, z_len//2)
+
+    f, ax = plt.subplots(nrows=1, ncols=3, figsize=figsize)
+
+    ax[0].set_title("Saggital cross-section at x={}".format(cut_coords[0]))
+    ax[0].imshow(
+         np.rot90(img_arr[cut_coords[0],:,:]), cmap=cmap, aspect="equal")
+    #draw cross
+    if(draw_cross):
+        ax[0].axvline(x=cut_coords[1], color='k', linewidth=1)
+        ax[0].axhline(y=cut_coords[2], color='k', linewidth=1)
+
+    ax[1].set_title("Coronal cross-section at y={}".format(cut_coords[1]))
+    ax[1].imshow(
+        np.rot90(img_arr[:,cut_coords[1],:]), cmap=cmap, aspect="equal")
+    ax[1].text(0.05, 0.95,'L', 
+        horizontalalignment='left', verticalalignment='top',
+        transform=ax[1].transAxes
+        , bbox=dict(facecolor='white')
+        )
+    ax[1].text(0.95, 0.95,'R', 
+        horizontalalignment='right', verticalalignment='top'
+        , transform=ax[1].transAxes
+        , bbox=dict(facecolor='white')
+        )
+    #draw cross
+    if(draw_cross):
+        ax[1].axvline(x=cut_coords[0], color='k', linewidth=1)
+        ax[1].axhline(y=cut_coords[2], color='k', linewidth=1)
+
+    ax[2].set_title("Axial cross-section at z={}".format(cut_coords[2]))
+    ax[2].imshow(
+        np.rot90(img_arr[:,:,cut_coords[2]]), cmap=cmap, aspect="equal"
+        )
+    ax[2].text(0.05, 0.95,'L'
+        , horizontalalignment='left', verticalalignment='top'
+        , transform=ax[2].transAxes
+        , bbox=dict(facecolor='white')
+        )
+    ax[2].text(0.95, 0.95,'R', 
+        horizontalalignment='right', verticalalignment='top'
+        , transform=ax[2].transAxes
+        , bbox=dict(facecolor='white')
+        )
+    #draw cross
+    if(draw_cross):
+        ax[2].axvline(x=cut_coords[0], color='k', linewidth=1)
+        ax[2].axhline(y=cut_coords[1], color='k', linewidth=1)
+
+    plt.tight_layout()

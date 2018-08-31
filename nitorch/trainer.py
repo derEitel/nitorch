@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from nitorch.inference import predict
 from nitorch.callbacks import ModelCheckpoint
 
-
 class Trainer:
     def __init__(
         self, 
@@ -48,22 +47,34 @@ class Trainer:
         self.metrics = metrics
         self.callbacks = callbacks
         self.gpu = gpu
-        self.class_threshold = None
         if "class_threshold" in kwargs.keys():
             self.class_threshold = kwargs["class_threshold"]
+        else:            
+            self.class_threshold = None
         self.stop_training = False
         self.start_time = None
         self.prediction_type = prediction_type
+
 
     def train_model(
         self,
         train_loader,
         val_loader,
+        inputs_key = "image",
+        labels_key = "label",
         num_epochs=25,
         show_train_steps=25,
         show_validation_epochs=1,
         ):
-        """ Main function to train a network."""
+        """ Main function to train a network for one epoch.
+        Args:
+            train_loader: a pytorch Dataset iterator for training data
+            val_loader: a pytorch Dataset iterator for validation data
+            inputs_key, labels_key: The data returned by `train_loader` and `val_loader`can 
+                            either be a dict of format data_loader[X_key] = inputs and 
+                            data_loader[y_key] = labels or a list with data_loader[0] = inputs 
+                            and data_loader[1] = labels. The default keys are "image" and "label".
+        """
 
         val_metrics = dict()
         train_metrics = dict()
@@ -90,7 +101,7 @@ class Trainer:
                 self.model.train()
                 for i, data in enumerate(train_loader):
                     try:
-                        inputs, labels = data["image"], data["label"]
+                        inputs, labels = data[inputs_key], data[labels_key]
                     except TypeError:
                         # if data does not come in dictionary, assume
                         # that data is ordered like [input, label]
@@ -131,7 +142,7 @@ class Trainer:
                     running_loss += loss.item()
                     epoch_loss += loss.item()
                     # print loss every X mini-batches
-                    if i % show_train_steps == 0:  
+                    if (i % show_train_steps == 0) and (i != 0) :  
                         print(
                             "[%d, %5d] loss: %.5f"
                             % (epoch + 1, i + 1, 
@@ -150,7 +161,7 @@ class Trainer:
                         # TODO: test if del helps
                         all_labels = []
                         all_preds = []
-
+                        
                 # report training metrics
                 train_metrics = self._on_epoch_end(
                         train_metrics,
@@ -178,7 +189,7 @@ class Trainer:
                 with torch.no_grad():
                     for i, data in enumerate(val_loader):
                         try:
-                            inputs, labels = data["image"], data["label"]
+                            inputs, labels = data[inputs_key], data[labels_key]
                         except TypeError:
                             # if data does not come in dictionary, assume
                             # that data is ordered like [input, label]
@@ -251,8 +262,9 @@ class Trainer:
         """
         End the training cyle, return a model and finish callbacks.
         """
-        total_time = (time.time() - self.start_time) / 60
-        print("Time trained: {:.2f} minutes".format(total_time))
+        time_elapsed = int(time.time() - self.start_time)
+        print("Total time elapsed: {}h:{}m:{}s".format(
+            time_elapsed//3600, (time_elapsed//60)%60, time_elapsed%60))
         # execute final methods of callbacks
         if self.callbacks is not None:
             for callback in self.callbacks:
@@ -299,13 +311,15 @@ class Trainer:
             plt.show()
 
 
-    def evaluate_model(self, val_loader, gpu=0):
+    def evaluate_model(self, val_loader, gpu=0
+                       , inputs_key = "image", labels_key = "label"
+                      ):
         # predict on the validation set
         all_preds = []
         all_labels = []
         with torch.no_grad():
             for i, data in enumerate(val_loader):
-                inputs, labels = data["image"], data["label"]
+                inputs, labels = data[inputs_key], data[labels_key]
                 # wrap data in Variable
                 inputs = Variable(inputs.cuda(gpu))
                 labels = Variable(labels.cuda(gpu))
@@ -354,6 +368,10 @@ class Trainer:
         multi_batch_metrics,
         phase
         ):
+
+        time_elapsed = int(time.time() - self.start_time)
+        print("Time elapsed: {}h:{}m:{}s".format(
+            time_elapsed//3600, (time_elapsed//60)%60, time_elapsed%60))
         """ Store and report a list of metric functions. """
         for metric in self.metrics:
             # report everything but loss
@@ -373,6 +391,7 @@ class Trainer:
                         phase, metric.__name__, str(result)))
         return metrics_dict
 
+
     def estimate_metrics(
         self,
         metrics_dict,
@@ -389,6 +408,7 @@ class Trainer:
                 else:
                     metrics_dict[metric.__name__] = [result]
         return metrics_dict
+
 
     def _on_epoch_end(
         self,
