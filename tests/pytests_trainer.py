@@ -114,13 +114,13 @@ if __name__ == "__main__":
 	# scheduler=None,
 	# metrics=metrics,
 	# callbacks=callbacks,
+	device=device,
 	prediction_type="binary")
 
 	# train model and store results
 	net, report = trainer.train_model(
 	    train_loader,
 	    val_loader,
-	    device=device,
 	    num_epochs=EPOCHS,
 	    show_train_steps=50,
 	    show_validation_epochs=5
