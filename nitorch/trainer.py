@@ -88,7 +88,7 @@ class Trainer:
         for epoch in range(num_epochs):
             if self.stop_training:
                 # TODO: check position of this
-                print("Early stopping in epoch {}".format(epoch - 1))
+                print("Early stopping in epoch {}".format(epoch))
                 return self.finish_training(train_metrics, val_metrics, epoch)
             else:
                 running_loss = 0.0
@@ -154,17 +154,19 @@ class Trainer:
 
                     # compute training metrics for X/2 mini-batches
                     # useful for large outputs (e.g. reconstructions)
-                    if i % int(show_train_steps/2) == 0:
-                        multi_batch_metrics = self.estimate_metrics(
-                            multi_batch_metrics,
-                            all_labels,
-                            all_preds,
-                        )
-                        # TODO: test if del helps
-                        all_labels = []
-                        all_preds = []
-                        
+                    if self.prediction_type == "reconstruction":
+                        if i % int(show_train_steps/2) == 0:
+                            multi_batch_metrics = self.estimate_metrics(
+                                multi_batch_metrics,
+                                all_labels,
+                                all_preds,
+                            )
+                            # TODO: test if del helps
+                            all_labels = []
+                            all_preds = []
+
                 # report training metrics
+                # weighted averages of metrics are computed over batches
                 train_metrics = self._on_epoch_end(
                         train_metrics,
                         multi_batch_metrics,
@@ -227,17 +229,21 @@ class Trainer:
 
                         validation_loss += loss.item()
 
-                        if i % int(show_train_steps/2) == 0:
-                            multi_batch_metrics = self.estimate_metrics(
-                                multi_batch_metrics,
-                                all_labels,
-                                all_preds,
-                            )
-                            # TODO: test if del helps
-                            all_labels = []
-                            all_preds = []
+                        # compute training metrics for X/2 mini-batches
+                        # useful for large outputs (e.g. reconstructions)
+                        if self.prediction_type == "reconstruction":
+                            if i % int(show_train_steps/2) == 0:
+                                multi_batch_metrics = self.estimate_metrics(
+                                    multi_batch_metrics,
+                                    all_labels,
+                                    all_preds,
+                                )
+                                # TODO: test if del helps
+                                all_labels = []
+                                all_preds = []
 
                     # report validation metrics
+                    # weighted averages of metrics are computed over batches
                     val_metrics = self._on_epoch_end(
                         val_metrics,
                         multi_batch_metrics,
@@ -313,12 +319,28 @@ class Trainer:
             plt.show()
 
 
-    def evaluate_model(self, val_loader, device=torch.device('cuda')
-                       , inputs_key = "image", labels_key = "label"
-                      ):
+   def evaluate_model(self, val_loader, additional_gpu=None, metrics=None,
+            inputs_key = "image", labels_key = "label"):
         # predict on the validation set
+        """
+        Predict on the validation set.
+
+        # Arguments
+            val_loader : data loader of the validation set
+            additional_gpu : GPU number if evaluation should be done on 
+                separate GPU
+            metrics: list of 
+        """
         all_preds = []
         all_labels = []
+        
+        self.model.eval()
+        
+        if additional_gpu is not None:
+            gpu = additional_gpu
+        else:
+            gpu = self.gpu
+
         with torch.no_grad():
             for i, data in enumerate(val_loader):
                 inputs, labels = data[inputs_key], data[labels_key]
@@ -337,7 +359,7 @@ class Trainer:
                                 self.criterion,
                                 class_threshold=self.class_threshold
                             )
-
+                
         # compute confusion matrix
         cm = confusion_matrix(all_labels, all_preds)
         plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
@@ -363,6 +385,12 @@ class Trainer:
         plt.xlabel("Predicted label")
         plt.show()
 
+        # print metrics
+        if metrics is not None:
+            for metric in metrics:
+                print("{}: {}".format(metric.__name__, metric(all_labels, all_preds)))
+
+        self.model.train()
 
     def report_metrics(
         self,
@@ -379,8 +407,21 @@ class Trainer:
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss":
-                # average over previous batches
-                result = np.mean(multi_batch_metrics[metric.__name__])
+                # weighted average over previous batches
+                # weigh by the number of samples per batch and divide by
+                # the total number of samples
+                batch_results = np.zeros(shape=(
+                    len(multi_batch_metrics["len_" + metric.__name__])))
+                n_samples = 0
+                for b_idx, batch_len in enumerate(
+                    multi_batch_metrics["len_" + metric.__name__]
+                    ):
+                    batch_results[b_idx] = multi_batch_metrics[
+                        metric.__name__][b_idx] * batch_len
+                    n_samples += batch_len
+
+                result = np.sum(batch_results) / n_samples
+
                 if metric.__name__ in metrics_dict:
                     metrics_dict[metric.__name__].append(result)
                 else:
@@ -402,14 +443,18 @@ class Trainer:
         all_preds
         ):
         """ Estimate a list of metric functions. """
+        n_predictions = len(all_preds)
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss": 
                 result = metric(all_labels, all_preds)
                 if metric.__name__ in metrics_dict:
                     metrics_dict[metric.__name__].append(result)
+                    metrics_dict["len_" + metric.__name__].append(
+                        n_predictions)
                 else:
                     metrics_dict[metric.__name__] = [result]
+                    metrics_dict["len_" + metric.__name__] = [n_predictions]
         return metrics_dict
 
 

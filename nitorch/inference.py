@@ -126,8 +126,12 @@ def regression_inference(
         predicted = outputs[0].data
         # TODO: replace for loop with something faster
         for j in range(len(predicted)):
-            all_preds.append(predicted[j].cpu().numpy()[0])
-            all_labels.append(labels[j].cpu().numpy()[0])
+            try:
+                all_preds.append(predicted[j].cpu().numpy().item())
+                all_labels.append(labels[j].cpu().numpy().item())
+            except:
+                all_preds.append(predicted[j].cpu().numpy()[0])
+                all_labels.append(labels[j].cpu().numpy()[0])
         return all_preds, all_labels
 
 def variational_inference(

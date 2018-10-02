@@ -15,15 +15,16 @@ def load_nifti(file_path, dtype=np.float32, incl_header=False, z_factor=None, ma
         
         dtype(optional): datatype of the loaded numpy.ndarray
         
-        incl_header(bool, optional): If True, the nifTI object of the image is 
-        also returned
+        incl_header(bool, optional): If True, the nifTI object of the 
+        image is also returned.
         
-        z_factor(float or sequence, optional): The zoom factor along the axes. 
-        If a float, zoom is the same for each axis. If a sequence, zoom should 
-        contain one value for each axis.
+        z_factor(float or sequence, optional): The zoom factor along the
+        axes. If a float, zoom is the same for each axis. If a sequence,
+        zoom should contain one value for each axis.
         
-        mask(ndarray, optional): A mask with the same shape as the image. 
-        If provided then the mask is element-wise multiplied with the image ndarray
+        mask(ndarray, optional): A mask with the same shape as the
+        original image. If provided then the mask is element-wise
+        multiplied with the image ndarray
     
     Returns:
         3D numpy.ndarray with axis order (saggital x coronal x axial)
