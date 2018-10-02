@@ -50,7 +50,7 @@ class Trainer:
         self.metrics = metrics
         self.callbacks = callbacks
         if isinstance(device, int):
-            self.device = torch.device("cuda:" + device)
+            self.device = torch.device("cuda:" + str(device))
         elif isinstance(device, torch.device):
             self.device = device
         else:
