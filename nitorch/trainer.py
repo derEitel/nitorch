@@ -36,19 +36,26 @@ class Trainer:
             prediction_type: accepts one of ["binary", "classification",
                 "regression", "reconstruction", "variational", "other"]. 
                 This is used to determine output type.
-            device: The device to use for training. Must be a torch.device object. 
-                    By default, GPU with current node is used.
+            device: The device to use for training. Must be integer or
+                    a torch.device object. By default, GPU with current
+                    node is used.
 
         """
         if not isinstance(model, nn.Module):
-            raise ValueError('Expects model type to be torch.nn.Module')
+            raise ValueError("Expects model type to be torch.nn.Module")
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.metrics = metrics
         self.callbacks = callbacks
-        self.device = device
+        if isinstance(device, int):
+            self.device = torch.device("cuda:" + device)
+        elif isinstance(device, torch.device):
+            self.device = device
+        else:
+            raise ValueError("Device needs to be of type torch.device or \
+                integer.")
         if "class_threshold" in kwargs.keys():
             self.class_threshold = kwargs["class_threshold"]
         else:            
@@ -321,7 +328,7 @@ class Trainer:
 
 
    def evaluate_model(self, val_loader, additional_gpu=None, metrics=None,
-            inputs_key = "image", labels_key = "label"):
+                      inputs_key = "image", labels_key = "label"):
         # predict on the validation set
         """
         Predict on the validation set.
