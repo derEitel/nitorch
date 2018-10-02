@@ -18,6 +18,7 @@ class Trainer:
         scheduler=None,
         metrics=[], 
         callbacks=[],
+        device=torch.device('cuda'),
         prediction_type="binary",
         **kwargs
         ):
@@ -35,6 +36,8 @@ class Trainer:
             prediction_type: accepts one of ["binary", "classification",
                 "regression", "reconstruction", "variational", "other"]. 
                 This is used to determine output type.
+            device: The device to use for training. Must be a torch.device object. 
+                    By default, GPU with current node is used.
 
         """
         if not isinstance(model, nn.Module):
@@ -45,6 +48,7 @@ class Trainer:
         self.scheduler = scheduler
         self.metrics = metrics
         self.callbacks = callbacks
+        self.device = device
         if "class_threshold" in kwargs.keys():
             self.class_threshold = kwargs["class_threshold"]
         else:            
@@ -62,8 +66,7 @@ class Trainer:
         labels_key = "label",
         num_epochs=25,
         show_train_steps=25,
-        show_validation_epochs=1,        
-        device=torch.device('cuda'),
+        show_validation_epochs=1        
         ):
         """ Main function to train a network for one epoch.
         Args:
@@ -73,8 +76,6 @@ class Trainer:
                             either be a dict of format data_loader[X_key] = inputs and 
                             data_loader[y_key] = labels or a list with data_loader[0] = inputs 
                             and data_loader[1] = labels. The default keys are "image" and "label".
-            device: The device to use for training. Must be a torch.device object. 
-                    By default, GPU with current node is used.
         """
         assert show_validation_epochs < num_epochs,"\
 'show_validation_epochs' value should be less than 'num_epochs'"
@@ -114,13 +115,13 @@ class Trainer:
                     # wrap data in Variable
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
-                        inputs = [Variable(inp.to(device)) for inp in inputs]
+                        inputs = [Variable(inp.to(self.device)) for inp in inputs]
                     else:
-                        inputs = Variable(inputs.to(device))
+                        inputs = Variable(inputs.to(self.device))
                     if isinstance(labels, list):
-                        labels = [Variable(label.to(device)) for label in labels]
+                        labels = [Variable(label.to(self.device)) for label in labels]
                     else:
-                        labels = Variable(labels.to(device))
+                        labels = Variable(labels.to(self.device))
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
@@ -205,13 +206,13 @@ class Trainer:
                         # wrap data in Variable
                         # in case of multi-input or output create a list
                         if isinstance(inputs, list):
-                            inputs = [Variable(inp.to(device)) for inp in inputs]
+                            inputs = [Variable(inp.to(self.device)) for inp in inputs]
                         else:
-                            inputs = Variable(inputs.to(device))
+                            inputs = Variable(inputs.to(self.device))
                         if isinstance(labels, list):
-                            labels = [Variable(label.to(device)) for label in labels]
+                            labels = [Variable(label.to(self.device)) for label in labels]
                         else:
-                            labels = Variable(labels.to(device))
+                            labels = Variable(labels.to(self.device))
 
                         # forward pass only
                         outputs = self.model(inputs)
@@ -337,9 +338,9 @@ class Trainer:
         self.model.eval()
         
         if additional_gpu is not None:
-            gpu = additional_gpu
+            device = additional_gpu
         else:
-            gpu = self.gpu
+            device = self.device
 
         with torch.no_grad():
             for i, data in enumerate(val_loader):
