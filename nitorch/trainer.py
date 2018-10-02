@@ -327,8 +327,14 @@ class Trainer:
             plt.show()
 
 
-   def evaluate_model(self, val_loader, additional_gpu=None, metrics=None,
-                      inputs_key = "image", labels_key = "label"):
+    def evaluate_model(
+        self,
+        val_loader,
+        additional_gpu=None,
+        metrics=None,
+        inputs_key = "image",
+        labels_key = "label"
+        ):
         # predict on the validation set
         """
         Predict on the validation set.
