@@ -121,7 +121,7 @@ class Trainer:
                         except TypeError:
                             raise TypeError
                     # set output names in first epoch
-                    if epoch == 0:
+                    if epoch == 0 and i == 0:
                         if names_key in data:
                             output_names = data[names_key]
                         else:
