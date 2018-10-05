@@ -14,12 +14,18 @@ def predict(
     """ Predict according to loss and prediction type."""
     if isinstance(prediction_type, list):
         # in case of multi-head classification separate
-        for pred_type in prediction_type:
-            predict(outputs,
+        for pred_idx, pred_type in enumerate(prediction_type):
+            if isinstance(all_preds, list):
+                # convert to dictionary for multiple outputs
+                all_preds = dict()
+                all_labels = dict()
+
+            all_preds, all_labels = predict(
+                outputs[pred_idx],
                 labels,
                 all_preds,
                 all_labels,
-                prediction_type=pred_type
+                prediction_type=pred_type,
                 criterion,
                 **kwargs
             )
