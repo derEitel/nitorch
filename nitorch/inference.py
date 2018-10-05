@@ -14,23 +14,27 @@ def predict(
     """ Predict according to loss and prediction type."""
     if isinstance(prediction_type, list):
         # in case of multi-head classification separate
+        output_names = kwargs["output_names"]
+        if isinstance(all_preds, list):
+            # convert to dictionary for multiple outputs
+            all_preds = dict()
+            all_labels = dict()
+            for name in output_names:
+                all_preds[name] = []
+                all_labels[name] = []
+            
         for pred_idx, pred_type in enumerate(prediction_type):
-            if isinstance(all_preds, list):
-                # convert to dictionary for multiple outputs
-                all_preds = dict()
-                all_labels = dict()
-            output_names = kwargs["output_names"]
-            all_preds[output_names[pred_idx][0]], all_labels[output_names[pred_idx][0]]  = predict(
+            all_preds[output_names[pred_idx]], all_labels[output_names[pred_idx]]  = predict(
                 outputs=outputs[pred_idx],
-                labels=labels,
-                all_preds=all_preds,
-                all_labels=all_labels,
+                labels=labels[pred_idx],
+                all_preds=all_preds[output_names[pred_idx]],
+                all_labels=all_labels[output_names[pred_idx]],
                 criterion=criterion,
                 prediction_type=pred_type,
+                output_name=output_names[pred_idx],
                 **kwargs
             )
-            print(len(all_preds))
-            return all_preds, all_labels
+        return all_preds, all_labels
 
     if prediction_type == "binary":
         if isinstance(criterion, nn.BCEWithLogitsLoss):
@@ -50,6 +54,16 @@ def predict(
                 **kwargs
             )
         return all_preds, all_labels
+    if prediction_type == "binary_with_logits":
+        all_preds, all_labels = bce_with_logits_inference(
+                outputs,
+                labels,
+                all_preds,
+                all_labels,
+                **kwargs
+            )
+        return all_preds, all_labels
+
     elif prediction_type == "classification":
         # TODO: develop inference
         raise NotImplementedError("Multiclass-classification \
@@ -60,7 +74,8 @@ def predict(
                 outputs,
                 labels,
                 all_preds,
-                all_labels
+                all_labels,
+                **kwargs
         )
         return all_preds, all_labels
     elif prediction_type == "reconstruction":
@@ -69,7 +84,8 @@ def predict(
                 outputs,
                 labels,
                 all_preds,
-                all_labels
+                all_labels,
+                **kwargs
         )
         return all_preds, all_labels
     elif prediction_type == "variational":
@@ -78,7 +94,8 @@ def predict(
                 outputs,
                 labels,
                 all_preds,
-                all_labels
+                all_labels,
+                **kwargs
         )
         return all_preds, all_labels
     else:
@@ -93,15 +110,17 @@ def bce_with_logits_inference(
     **kwargs
     ):
     sigmoid = torch.sigmoid(outputs)
-    if kwargs["class_threshold"]:
-        class_threshold = kwargs["class_threshold"]
-    else:
-        class_threshold = 0.5
-    print
+    class_threshold = 0.5
+    if "class_threshold" in kwargs.keys():
+        if kwargs["class_threshold"] is not None:
+            class_threshold = kwargs["class_threshold"]
+
     predicted = sigmoid.data >= class_threshold
     for j in range(len(predicted)):
-        all_preds.append(predicted[j].cpu().numpy()[0])
-        all_labels.append(labels[j].cpu().numpy()[0])
+        #all_preds.append(predicted[j].cpu().numpy()[0])
+        #all_labels.append(labels[j].cpu().numpy()[0])
+        all_preds.append(predicted[j].cpu().numpy().item())
+        all_labels.append(labels[j].cpu().numpy().item())
     return all_preds, all_labels
 
 def bce_inference(
@@ -111,21 +130,22 @@ def bce_inference(
     all_labels,
     **kwargs
     ):
-    if kwargs["class_threshold"]:
+    if "class_threshold" in kwargs.keys():
         class_threshold = kwargs["class_threshold"]
     else:
         class_threshold = 0.5
     predicted = outputs.data >= class_threshold
     for j in range(len(predicted)):
-        all_preds.append(predicted[j].cpu().numpy()[0])
-        all_labels.append(labels[j].cpu().numpy()[0])
+        all_preds.append(float(predicted[j].cpu().numpy()[0]))
+        all_labels.append(float(labels[j].cpu().numpy()[0]))
     return all_preds, all_labels
 
 def regression_inference(
     outputs,
     labels,
     all_preds,
-    all_labels
+    all_labels,
+    **kwargs
     ):
     # Multi-head case
     # network returns a tuple of outputs
@@ -143,22 +163,24 @@ def regression_inference(
         return all_preds, all_labels
     # Single-head case
     else:
-        predicted = outputs[0].data
+        predicted = outputs.data
         # TODO: replace for loop with something faster
         for j in range(len(predicted)):
-            try:
-                all_preds.append(predicted[j].cpu().numpy().item())
-                all_labels.append(labels[j].cpu().numpy().item())
-            except:
-                all_preds.append(predicted[j].cpu().numpy()[0])
-                all_labels.append(labels[j].cpu().numpy()[0])
+            #try:
+                #all_preds.append(predicted[j].cpu().numpy().item())
+                #all_labels.append(labels[j].cpu().numpy().item())
+            #except:
+
+            all_preds.append(float(predicted[j].cpu().item()))
+            all_labels.append(float(labels[j].cpu().item()))
         return all_preds, all_labels
 
 def variational_inference(
     outputs,
     labels,
     all_preds,
-    all_labels
+    all_labels,
+    **kwargs
     ):
     """ Inference for variational autoencoders. """
     # VAE outputs reconstruction, mu and std

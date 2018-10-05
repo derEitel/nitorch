@@ -8,6 +8,7 @@ import itertools
 import matplotlib.pyplot as plt
 from nitorch.inference import predict
 from nitorch.callbacks import ModelCheckpoint
+from collections import OrderedDict
 
 class Trainer:
     def __init__(
@@ -123,12 +124,15 @@ class Trainer:
                     # set output names in first epoch
                     if epoch == 0 and i == 0:
                         if names_key in data:
-                            output_names = data[names_key]
+                            # make flattened, ordered, unique list
+                            o = data[names_key] 
+                            o = [item for sublist in o for item in sublist]
+                            self.output_names = list(OrderedDict.fromkeys(o))
                         else:
                             if isinstance(labels, list):
-                                output_names = ["target_{}".format(i) for i in range(len(labels))]
+                                self.output_names = ["target_{}".format(i) for i in range(len(labels))]
                             else:
-                                output_names = ["target_0"]
+                                self.output_names = ["target_0"]
                     # wrap data in Variable
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
@@ -156,7 +160,7 @@ class Trainer:
                                 all_labels,
                                 self.prediction_type,
                                 self.criterion,
-                                output_names=output_names,
+                                output_names=self.output_names,
                                 class_threshold=self.class_threshold
                             )
                     # update loss
@@ -243,7 +247,7 @@ class Trainer:
                                 all_labels,
                                 self.prediction_type,
                                 self.criterion,
-                                output_names=output_names,
+                                output_names=self.output_names,
                                 class_threshold=self.class_threshold
                             )
 
@@ -375,15 +379,6 @@ class Trainer:
                 labels = Variable(labels.to(device))
                 # forward + backward + optimize
                 outputs = self.model(inputs)
-                # set output names in first epoch
-                if epoch == 0 and i == 0:
-                    if names_key in data:
-                        output_names = data[names_key]
-                    else:
-                        if isinstance(labels, list):
-                            output_names = ["target_{}".format(i) for i in range(len    (labels))]
-                        else:
-                            output_names = ["target_0"]
                 # run inference
                 all_preds, all_labels = predict(
                                 outputs,
@@ -392,7 +387,7 @@ class Trainer:
                                 all_labels,
                                 self.prediction_type,
                                 self.criterion,
-                                output_names=output_names,
+                                output_names=self.output_names,
                                 class_threshold=self.class_threshold
                             )
                 
@@ -428,11 +423,12 @@ class Trainer:
 
         self.model.train()
 
-    def report_metrics(
+    def estimate_batch_metrics(
         self,
         metrics_dict,
         multi_batch_metrics,
-        phase
+        phase,
+        keys=None
         ):
         # report execution time only in training phase
         if(phase=="train"):
@@ -446,22 +442,60 @@ class Trainer:
                 # weighted average over previous batches
                 # weigh by the number of samples per batch and divide by
                 # the total number of samples
-                batch_results = np.zeros(shape=(
-                    len(multi_batch_metrics["len_" + metric.__name__])))
-                n_samples = 0
-                for b_idx, batch_len in enumerate(
-                    multi_batch_metrics["len_" + metric.__name__]
-                    ):
-                    batch_results[b_idx] = multi_batch_metrics[
-                        metric.__name__][b_idx] * batch_len
-                    n_samples += batch_len
+                if not isinstance(self.prediction_type, list):
+                    batch_results = np.zeros(shape=(
+                        len(multi_batch_metrics["len_" + metric.__name__])))
+                    n_samples = 0
+                    for b_idx, batch_len in enumerate(
+                        multi_batch_metrics["len_" + metric.__name__]
+                        ):
+                        batch_results[b_idx] = multi_batch_metrics[
+                            metric.__name__][b_idx] * batch_len
+                        n_samples += batch_len
 
-                result = np.sum(batch_results) / n_samples
+                    result = np.sum(batch_results) / n_samples
 
-                if metric.__name__ in metrics_dict:
-                    metrics_dict[metric.__name__].append(result)
+                    if metric.__name__ in metrics_dict:
+                        metrics_dict[metric.__name__].append(result)
+                    else:
+                        metrics_dict[metric.__name__] = [result]
+                    # print result
+                    if isinstance(result, float):
+                        print("{} {}: {:.2f} %".format(
+                            phase, metric.__name__, result * 100))
+                    else:
+                        print("{} {}: {} ".format(
+                            phase, metric.__name__, str(result)))
+        
+
                 else:
-                    metrics_dict[metric.__name__] = [result]
+                    for key in keys:
+                        metric_name = str(key) + "_" + str(metric.__name__)
+                        result = multi_batch_metrics[metric_name]
+                        if metric_name in metrics_dict:
+                            metrics_dict[metric_name].append(result)
+                        else:
+                            metrics_dict[metric_name] = result 
+                
+                        # print result
+                        if isinstance(result, float):
+                            print("{} {}: {:.2f} %".format(
+                                phase, metric_name, result * 100))
+                        else:
+                            print("{} {}: {} ".format(
+                                phase, metric_name, str(result)))
+        return metrics_dict
+
+    def report_metrics(
+        self,
+        metrics_dict,
+        multi_batch_metrics,
+        phase
+        ):
+        print(multi_batch_metrics)
+        for metric in self.metrics:
+            # report everything but loss
+            if metric.__name__ is not "loss":
                 # print result
                 if isinstance(result, float):
                     print("{} {}: {:.2f} %".format(
@@ -469,8 +503,6 @@ class Trainer:
                 else:
                     print("{} {}: {} ".format(
                         phase, metric.__name__, str(result)))
-        return metrics_dict
-
 
     def estimate_metrics(
         self,
@@ -483,14 +515,33 @@ class Trainer:
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss": 
-                result = metric(all_labels, all_preds)
-                if metric.__name__ in metrics_dict:
-                    metrics_dict[metric.__name__].append(result)
-                    metrics_dict["len_" + metric.__name__].append(
-                        n_predictions)
+                if isinstance(all_preds, list):
+                    result = metric(all_labels, all_preds)
+                    if metric.__name__ in metrics_dict:
+                        metrics_dict[metric.__name__].append(result)
+                        metrics_dict["len_" + metric.__name__].append(
+                            n_predictions)
+                    else:
+                        metrics_dict[metric.__name__] = [result]
+                        metrics_dict["len_" + metric.__name__] = [n_predictions]
                 else:
-                    metrics_dict[metric.__name__] = [result]
-                    metrics_dict["len_" + metric.__name__] = [n_predictions]
+                    # in case of multiple outputs print all metrics
+                    # for output_idx, output in enumerate(
+                    for key in all_preds.keys():
+                        n_predictions = len(all_preds[key])
+                        metric_name = str(key) + "_" + str(metric.__name__)
+                        result = 0 
+                        try:
+                            result = metric(all_labels[key], all_preds[key])
+                        except:
+                            result = 0 
+                        if metric.__name__ in metrics_dict:
+                            metrics_dict[metric_name].append(result)
+                            metrics_dict["len_" + metric_name].append(
+                                n_predictions)
+                        else:
+                            metrics_dict[metric_name] = [result]
+                            metrics_dict["len_" + metric_name] = [n_predictions]
         return metrics_dict
 
 
@@ -503,6 +554,10 @@ class Trainer:
         phase
         ):
         # check for unreported metrics
+        keys = None
+        if isinstance(self.prediction_type, list):
+            keys = all_preds.keys()
+
         if len(all_preds) > 0:
             multi_batch_metrics = self.estimate_metrics(
                     multi_batch_metrics,
@@ -513,10 +568,12 @@ class Trainer:
             all_labels = []
             all_preds = []
 
-        metrics_dict = self.report_metrics(
+        #metrics_dict = self.report_metrics(
+        metrics_dict = self.estimate_batch_metrics(
             metrics_dict,
             multi_batch_metrics,
-            phase
+            phase,
+            keys=keys
         )
 
         return metrics_dict
