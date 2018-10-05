@@ -29,7 +29,6 @@ def predict(
                 all_labels,
                 **kwargs
             )
-        return all_preds, all_labels
     elif prediction_type == "classification":
         # TODO: develop inference
         raise NotImplementedError("Multiclass-classification \
@@ -42,7 +41,6 @@ def predict(
                 all_preds,
                 all_labels
         )
-        return all_preds, all_labels
     elif prediction_type == "reconstruction":
         # TODO: test different loss functions
         all_preds, all_labels = regression_inference(
@@ -51,7 +49,6 @@ def predict(
                 all_preds,
                 all_labels
         )
-        return all_preds, all_labels
     elif prediction_type == "variational":
         # TODO: test different loss functions
         all_preds, all_labels = variational_inference(
@@ -60,9 +57,10 @@ def predict(
                 all_preds,
                 all_labels
         )
-        return all_preds, all_labels
     else:
         raise NotImplementedError
+
+    return all_preds, all_labels
 
 
 def bce_with_logits_inference(
@@ -109,7 +107,7 @@ def regression_inference(
     ):
     # Multi-head case
     # network returns a tuple of outputs
-    if isinstance(outputs, tuple):
+    if isinstance(outputs, (list,tuple)):
         predicted = [output.data for output in outputs]
         for head in range(len(predicted)):
             for j in range(len(predicted[head])):

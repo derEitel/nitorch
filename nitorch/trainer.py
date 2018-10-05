@@ -62,8 +62,9 @@ class Trainer:
         labels_key = "label",
         num_epochs=25,
         show_train_steps=25,
-        show_validation_epochs=1,        
+        show_validation_epochs=1,
         device=torch.device('cuda'),
+        debugMode = False
         ):
         """ Main function to train a network for one epoch.
         Args:
@@ -75,9 +76,10 @@ class Trainer:
                             and data_loader[1] = labels. The default keys are "image" and "label".
             device: The device to use for training. Must be a torch.device object. 
                     By default, GPU with current node is used.
-        """
-        assert show_validation_epochs < num_epochs,"\
+         """
+        assert (show_validation_epochs < num_epochs) and (num_epochs > 1),"\
 'show_validation_epochs' value should be less than 'num_epochs'"
+
         val_metrics = dict()
         train_metrics = dict()
 
@@ -101,6 +103,7 @@ class Trainer:
                 multi_batch_metrics = dict()
                 # train
                 self.model.train()
+            
                 for i, data in enumerate(train_loader):
                     try:
                         inputs, labels = data[inputs_key], data[labels_key]
@@ -125,7 +128,27 @@ class Trainer:
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
                     # forward + backward + optimize
-                    outputs = self.model(inputs)
+            
+                    debug = False
+                    visualize_training = False
+            
+                    if(debugMode):
+                        # print the model's parameter dimensions etc in the first iter
+                        if(i==0 and epoch==0):
+                            debug = True
+                        # visualize training on the last example of an epoch 
+                        elif(i == len(train_loader)-1) or (epoch==0 and i==1):
+                            visualize_training = True
+                            if isinstance(labels, list):
+                                print("\nExpected FC output =",labels[1][0].data)
+                                
+                    try:
+                    # for nitorch models which have a 'debug' and 'visualize_training' switch in the
+                    # forward() method
+                        outputs = self.model(inputs, debug, visualize_training)
+                    except TypeError:
+                        outputs = self.model(inputs)
+                        
                     loss = self.criterion(outputs, labels)  
                     loss.backward()
                     self.optimizer.step()
@@ -181,7 +204,7 @@ class Trainer:
                     train_metrics["loss"] = [epoch_loss]
 
             # validate every x iterations
-            if (epoch % show_validation_epochs == 0) and (epoch != 0) :
+            if epoch % show_validation_epochs == 0:
                 self.model.eval()
                 validation_loss = 0.0
                 all_preds = []
@@ -370,11 +393,13 @@ class Trainer:
         multi_batch_metrics,
         phase
         ):
+
         # report execution time only in training phase
         if(phase=="train"):
             time_elapsed = int(time.time() - self.start_time)
             print("Time elapsed: {}h:{}m:{}s".format(
                 time_elapsed//3600, (time_elapsed//60)%60, time_elapsed%60))
+
         """ Store and report a list of metric functions. """
         for metric in self.metrics:
             # report everything but loss
