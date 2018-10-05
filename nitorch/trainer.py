@@ -127,6 +127,8 @@ class Trainer:
                         else:
                             if isinstance(labels, list):
                                 output_names = ["target_{}".format(i) for i in range(len(labels))]
+                            else:
+                                output_names = ["target_0"]
                     print(output_names)
                     # wrap data in Variable
                     # in case of multi-input or output create a list
