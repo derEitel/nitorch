@@ -19,7 +19,7 @@ class Callback:
     def final(self, **kwargs):
         self.reset()
 
-class ModelCheckpoint:
+class ModelCheckpoint(Callback):
     """
     # TODO
 
@@ -27,24 +27,29 @@ class ModelCheckpoint:
         path:
         num_iters: number of iterations after which to store the model.
             If set to -1, it will only store the last iteration's model.
-        preped: string to prepend the filename with.
+        prepend: string to prepend the filename with.
     """
 
     def __init__(self, path, prepend="", num_iters=-1, ignore_before=0):
-        assert(os.path.isdir(path))
-        self.path = path
+        if os.path.isdir(path):
+            self.path = path
+        else:
+            os.makedirs(path)
+            self.path = path
         # end the prepended text with an underscore if it does not
-        if not prepend.endswith("_"):
+        if not prepend.endswith("_") and prepend != "":
             prepend += "_"
         self.prepend = prepend
         self.num_iters = num_iters
         self.ignore_before = ignore_before
 
     def __call__(self, trainer, epoch, val_metrics):
+        # do not store intermediate iterations
         if not self.num_iters == -1:
-            if epoch >= self.ignore_before:
+            if epoch >= self.ignore_before and epoch != 0:
+                # counting epochs starts from 1; i.e. +1
+                epoch += 1
                 if epoch % self.num_iters == 0:
-                    # TODO: prevent overwriting in cross validation!!
                     name = self.prepend + "training_epoch_{}.h5".format(epoch)
                     full_path = os.path.join(self.path, name)
                     self.save_model(trainer, full_path)
@@ -56,7 +61,7 @@ class ModelCheckpoint:
         """
 
     def final(self, **kwargs):
-        epoch = kwargs["epoch"]
+        epoch = kwargs["epoch"] + 1
         if epoch >= self.ignore_before:
             name = self.prepend + "training_epoch_{}_FINAL.h5".format(epoch)
             full_path = os.path.join(self.path, name)
@@ -64,16 +69,16 @@ class ModelCheckpoint:
         else:
             print("Minimum iterations to store model not reached.")
             self.reset()
-            return self.best_res, best_model
 
     def save_model(self, trainer, full_path):
+        print("Writing model to disk...")
         model = trainer.model.cpu()
         torch.save(model.state_dict(), full_path)
         if trainer.gpu is not None:
             trainer.model.cuda(trainer.gpu)
 
 
-class EarlyStopping:
+class EarlyStopping(Callback):
     """ 
     Stop training when a monitored quantity has stopped improving.
 

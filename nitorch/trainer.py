@@ -18,6 +18,7 @@ class Trainer:
         scheduler=None,
         metrics=[], 
         callbacks=[],
+        device=torch.device('cuda'),
         prediction_type="binary",
         **kwargs
         ):
@@ -35,16 +36,26 @@ class Trainer:
             prediction_type: accepts one of ["binary", "classification",
                 "regression", "reconstruction", "variational", "other"]. 
                 This is used to determine output type.
+            device: The device to use for training. Must be integer or
+                    a torch.device object. By default, GPU with current
+                    node is used.
 
         """
         if not isinstance(model, nn.Module):
-            raise ValueError('Expects model type to be torch.nn.Module')
+            raise ValueError("Expects model type to be torch.nn.Module")
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.metrics = metrics
         self.callbacks = callbacks
+        if isinstance(device, int):
+            self.device = torch.device("cuda:" + str(device))
+        elif isinstance(device, torch.device):
+            self.device = device
+        else:
+            raise ValueError("Device needs to be of type torch.device or \
+                integer.")
         if "class_threshold" in kwargs.keys():
             self.class_threshold = kwargs["class_threshold"]
         else:            
@@ -62,9 +73,8 @@ class Trainer:
         labels_key = "label",
         num_epochs=25,
         show_train_steps=25,
-        show_validation_epochs=1,
-        device=torch.device('cuda'),
-        debugMode = False
+        show_validation_epochs=1
+        , debugMode = False
         ):
         """ Main function to train a network for one epoch.
         Args:
@@ -74,9 +84,7 @@ class Trainer:
                             either be a dict of format data_loader[X_key] = inputs and 
                             data_loader[y_key] = labels or a list with data_loader[0] = inputs 
                             and data_loader[1] = labels. The default keys are "image" and "label".
-            device: The device to use for training. Must be a torch.device object. 
-                    By default, GPU with current node is used.
-         """
+        """
         assert (show_validation_epochs < num_epochs) and (num_epochs > 1),"\
 'show_validation_epochs' value should be less than 'num_epochs'"
 
@@ -90,7 +98,7 @@ class Trainer:
         for epoch in range(num_epochs):
             if self.stop_training:
                 # TODO: check position of this
-                print("Early stopping in epoch {}".format(epoch - 1))
+                print("Early stopping in epoch {}".format(epoch))
                 return self.finish_training(train_metrics, val_metrics, epoch)
             else:
                 running_loss = 0.0
@@ -117,13 +125,13 @@ class Trainer:
                     # wrap data in Variable
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
-                        inputs = [Variable(inp.to(device)) for inp in inputs]
+                        inputs = [Variable(inp.to(self.device)) for inp in inputs]
                     else:
-                        inputs = Variable(inputs.to(device))
+                        inputs = Variable(inputs.to(self.device))
                     if isinstance(labels, list):
-                        labels = [Variable(label.to(device)) for label in labels]
+                        labels = [Variable(label.to(self.device)) for label in labels]
                     else:
-                        labels = Variable(labels.to(device))
+                        labels = Variable(labels.to(self.device))
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
@@ -177,17 +185,19 @@ class Trainer:
 
                     # compute training metrics for X/2 mini-batches
                     # useful for large outputs (e.g. reconstructions)
-                    if i % int(show_train_steps/2) == 0:
-                        multi_batch_metrics = self.estimate_metrics(
-                            multi_batch_metrics,
-                            all_labels,
-                            all_preds,
-                        )
-                        # TODO: test if del helps
-                        all_labels = []
-                        all_preds = []
-                        
+                    if self.prediction_type == "reconstruction":
+                        if i % int(show_train_steps/2) == 0:
+                            multi_batch_metrics = self.estimate_metrics(
+                                multi_batch_metrics,
+                                all_labels,
+                                all_preds,
+                            )
+                            # TODO: test if del helps
+                            all_labels = []
+                            all_preds = []
+
                 # report training metrics
+                # weighted averages of metrics are computed over batches
                 train_metrics = self._on_epoch_end(
                         train_metrics,
                         multi_batch_metrics,
@@ -226,13 +236,13 @@ class Trainer:
                         # wrap data in Variable
                         # in case of multi-input or output create a list
                         if isinstance(inputs, list):
-                            inputs = [Variable(inp.to(device)) for inp in inputs]
+                            inputs = [Variable(inp.to(self.device)) for inp in inputs]
                         else:
-                            inputs = Variable(inputs.to(device))
+                            inputs = Variable(inputs.to(self.device))
                         if isinstance(labels, list):
-                            labels = [Variable(label.to(device)) for label in labels]
+                            labels = [Variable(label.to(self.device)) for label in labels]
                         else:
-                            labels = Variable(labels.to(device))
+                            labels = Variable(labels.to(self.device))
 
                         # forward pass only
                         outputs = self.model(inputs)
@@ -250,17 +260,21 @@ class Trainer:
 
                         validation_loss += loss.item()
 
-                        if i % int(show_train_steps/2) == 0:
-                            multi_batch_metrics = self.estimate_metrics(
-                                multi_batch_metrics,
-                                all_labels,
-                                all_preds,
-                            )
-                            # TODO: test if del helps
-                            all_labels = []
-                            all_preds = []
+                        # compute training metrics for X/2 mini-batches
+                        # useful for large outputs (e.g. reconstructions)
+                        if self.prediction_type == "reconstruction":
+                            if i % int(show_train_steps/2) == 0:
+                                multi_batch_metrics = self.estimate_metrics(
+                                    multi_batch_metrics,
+                                    all_labels,
+                                    all_preds,
+                                )
+                                # TODO: test if del helps
+                                all_labels = []
+                                all_preds = []
 
                     # report validation metrics
+                    # weighted averages of metrics are computed over batches
                     val_metrics = self._on_epoch_end(
                         val_metrics,
                         multi_batch_metrics,
@@ -336,12 +350,34 @@ class Trainer:
             plt.show()
 
 
-    def evaluate_model(self, val_loader, device=torch.device('cuda')
-                       , inputs_key = "image", labels_key = "label"
-                      ):
+    def evaluate_model(
+        self,
+        val_loader,
+        additional_gpu=None,
+        metrics=None,
+        inputs_key = "image",
+        labels_key = "label"
+        ):
         # predict on the validation set
+        """
+        Predict on the validation set.
+
+        # Arguments
+            val_loader : data loader of the validation set
+            additional_gpu : GPU number if evaluation should be done on 
+                separate GPU
+            metrics: list of 
+        """
         all_preds = []
         all_labels = []
+        
+        self.model.eval()
+        
+        if additional_gpu is not None:
+            device = additional_gpu
+        else:
+            device = self.device
+
         with torch.no_grad():
             for i, data in enumerate(val_loader):
                 inputs, labels = data[inputs_key], data[labels_key]
@@ -360,7 +396,7 @@ class Trainer:
                                 self.criterion,
                                 class_threshold=self.class_threshold
                             )
-
+                
         # compute confusion matrix
         cm = confusion_matrix(all_labels, all_preds)
         plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
@@ -386,6 +422,12 @@ class Trainer:
         plt.xlabel("Predicted label")
         plt.show()
 
+        # print metrics
+        if metrics is not None:
+            for metric in metrics:
+                print("{}: {}".format(metric.__name__, metric(all_labels, all_preds)))
+
+        self.model.train()
 
     def report_metrics(
         self,
@@ -404,8 +446,21 @@ class Trainer:
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss":
-                # average over previous batches
-                result = np.mean(multi_batch_metrics[metric.__name__])
+                # weighted average over previous batches
+                # weigh by the number of samples per batch and divide by
+                # the total number of samples
+                batch_results = np.zeros(shape=(
+                    len(multi_batch_metrics["len_" + metric.__name__])))
+                n_samples = 0
+                for b_idx, batch_len in enumerate(
+                    multi_batch_metrics["len_" + metric.__name__]
+                    ):
+                    batch_results[b_idx] = multi_batch_metrics[
+                        metric.__name__][b_idx] * batch_len
+                    n_samples += batch_len
+
+                result = np.sum(batch_results) / n_samples
+
                 if metric.__name__ in metrics_dict:
                     metrics_dict[metric.__name__].append(result)
                 else:
@@ -427,14 +482,18 @@ class Trainer:
         all_preds
         ):
         """ Estimate a list of metric functions. """
+        n_predictions = len(all_preds)
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss": 
                 result = metric(all_labels, all_preds)
                 if metric.__name__ in metrics_dict:
                     metrics_dict[metric.__name__].append(result)
+                    metrics_dict["len_" + metric.__name__].append(
+                        n_predictions)
                 else:
                     metrics_dict[metric.__name__] = [result]
+                    metrics_dict["len_" + metric.__name__] = [n_predictions]
         return metrics_dict
 
 
