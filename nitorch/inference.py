@@ -25,8 +25,8 @@ def predict(
                 labels,
                 all_preds,
                 all_labels,
-                prediction_type=pred_type,
                 criterion,
+                prediction_type=pred_type,
                 **kwargs
             )
 
