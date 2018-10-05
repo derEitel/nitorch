@@ -12,6 +12,18 @@ def predict(
     **kwargs
     ):
     """ Predict according to loss and prediction type."""
+    if isinstance(prediction_type, list):
+        # in case of multi-head classification separate
+        for pred_type in prediction_type:
+            predict(outputs,
+                labels,
+                all_preds,
+                all_labels,
+                prediction_type=pred_type
+                criterion,
+                **kwargs
+            )
+
     if prediction_type == "binary":
         if isinstance(criterion, nn.BCEWithLogitsLoss):
             all_preds, all_labels = bce_with_logits_inference(

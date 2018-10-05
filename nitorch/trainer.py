@@ -71,6 +71,7 @@ class Trainer:
         val_loader,
         inputs_key = "image",
         labels_key = "label",
+        names_key = "label_names",
         num_epochs=25,
         show_train_steps=25,
         show_validation_epochs=1        
@@ -119,6 +120,14 @@ class Trainer:
                             inputs, labels = data[0], data[1]
                         except TypeError:
                             raise TypeError
+                    # set output names in first epoch
+                    if i == 0:
+                        if names_key in data:
+                            output_names = data[names_key]
+                        else:
+                            if isinstance(labels, list):
+                                output_names = ["target_{}".format(i) for i in range(len(labels))]
+                    print(output_names)
                     # wrap data in Variable
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
