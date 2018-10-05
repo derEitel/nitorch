@@ -19,16 +19,18 @@ def predict(
                 # convert to dictionary for multiple outputs
                 all_preds = dict()
                 all_labels = dict()
-
-            all_preds, all_labels = predict(
-                outputs[pred_idx],
-                labels,
-                all_preds,
-                all_labels,
-                criterion,
+            output_names = kwargs["output_names"]
+            all_preds[output_names[pred_idx][0]], all_labels[output_names[pred_idx][0]]  = predict(
+                outputs=outputs[pred_idx],
+                labels=labels,
+                all_preds=all_preds,
+                all_labels=all_labels,
+                criterion=criterion,
                 prediction_type=pred_type,
                 **kwargs
             )
+            print(len(all_preds))
+            return all_preds, all_labels
 
     if prediction_type == "binary":
         if isinstance(criterion, nn.BCEWithLogitsLoss):

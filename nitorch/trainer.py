@@ -129,7 +129,6 @@ class Trainer:
                                 output_names = ["target_{}".format(i) for i in range(len(labels))]
                             else:
                                 output_names = ["target_0"]
-                    print(output_names)
                     # wrap data in Variable
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
@@ -157,6 +156,7 @@ class Trainer:
                                 all_labels,
                                 self.prediction_type,
                                 self.criterion,
+                                output_names=output_names,
                                 class_threshold=self.class_threshold
                             )
                     # update loss
@@ -243,6 +243,7 @@ class Trainer:
                                 all_labels,
                                 self.prediction_type,
                                 self.criterion,
+                                output_names=output_names,
                                 class_threshold=self.class_threshold
                             )
 
@@ -374,6 +375,15 @@ class Trainer:
                 labels = Variable(labels.to(device))
                 # forward + backward + optimize
                 outputs = self.model(inputs)
+                # set output names in first epoch
+                if epoch == 0 and i == 0:
+                    if names_key in data:
+                        output_names = data[names_key]
+                    else:
+                        if isinstance(labels, list):
+                            output_names = ["target_{}".format(i) for i in range(len    (labels))]
+                        else:
+                            output_names = ["target_0"]
                 # run inference
                 all_preds, all_labels = predict(
                                 outputs,
@@ -382,6 +392,7 @@ class Trainer:
                                 all_labels,
                                 self.prediction_type,
                                 self.criterion,
+                                output_names=output_names,
                                 class_threshold=self.class_threshold
                             )
                 
