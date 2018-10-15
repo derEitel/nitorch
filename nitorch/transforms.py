@@ -1,4 +1,5 @@
 import numpy as np
+import numbers
 import torch
 from scipy.ndimage.interpolation import rotate
 from scipy.ndimage.interpolation import zoom
@@ -59,6 +60,56 @@ def normalization_factors(data, train_idx, shape, mode="slice"):
     std = np.std(samples, axis=axis)
     return np.squeeze(mean), np.squeeze(std)
 
+
+class CenterCrop(object):
+    """Crops the given 3D ndarray Image at the center.
+    Args:
+        size (sequence or int): Desired output size of the crop. If size is an
+            int instead of sequence like (h, w, d), a cube crop (size, size, size) is
+            made.
+    """
+    def __init__(self, size):
+        if isinstance(size, numbers.Number):
+            self.size = (int(size), int(size), int(size))
+        else:
+            self.size = np.asarray(size)
+        assert len(self.size) == 3, "The `size` must be a tuple of length 3 but is \
+length {}".format(len(self.size))
+        
+    def __call__(self, img):
+        """
+        Args:
+            3D ndarray Image : Image to be cropped.
+        Returns:
+            3D ndarray Image: Cropped image.
+        """     
+        # if the 4th dimension of the image is the batch then ignore that dim 
+        if len(img.shape) == 4:
+            img_size = img.shape[1:]
+        elif len(img.shape) == 3:
+            img_size = img.shape
+        else:
+            raise ValueError("The size of the image can be either 3 dimension or 4\
+dimension with one dimension as the batch size")
+            
+        # crop only if the size of the image is bigger than the size to be cropped to.
+        if all(img_size >= self.size):
+            slice_start = (img_size - self.size)//2
+            slice_end = self.size + slice_start
+            cropped = img[slice_start[0]:slice_end[0],
+                          slice_start[1]:slice_end[1],
+                          slice_start[2]:slice_end[2]
+                         ]
+            if len(img.shape) == 4:
+                cropped = np.expand_dims(cropped, 0)
+        else:
+            cropped = img
+        
+        return cropped
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(size={0})'.format(self.size)
+    
 
 class Normalize(object):
     """
@@ -352,3 +403,4 @@ class AxialTranslate(Translate):
     """
     def __init__(self, dist=(-3, 3)):
         super().__init__(axis=2, dist=dist)
+        
