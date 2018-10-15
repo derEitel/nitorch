@@ -74,8 +74,8 @@ class ModelCheckpoint(Callback):
         print("Writing model to disk...")
         model = trainer.model.cpu()
         torch.save(model.state_dict(), full_path)
-        if trainer.gpu is not None:
-            trainer.model.cuda(trainer.gpu)
+        if trainer.device is not None:
+            trainer.model.cuda(trainer.device)
 
 
 class EarlyStopping(Callback):
