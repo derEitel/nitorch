@@ -47,6 +47,7 @@ class ModelCheckpoint(Callback):
         retain_metric="accuracy_score",
         mode="max"
         ):
+        super().__init__()
         if os.path.isdir(path):
             self.path = path
         else:
