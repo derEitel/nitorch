@@ -81,15 +81,20 @@ class ModelCheckpoint(Callback):
             # store current model if improvement detected
             if self.store_best:
                 current_res = 0
-                try:
-                    if isinstance(self.retain_metric, str):
-                        current_res = val_metrics[self.retain_metric][-1]
-                    else:
-                        current_res = val_metrics[self.retain_metric.__name__][-1]
-                except KeyError:
-                    print("Couldn't find {} in validation metrics. Using \
-                        loss instead.".format(store_best_metric))
+                # use loss directly
+                if self.retain_metric == "loss":
                     curent_res = val_metrics["loss"][-1]
+                else: 
+                    try:
+                        # check if value can be used directly or not
+                        if isinstance(self.retain_metric, str):
+                            current_res = val_metrics[self.retain_metric][-1]
+                        else:
+                            current_res = val_metrics[self.retain_metric.__name__][-1]
+                    except KeyError:
+                        print("Couldn't find {} in validation metrics. Using \
+                            loss instead.".format(retain_metric))
+                        curent_res = val_metrics["loss"][-1]
                 if self.has_improved(current_res):
                     self.best_res = current_res
                     self.best_model = deepcopy(trainer.model.state_dict())
