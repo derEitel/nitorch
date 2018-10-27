@@ -24,3 +24,7 @@ def dataset_length(data_loader):
             # in case of sequence of inputs use first input
             batch_size = sample[1][0].shape[0]
     return len(data_loader) * batch_size
+
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)

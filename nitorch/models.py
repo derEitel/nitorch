@@ -5,7 +5,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 from nitorch.data import show_brain
 
@@ -141,47 +140,9 @@ Allowed values are `max`, `avg`.")
                 result.append(e)
         result.reverse()
         return result
-
     
-    def visualize_feature_maps(self, features):
-        features = features.cpu().detach().numpy()
-        
-        fig = plt.figure()
-        num_features = len(features)
-        
-        for i, f in enumerate(features, 1):            
-            # normalize to range [0, 1] first as the values can be very small            
-            if((f.max() - f.min()) != 0):
-                f = (f - f.min()) / (f.max() - f.min())
-            else:
-                print("Feature map is all zeros !")
-                continue
-             
-            idxs = np.nonzero(f)
-            vals = np.ravel(f[idxs])
-
-            if(len(vals)):
-                # calculate the index where the mean value would lie
-                mean_idx = np.average(idxs, axis = 1, weights=vals)
-                # calculate the angel ratios for each non-zero val            
-                angles = (mean_idx.reshape(-1,1) - idxs)
-                angles = angles/ (np.max(abs(angles), axis=1).reshape(-1,1))    
-            else: # if all values in f are zero, set dummy angle
-                angles = [1, 1, 1]
-
-#             print("values = ",vals)
-            ax = fig.add_subplot(num_features, 1, i,
-                                  projection='3d')
-            ax.set_title("Feature-{} in the bottleneck".format(i))
-            ax.quiver(*idxs
-                      , angles[0]*vals, angles[1]*vals, angles[2]*vals
-                     )
-            plt.grid()
-            
-                 
-        
-        
-        
+    
+    
 class CAE_3D(_CAE_3D):
     '''
     3D Convolutional Autoencoder model with only convolution layers. Strided convolution
@@ -276,59 +237,31 @@ It cannot be a list of lists."
                 )
         
 
-    def forward(self, x, debug = False, visualize_training = False):
+    def forward(self, x, debug = False, return_encoder_out=False):
 
-            if(debug):
-                print("\nImage dims ="+str(x.size()))
-                # show only the first image in the batch
-            if(visualize_training):
-                # show only the first image in the batch
-                show_brain(x[0].squeeze().cpu().detach().numpy(), draw_cross = False)
-                plt.suptitle("Input Image")
-                plt.show()
+            if(debug): print("\nImage dims ="+str(x.size()))
 
             #encoder
             for i, conv in enumerate(self.convs):
                 x = conv(x)
                 if(debug): print("conv{} output dim = {}".format(i+1, x.size()))
-
-            if(self.second_fc_decoder):
-                #save the encoder output as a flat array
-                encoder_out = x.view(-1, x.shape[1]*x.shape[2]*x.shape[3]*x.shape[4])
-                
-            if(debug):
-                print("\nEncoder output dims ="+str(x.size())+"\n")
-            if(visualize_training):
-                # show only the first image in the batch
-                self.visualize_feature_maps(x[0])
-                plt.suptitle("Encoder output")
-                plt.show()
+            
+            encoder_out = x
+            
+            if(debug): print("\nEncoder output dims ="+str(encoder_out.size())+"\n")
             
             #decoder
             for i, deconv in enumerate(self.deconvs):
                 x = deconv(x)
                 if(debug): print("deconv{} output dim = {}".format(i+1, x.size()))
                         
-            if(debug):
-                print("\nDecoder output dims ="+str(x.size())+"\n")
-            if(visualize_training):
-                show_brain(x[0].squeeze().cpu().detach().numpy(),  draw_cross = False)
-                plt.suptitle("Reconstructed Image")
-                plt.show()
-                
-            if(self.second_fc_decoder):
-                # run the second fully connected decoder network
-                x2 = self.fcs[0](encoder_out)
-                for fc in self.fcs[1:]:
-                    x2 = fc(x2)
-                if(debug):
-                    print("FC decoder output dims ="+str(x2.size()))
-                if(visualize_recon):
-                    print("FC Output =",x2[0].squeeze().cpu().detach().numpy())
-                    
-                return [x, x2]
+            if(debug): print("\nDecoder output dims ="+str(x.size())+"\n")
             
+            if(return_encoder_out):
+                
+                return [x, encoder_out]
             else:
+                
                 return x
 
             
@@ -343,7 +276,6 @@ class CAE_3D_with_pooling(_CAE_3D):
         , pool_type = "max"
         , pool_kernel = 2, pool_padding = 0, pool_stride = 2
         , deconv_out_padding = None
-        , second_fc_decoder = []
         ):
         '''
         Args:
@@ -379,13 +311,6 @@ class CAE_3D_with_pooling(_CAE_3D):
             second_fc_decoder (optional): By default this is disabled. 
             If a non-empty list of ints is provided then a secondary decoder of a fully-connected network  
             is constructed as per the list.
-            Each value represents the number of neurons in each layer. The length of the list
-            defines the number of layers.  
-            It has to be taken care to ensure that the number of parameters of the output of the encoder 
-            is equal to the number of neurons in the 1st layer of this fc-decoder network.
-            
-            If enabled, the forward() method returns a list of 2 outputs, one from the Autoencoder's
-            decoder and the other from this fully-connected decoder.
         '''
         
         super().__init__(conv_channels)
@@ -410,11 +335,6 @@ It cannot be a list."
             self.deconv_out_padding = self.nested_reverse(
                 self.assign_parameter(deconv_out_padding, "deconv_out_padding")
             )
-        
-        if(second_fc_decoder):
-            self.second_fc_decoder = self._format_channels(second_fc_decoder)[1:]
-        else:
-            self.second_fc_decoder = []
             
         self.convs = nn.ModuleList()
         self.pools = nn.ModuleList()
@@ -464,27 +384,18 @@ It cannot be a list."
                 )
             )
         
-        if(self.second_fc_decoder):
-            # build the second fc decoder
-            self.fcs = nn.ModuleList()
-            for layer in self.second_fc_decoder:
-                self.fcs.append(
-                    nn.Linear(layer[0], layer[1])
-                )
-        
 
-    def forward(self, x, debug=False, visualize_training=False):
+        
+    def forward(self, x, debug=False, return_encoder_out=False):
+            '''return_encoder_out : If enabled returns a list with 2 values, 
+            first one is the Autoencoder's output and the other the intermediary output of the encoder.
+            '''
             pool_idxs = []
             pool_sizes = [x.size()] #https://github.com/pytorch/pytorch/issues/580
             
             if(debug):
                 print("\nImage dims ="+str(x.size()))
-            if(visualize_training):
-                # show only the first image in the batch
-                show_brain(x[0].squeeze().cpu().detach().numpy(),  draw_cross = False)
-                plt.suptitle("Input image")
-                plt.show()
-
+                
             #encoder
             for i,(convs, pool) in enumerate(zip(self.convs, self.pools)):
                 for j, conv in enumerate(convs):
@@ -495,17 +406,11 @@ It cannot be a list."
                 pool_sizes.append(x.size()) 
                 pool_idxs.append(idx)
                 if(debug):print("pool{} output dim = {}".format(i+1, x.size()))
-
-            if(debug):
-                print("\nEncoder output dims ="+str(x.size())+"\n")
-            if(visualize_training):                
-                self.visualize_feature_maps(x[0]) # show only the first image in the batch
-                plt.suptitle("Encoder output")
-                plt.show()
             
-            if(self.second_fc_decoder):
-                #save the encoder output as a flat array
-                encoder_out = x.view(-1, x.shape[1]*x.shape[2]*x.shape[3]*x.shape[4])
+            encoder_out = x
+            
+            if(debug):
+                print("\nEncoder output dims ="+str(encoder_out.size())+"\n")
                 
             #decoder
             pool_sizes.pop() # pop out the last size as it is not necessary
@@ -521,23 +426,62 @@ It cannot be a list."
                         
             if(debug):
                 print("\nDecoder output dims ="+str(x.size())+"\n")
-            if(visualize_training):
-                show_brain(x[0].squeeze().cpu().detach().numpy(),  draw_cross = False)
-                plt.suptitle("Reconstructed Image")
-                plt.show()
                 
-            if(self.second_fc_decoder):
-                # run the second fully connected decoder network
-                x2 = self.fcs[0](encoder_out)
-                for fc in self.fcs[1:]:
-                    x2 = fc(x2)
-                if(debug):
-                    print("FC decoder output dims ="+str(x2.size()))
-                if(visualize_training):
-                    print("\nFC Output =",x2[0].squeeze().cpu().detach().numpy())
-                    
-                return [x, x2]
-            
+            if(return_encoder_out):
+                return [x, encoder_out]
             else:
                 return x
             
+            
+            
+            
+class MLP(nn.Module):
+    '''
+    Constructs fully-connected deep neural networks 
+    '''
+    def __init__(self
+        , layers = []
+        , output_activation = nn.LogSoftmax
+        ):
+        '''
+        Args:
+            layer_neurons : Each value represents the number of neurons in each layer. The length of the list
+            defines the number of layers. '''
+        super().__init__()   
+        self.layers = self._format_channels(layers)        
+#         self.output_activation = output_activation
+        
+        # build the fully-connected layers
+        self.fcs = nn.ModuleList()
+
+        for layer in self.layers:
+            if(layer) is not self.layers[-1]:
+                self.fcs.append(self.add_linear_with_Relu(layer))
+            elif(output_activation is not None):
+                self.fcs.append(
+                    nn.Sequential(
+                        nn.Linear(layer[0], layer[1]),
+                        output_activation()))
+            else:
+                self.fcs.append(
+                    nn.Linear(layer[0], layer[1]))
+                
+
+    def _format_channels(self, layers):   
+        layer_inout = []
+        for i in range(len(layers)-1):
+            layer_inout.append([layers[i], layers[i+1]])
+        return layer_inout
+
+    def add_linear_with_Relu(self, layer):
+        node = nn.Sequential(
+            nn.Linear(layer[0], layer[1]),
+            nn.ReLU(True))        
+        return node
+        
+    def forward(self, x, debug=False):
+        for i,fc in enumerate(self.fcs):
+            x = fc(x)
+            if(debug):print("FC {} output dims ={}".format(i, x.size()))
+                
+        return x

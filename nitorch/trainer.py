@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from nitorch.inference import predict
 from nitorch.callbacks import ModelCheckpoint
 
+
 class Trainer:
     def __init__(
         self, 
@@ -18,6 +19,7 @@ class Trainer:
         scheduler=None,
         metrics=[], 
         callbacks=[],
+        training_time_callback = None,
         device=torch.device('cuda'),
         prediction_type="binary",
         **kwargs
@@ -30,7 +32,12 @@ class Trainer:
             optimizer: optimization function.
             scheduler: schedules the optimizer.
             metrics: list of metrics to report. Default is None.
-            callbacks: list of callbacks to execute. Default is None.
+            callbacks: list of callbacks to execute at the end of training epochs. Default is None.
+            training_time_callback: a user-defined callback that executes the model.forward() 
+                and returns the output to the trainer. 
+                This can be used to perform debug during train time, Visualize features,
+                call model.forward() with custom arguments, run multiple decoder networks etc. 
+                Default is None.
             class_threshold: classification threshold for binary 
                 classification. Default is 0.5.
             prediction_type: accepts one of ["binary", "classification",
@@ -49,6 +56,7 @@ class Trainer:
         self.scheduler = scheduler
         self.metrics = metrics
         self.callbacks = callbacks
+        self.training_time_callback = training_time_callback
         if isinstance(device, int):
             self.device = torch.device("cuda:" + str(device))
         elif isinstance(device, torch.device):
@@ -74,7 +82,6 @@ class Trainer:
         num_epochs=25,
         show_train_steps=25,
         show_validation_epochs=1
-        , debugMode = False
         ):
         """ Main function to train a network for one epoch.
         Args:
@@ -85,7 +92,7 @@ class Trainer:
                             data_loader[y_key] = labels or a list with data_loader[0] = inputs 
                             and data_loader[1] = labels. The default keys are "image" and "label".
         """
-        assert (show_validation_epochs < num_epochs) and (num_epochs > 1),"\
+        assert (show_validation_epochs < num_epochs) or (num_epochs == 1),"\
 'show_validation_epochs' value should be less than 'num_epochs'"
 
         val_metrics = dict()
@@ -136,25 +143,16 @@ class Trainer:
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
                     # forward + backward + optimize
-            
-                    debug = False
-                    visualize_training = False
-            
-                    if(debugMode):
-                        # print the model's parameter dimensions etc in the first iter
-                        if(i==0 and epoch==0):
-                            debug = True
-                        # visualize training on the last example of an epoch 
-                        elif(i == len(train_loader)-1) or (epoch==0 and i==1):
-                            visualize_training = True
-                            if isinstance(labels, list):
-                                print("\nExpected FC output =",labels[1][0].data)
-                                
-                    try:
-                    # for nitorch models which have a 'debug' and 'visualize_training' switch in the
-                    # forward() method
-                        outputs = self.model(inputs, debug, visualize_training)
-                    except TypeError:
+                    
+                    if self.training_time_callback is not None:
+                        outputs = self.training_time_callback(
+                            self.model,
+                            inputs, 
+                            labels,
+                            i,
+                            epoch                            
+                        )               
+                    else:
                         outputs = self.model(inputs)
                         
                     loss = self.criterion(outputs, labels)  
@@ -245,7 +243,17 @@ class Trainer:
                             labels = Variable(labels.to(self.device))
 
                         # forward pass only
-                        outputs = self.model(inputs)
+                        if self.training_time_callback is not None:
+                            outputs = self.training_time_callback(
+                                self.model,
+                                inputs, 
+                                labels,
+                                1, #dummy value
+                                1  #dummy value                          
+                            )               
+                        else:
+                            outputs = self.model(inputs)
+                            
                         loss = self.criterion(outputs, labels)
                         # compute validation accuracy
                         all_preds, all_labels = predict(
@@ -331,13 +339,15 @@ class Trainer:
 
 
 
-    def visualize_training(self, report, metrics=None):
+    def visualize_training(self, report, metrics=None, save_fig_path=""):
         # Plot loss first
         plt.figure()
         plt.plot(report["train_metrics"]["loss"])
         plt.plot(report["val_metrics"]["loss"])
         plt.title("Loss during training")
         plt.legend(["Train", "Val"])
+        if(save_fig_path):
+            plt.savefig(save_fig_path)
         plt.show()
         if metrics is None:
             metrics = self.metrics

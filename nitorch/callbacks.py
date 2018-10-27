@@ -1,7 +1,16 @@
 import os
 import copy
-import torch
 from copy import deepcopy
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+# pytorch
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+# nitorch
+from nitorch.data import show_brain
 
 class Callback:
     """
@@ -93,7 +102,7 @@ class ModelCheckpoint(Callback):
                             current_res = val_metrics[self.retain_metric.__name__][-1]
                     except KeyError:
                         print("Couldn't find {} in validation metrics. Using \
-                            loss instead.".format(retain_metric))
+                            loss instead.".format(self.retain_metric))
                         curent_res = val_metrics["loss"][-1]
                 if self.has_improved(current_res):
                     self.best_res = current_res
@@ -201,3 +210,92 @@ class EarlyStopping(Callback):
 
     def final(self, **kwargs):
         self.reset()
+
+        
+# Functions which can be used in custom-callbacks for visualizing 3D-features during training 
+# (using the argument 'training_time_callback' in nitorch's Trainer class )
+def visualize_feature_maps(features):
+    
+    if(features.is_cuda):
+        features = features.cpu().detach().numpy()
+
+    num_features = len(features)
+    plt.close('all')
+    figsize=((num_features//8 + 3)*3 ,(num_features//8)*10 )
+    fig = plt.figure(figsize=figsize)
+
+    for i, f in enumerate(features, 1):            
+        # normalize to range [0, 1] first as the values can be very small            
+        if((f.max() - f.min()) != 0):
+            f = (f - f.min()) / (f.max() - f.min())
+
+            idxs = np.nonzero(f)
+            vals = np.ravel(f[idxs])                
+            if(len(vals)):
+                # calculate the index where the mean value would lie
+                mean_idx = np.average(idxs, axis = 1, weights=vals)
+                # calculate the angel ratios for each non-zero val            
+                angles = (mean_idx.reshape(-1,1) - idxs)
+                angles = angles/ (np.max(abs(angles), axis=1).reshape(-1,1))    
+            else: # if all values in f are zero, set dummy angle
+                angles = [1, 1, 1]
+
+#             print("values = ",vals)
+            ax = fig.add_subplot(num_features//3+1, 3, i,
+                                  projection='3d')
+            ax.set_title("Feature-{} in the bottleneck".format(i))
+            ax.quiver(*idxs
+                      , angles[0]*vals, angles[1]*vals, angles[2]*vals
+                     )    
+            plt.grid()
+
+        else:
+            ax = fig.add_subplot(num_features//3+1, 3, i)
+            ax.text(0.5, 0.5, "All values zero!", transform=ax.transAxes)
+            plt.axis('off')
+            
+    plt.tight_layout()
+    
+
+    
+class CAE_VisualizeTraining(Callback):
+    ''' training_time_callback that prints the model dimensions,
+    visualizes CAE encoder outputs, original image and reconstructed image
+    during training
+    '''
+    def __init__(self, max_train_iters, max_epochs):
+        self.max_train_iters = max_train_iters
+        self.max_epochs = max_epochs
+
+    def __call__(self, model, inputs, labels, train_iter, epoch):
+        debug = False
+        visualize_training = False
+
+        # print the model's parameter dimensions etc in the first iter
+        if(train_iter==0 and epoch==0):
+            debug = True
+        # visualize training on the last iteration in an epoch 
+        elif(train_iter==1 and epoch==0) or (train_iter == self.max_train_iters):
+            visualize_training = True
+
+        # for nitorch models which have a 'debug' and 'visualize_training' switch in the
+        # forward() method
+        outputs, encoder_out = model(inputs, debug, return_encoder_out = True)
+        
+        if(visualize_training):
+            
+            # show only the first image in the batch
+            show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False)
+            plt.suptitle("Input image")
+            plt.show()
+            
+            show_brain(outputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False)
+            plt.suptitle("Reconstructed Image")
+            plt.show()
+                
+            # show only the first image in the batch
+            visualize_feature_maps(encoder_out[0]) 
+            plt.suptitle("Encoder output")
+            plt.show()
+            
+        return outputs
