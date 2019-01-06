@@ -111,6 +111,8 @@ class Trainer:
                 print("Early stopping in epoch {}".format(epoch))
                 return self.finish_training(train_metrics, val_metrics, epoch)
             else:
+                # running_loss accumulates loss every 'show_train_steps' cycles until it must be printed.
+                running_loss = np.array([])
                 epoch_loss = 0.0
                 if self.scheduler:
                     self.scheduler.step(epoch)
@@ -159,7 +161,9 @@ class Trainer:
                         
                     loss = self.criterion(outputs, labels)  
                     loss.backward()
-                    plot_grad_flow(self.model.named_parameters())
+                    # enable the below commented code if you want to visualize the 
+                    # gradient flow through the model during training
+                    # plot_grad_flow(self.model.named_parameters())
                     self.optimizer.step()
 
                     # store results
@@ -173,14 +177,16 @@ class Trainer:
                                 class_threshold=self.class_threshold
                             )
                     # update loss
+                    running_loss= np.append(running_loss, loss.item())
                     epoch_loss += loss.item()
                     # print loss every X mini-batches
-                    if (i % show_train_steps == 0) and (i != 0):  #buggy
+                    if (i % show_train_steps == 0) and (i != 0):
                         print(
                             "[%d, %5d] loss: %.5f"
                             % (epoch , i , 
-                               loss.item())
+                               running_loss.mean())
                         )
+                        running_loss = np.array([]) #reset
 
                     # compute training metrics for X/2 mini-batches
                     # useful for large outputs (e.g. reconstructions)
@@ -530,3 +536,4 @@ class Trainer:
         )
 
         return metrics_dict
+        

@@ -87,17 +87,17 @@ if __name__ == "__main__":
 	
 	# DATASET
 	BATCH_SIZE = 64
-	EPOCHS = 100
+	EPOCHS = 60
 
 	data = syntheticDataset()
 	# shuffle and split into test and train
 	train_size = int(0.75*len(data))
+
 	train_data, val_data = random_split(
 		data, (train_size, len(data) - train_size))
 
 	train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
 	val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True)
-
 	# NETWORK
 	net = NeuralNet(3, 10).to(device).double()
 	net.apply(weights_init)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 	    train_loader,
 	    val_loader,
 	    num_epochs=EPOCHS,
-	    show_train_steps=50,
+	    show_train_steps=5,
 	    show_validation_epochs=5
 	    )
 
