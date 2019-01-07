@@ -219,7 +219,7 @@ class Flip:
 
     def __call__(self, image):
         rand = np.random.uniform()
-        if rand <= self.prob:
+        if rand > self.prob:
             augmented = np.flip(image, axis=self.axis).copy()
         else:
             augmented = image

@@ -2,12 +2,13 @@ import time
 import numpy as np
 import torch
 from torch.autograd import Variable
-from torch import nn
+from torch import nn, optim
 from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
 from nitorch.inference import predict
 from nitorch.callbacks import ModelCheckpoint
+from nitorch.utils import exp_lr_decay
 
 class Trainer:
     def __init__(
@@ -60,6 +61,17 @@ class Trainer:
             self.class_threshold = kwargs["class_threshold"]
         else:            
             self.class_threshold = None
+        # NOTE JUST FOR TESTING ## TODO REMOVE
+        if "layerwise_l2" in kwargs.keys():
+            self.layerwise_l2 = kwargs["layerwise_l2"]
+        else:
+            self.layerwise_l2 = False
+        # NOTE JUST FOR TESTING ## TODO REMOVE
+        if "lr_decay" in kwargs.keys():
+            self.lr_decay = kwargs["lr_decay"]
+        else:
+            self.lr_decay = False
+
         self.stop_training = False
         self.start_time = None
         self.prediction_type = prediction_type
@@ -73,8 +85,8 @@ class Trainer:
         labels_key = "label",
         num_epochs=25,
         show_train_steps=25,
-        show_validation_epochs=1
-        , debugMode = False
+        show_validation_epochs=1,
+        debugMode = False
         ):
         """ Main function to train a network for one epoch.
         Args:
@@ -94,25 +106,34 @@ class Trainer:
         self.start_time = time.time()
         self.best_metric = 0.0
         self.best_model = None
+        self.iteration = 0
         
         for epoch in range(num_epochs):
             if self.stop_training:
-                # TODO: check position of this
                 print("Early stopping in epoch {}".format(epoch))
                 return self.finish_training(train_metrics, val_metrics, epoch)
             else:
                 running_loss = 0.0
                 epoch_loss = 0.0
-                if self.scheduler:
-                    self.scheduler.step(epoch)
                 # variables to compute metrics
                 all_preds = []
                 all_labels = []
                 multi_batch_metrics = dict()
                 # train
                 self.model.train()
-            
+                # loop over training set in batches
+                print("Starting iteration {}".format(self.iteration))
                 for i, data in enumerate(train_loader):
+                    self.iteration += 1
+                    if self.lr_decay is not None:
+                        self.optimizer = exp_lr_decay(
+                            self.optimizer,
+                            self.lr_decay,
+                            self.iteration
+                            )
+                    if "name" in data.keys():
+                        print("train names {}".format(data["name"]))
+
                     try:
                         inputs, labels = data[inputs_key], data[labels_key]
                     except TypeError:
@@ -157,9 +178,7 @@ class Trainer:
                     except TypeError:
                         outputs = self.model(inputs)
                         
-                    loss = self.criterion(outputs, labels)  
-                    loss.backward()
-                    self.optimizer.step()
+                    loss = self.criterion(outputs, labels)
 
                     # store results
                     all_preds, all_labels = predict(
@@ -171,6 +190,25 @@ class Trainer:
                                 self.criterion,
                                 class_threshold=self.class_threshold
                             )
+
+                    if self.layerwise_l2:
+                        # TODO REMOVE ## JUST FOR TESTING
+                        reg_lambda=0.01
+                        l2_reg = 0
+                        if isinstance(self.layerwise_l2, list):
+                            for W in self.model.named_parameters():
+                                if "weight" in W[0]:
+                                    layer_name = W[0].replace(".weight", "")
+                                    if layer_name in self.layerwise_l2:
+                                        l2_reg = l2_reg + W[1].norm(2)
+                        for W in self.model.named_parameters():
+                            if "weight" in W[0]:
+                                l2_reg = l2_reg + W[1].norm(2)
+                        loss = loss + l2_reg * reg_lambda
+                    loss.backward()
+                    self.optimizer.step()
+                    # END REMOVE
+
                     # update loss
                     running_loss += loss.item()
                     epoch_loss += loss.item()
@@ -223,6 +261,8 @@ class Trainer:
 
                 with torch.no_grad():
                     for i, data in enumerate(val_loader):
+                        if "name" in data.keys():
+                            print("val names {}".format(data["name"]))
                         try:
                             inputs, labels = data[inputs_key], data[labels_key]
                         except TypeError:
@@ -290,6 +330,13 @@ class Trainer:
                         val_metrics["loss"].append(validation_loss)
                     else:
                         val_metrics["loss"] = [validation_loss]
+
+            if self.scheduler:
+                if isinstance(self.scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+                    self.scheduler.step(val_metrics["balanced_accuracy"][-1])
+                else:
+                    self.scheduler.step()
+
             if self.callbacks is not None:
                 for callback in self.callbacks:
                     callback(self, epoch, val_metrics)
@@ -352,7 +399,7 @@ class Trainer:
 
     def evaluate_model(
         self,
-        val_loader,
+        data_loader,
         additional_gpu=None,
         metrics=None,
         inputs_key = "image",
@@ -363,7 +410,7 @@ class Trainer:
         Predict on the validation set.
 
         # Arguments
-            val_loader : data loader of the validation set
+            data_loader : data loader of the set to evaluate
             additional_gpu : GPU number if evaluation should be done on 
                 separate GPU
             metrics: list of 
@@ -379,13 +426,17 @@ class Trainer:
             device = self.device
 
         with torch.no_grad():
-            for i, data in enumerate(val_loader):
+            for i, data in enumerate(data_loader):
                 inputs, labels = data[inputs_key], data[labels_key]
                 # wrap data in Variable
                 inputs = Variable(inputs.to(device))
                 labels = Variable(labels.to(device))
                 # forward + backward + optimize
                 outputs = self.model(inputs)
+                sigmoid = torch.sigmoid(outputs)
+                res = sigmoid >= 0.5
+                for y, y_true, sig in zip(res, labels, sigmoid):
+                    print("Prediction {}  GT {} score {:.3f}".format(y.cpu().item(), y_true.cpu().item(), sig.cpu().item()))
                 # run inference
                 all_preds, all_labels = predict(
                                 outputs,
@@ -424,10 +475,16 @@ class Trainer:
 
         # print metrics
         if metrics is not None:
+            computed_metrics = dict()
             for metric in metrics:
-                print("{}: {}".format(metric.__name__, metric(all_labels, all_preds)))
+                res = metric(all_labels, all_preds)
+                print("{}: {}".format(metric.__name__, res))
+                computed_metrics[metric.__name__] = res
+            self.model.train()
+            return computed_metrics
 
         self.model.train()
+
 
     def report_metrics(
         self,

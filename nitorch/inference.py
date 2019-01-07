@@ -75,11 +75,10 @@ def bce_with_logits_inference(
         class_threshold = kwargs["class_threshold"]
     else:
         class_threshold = 0.5
-    print
-    predicted = sigmoid.data >= class_threshold
-    for j in range(len(predicted)):
-        all_preds.append(predicted[j].cpu().numpy()[0])
-        all_labels.append(labels[j].cpu().numpy()[0])
+    predicted = sigmoid >= class_threshold
+    for pred, label in zip(predicted, labels):
+        all_preds.append(pred.cpu().item())
+        all_labels.append(label.cpu().item())
     return all_preds, all_labels
 
 def bce_inference(
@@ -93,10 +92,10 @@ def bce_inference(
         class_threshold = kwargs["class_threshold"]
     else:
         class_threshold = 0.5
-    predicted = outputs.data >= class_threshold
-    for j in range(len(predicted)):
-        all_preds.append(predicted[j].cpu().numpy()[0])
-        all_labels.append(labels[j].cpu().numpy()[0])
+    predicted = outputs >= class_threshold
+    for pred, label in zip(predicted, labels):
+        all_preds.append(pred.cpu().item())
+        all_labels.append(label.cpu().item())
     return all_preds, all_labels
 
 def regression_inference(
@@ -144,7 +143,7 @@ def variational_inference(
     outputs = outputs[0]
     predicted = outputs.data 
     # TODO: replace for loop with something faster
-    for j in range(len(predicted)):
-        all_preds.append(predicted[j].cpu().numpy()[0])
-        all_labels.append(labels[j].cpu().numpy()[0])
+    for pred, label in zip(predicted, labels):
+        all_preds.append(pred.cpu().item())
+        all_labels.append(label.cpu().item())
     return all_preds, all_labels

@@ -83,7 +83,7 @@ class ModelCheckpoint(Callback):
                 current_res = 0
                 # use loss directly
                 if self.retain_metric == "loss":
-                    curent_res = val_metrics["loss"][-1]
+                    current_res = val_metrics["loss"][-1]
                 else: 
                     try:
                         # check if value can be used directly or not
@@ -94,7 +94,7 @@ class ModelCheckpoint(Callback):
                     except KeyError:
                         print("Couldn't find {} in validation metrics. Using \
                             loss instead.".format(retain_metric))
-                        curent_res = val_metrics["loss"][-1]
+                        current_res = val_metrics["loss"][-1]
                 if self.has_improved(current_res):
                     self.best_res = current_res
                     self.best_model = deepcopy(trainer.model.state_dict())
@@ -119,7 +119,7 @@ class ModelCheckpoint(Callback):
         if self.best_model is not None:
             best_model = deepcopy(self.best_model)
             best_res = self.best_res
-            print("Best result during training: {}. Saving model..".format(best_res))
+            print("Best result during training: {:.2f}. Saving model..".format(best_res))
             name = self.prepend + "BEST_ITERATION.h5"
             torch.save(best_model, os.path.join(self.path, name))
         self.reset()
@@ -176,6 +176,7 @@ class EarlyStopping(Callback):
                 else:
                     current_res = val_metrics[self.retain_metric.__name__][-1]
                 if self.has_improved(current_res):
+                    print("has_improved")
                     self.best_res = current_res
                     self.best_epoch = epoch
             else:
