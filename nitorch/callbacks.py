@@ -266,9 +266,8 @@ class CAE_VisualizeTraining(Callback):
     NOTE : The forward() function of the CAE model using this callback
     must return a (decoder_output, encoder_output) tuple.
     '''
-    def __init__(self, model, max_train_iters, max_epochs, show_epochs_list=[], plotFeatures=True, plot_pdf_path="",
-                 cmap="nipy_spectral"):
-		self.model = model
+    def __init__(self, model, max_train_iters, max_epochs, show_epochs_list=[], plotFeatures=True, plot_pdf_path="", cmap="nipy_spectral"):
+        self.model = model
         self.max_train_iters = max_train_iters
         self.max_epochs = max_epochs
         if plot_pdf_path is not None:
@@ -331,46 +330,46 @@ must return a (decoder_output, encoder_output) tuple instead of just (encoder_ou
             
             # show only the first image in the batch
             if pp is None:
-				# input image
+                # input image
                 show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, cmap=self.cmap)
                 plt.suptitle("Input image")
                 plt.show()
                 if(not torch.all(torch.eq(inputs[0],labels[0]))):
-					show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
-					plt.suptitle("Expected reconstruction")
-					plt.show()  
-				# reconstructed image
-				show_brain(outputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
-				plt.suptitle("Reconstructed Image")
-				plt.show()
-				# statistics
-				print("\nStatistics of expected reconstruction:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
-					labels[0].min(), labels[0].max(), labels[0].mean(), labels[0].std()))
-				print("\nStatistics of Reconstructed image:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
-					outputs[0].min(), outputs[0].max(), outputs[0].mean(), outputs[0].std()))   
-				# feature maps
-				visualize_feature_maps(encoder_out[0])
+                    show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                    plt.suptitle("Expected reconstruction")
+                    plt.show()  
+                # reconstructed image
+                show_brain(outputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                plt.suptitle("Reconstructed Image")
+                plt.show()
+                # statistics
+                print("\nStatistics of expected reconstruction:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
+                    labels[0].min(), labels[0].max(), labels[0].mean(), labels[0].std()))
+                print("\nStatistics of Reconstructed image:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
+                    outputs[0].min(), outputs[0].max(), outputs[0].mean(), outputs[0].std()))   
+                # feature maps
+                visualize_feature_maps(encoder_out[0])
                 plt.suptitle("Encoder output")
                 plt.show()
             else:
-				# input image
+                # input image
                 fig = show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, return_fig=True,
                                  cmap=self.cmap)
                 plt.suptitle("Input image")
                 pp.savefig(fig)
                 plt.close(fig)
                 if(not torch.all(torch.eq(inputs[0],labels[0]))):
-					fig = show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
-					plt.suptitle("Expected reconstruction")
-					pp.savefig(fig)
-					plt.close(fig)
+                    fig = show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                    plt.suptitle("Expected reconstruction")
+                    pp.savefig(fig)
+                    plt.close(fig)
                 # reconstructed image
-				fig = show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, return_fig=True, cmap=self.cmap)
+                fig = show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, return_fig=True, cmap=self.cmap)
                 plt.suptitle("Reconstructed Image")
                 pp.savefig(fig)
                 plt.close(fig)
                 # feature maps
-				if self.plotFeatures:
+                if self.plotFeatures:
                     fig = visualize_feature_maps(encoder_out[0], return_fig=True)
                     plt.suptitle("Encoder output")
                     pp.savefig(fig)
@@ -386,61 +385,3 @@ must return a (decoder_output, encoder_output) tuple instead of just (encoder_ou
             self.model.set_debug(False)
 
         return outputs
-        
-    def plot_grad_flow(self, named_parameters, epoch, i, last_batch):
-        tmp_show_epoches_list = []
-
-        # if show_epochs_list is empty, all epoches should be plotted. Therefore, add current epoch to the list
-        if not self.show_epochs_list:
-            tmp_show_epoches_list.append(epoch)
-        else:
-            tmp_show_epoches_list = self.show_epochs_list
-
-        # check if epoch should be visualized
-        if epoch in tmp_show_epoches_list:
-
-            # save the levels at each beginning of an epoch
-            if i == 0:
-                for n, p in named_parameters:
-                    if p.requires_grad and "bias" not in n:
-                        self.layers.append(n)
-
-            # save gradient flows for each iteration
-            grads = []
-            if i != last_batch-1:
-                for n, p in named_parameters:
-                    if p.requires_grad and "bias" not in n:
-                        grads.append(p.grad.abs().mean())
-            self.ave_grads.append(grads)
-
-            # only plot when epoch is done
-            if i == last_batch-1:
-
-                if self.plot_pdf_path != "":
-                    pp = PdfPages(os.path.join(self.plot_pdf_path, "training_epoch_" + str(epoch) + "_gradient_flow.pdf"))
-                else:
-                    pp = None
-                # add last gradient
-                for n, p in named_parameters:
-                    if p.requires_grad and "bias" not in n:
-                        grads.append(p.grad.abs().mean())
-                self.ave_grads.append(grads)
-
-                # visualize gradients
-                fig = plt.figure()
-                for grad in self.ave_grads:
-                    plt.plot(grad, alpha=0.3, color="b")
-                    plt.hlines(0, 0, len(grad)+1, linewidth=1, color="k")
-                    plt.xticks(range(0, len(grad), 1), self.layers, rotation="vertical")
-                    plt.xlim(xmin=0, xmax=len(grad))
-                    plt.xlabel("Layers")
-                    plt.ylabel("average gradient")
-                    plt.title("Gradient flow for epoch " + str(epoch))
-                    plt.grid(True)
-                pp.savefig(fig)
-                plt.close(fig)
-                pp.close()
-
-                # reset gradients
-                self.ave_grads = []
-                self.layers = []
