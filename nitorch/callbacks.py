@@ -3,6 +3,7 @@ import copy
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 from mpl_toolkits.mplot3d import Axes3D
 # pytorch
 import torch
@@ -211,7 +212,7 @@ class EarlyStopping(Callback):
         
 # Functions which can be used in custom-callbacks for visualizing 3D-features during training 
 # (using the argument 'training_time_callback' in nitorch's Trainer class )
-def visualize_feature_maps(features):
+def visualize_feature_maps(features, return_fig=False):
     
     if(features.is_cuda):
         features = features.cpu().detach().numpy()
@@ -252,9 +253,10 @@ def visualize_feature_maps(features):
             plt.axis('off')
             
     plt.tight_layout()
-    
+    if return_fig:
+        return fig
 
-    
+
 class CAE_VisualizeTraining(Callback):
     ''' 
     training_time_callback that prints the model dimensions,
@@ -264,10 +266,20 @@ class CAE_VisualizeTraining(Callback):
     NOTE : The forward() function of the CAE model using this callback
     must return a (decoder_output, encoder_output) tuple.
     '''
-    def __init__(self, model, max_train_iters, max_epochs, show_encoder_output=False):
+    def __init__(self, model, max_train_iters, max_epochs, show_epochs_list=[], plotFeatures=True, plot_pdf_path="", cmap="nipy_spectral"):
         self.model = model
         self.max_train_iters = max_train_iters
         self.max_epochs = max_epochs
+        if plot_pdf_path is not None:
+            assert isinstance(plot_pdf_path, str), "pp is not a path!"
+        self.plot_pdf_path = plot_pdf_path
+        assert isinstance(plotFeatures, bool), "plotFeatures not boolean object!"
+        self.plotFeatures = plotFeatures
+        assert isinstance(show_epochs_list, list), "show_epochs_list is not a list!"
+        self.show_epochs_list = show_epochs_list
+        self.cmap = cmap
+        self.ave_grads = []
+        self.layers = []
         # inform the model to also return the encoder output along with the decoder output
         try:
             if(isinstance(model, nn.DataParallel)): 
@@ -282,16 +294,26 @@ must return a (decoder_output, encoder_output) tuple instead of just (encoder_ou
     def __call__(self, inputs, labels, train_iter, epoch):
         debug = False
         visualize_training = False
+        tmp_show_epoches_list = []
 
-        # print the model's parameter dimensions etc in the first iter
-        if(train_iter==0 and epoch==0):
-            debug = True
-        # visualize training on the last iteration in an epoch 
-        elif(train_iter==1 and epoch==0) or (train_iter == self.max_train_iters):
-            visualize_training = True
+        # if show_epochs_list is empty, all epoches should be plotted. Therefore, add current epoch to the list
+        if not self.show_epochs_list:
+            tmp_show_epoches_list.append(epoch)
+        else:
+            tmp_show_epoches_list = self.show_epochs_list
+
+        # check if epoch should be visualized
+        if epoch in tmp_show_epoches_list:
+            # print the model's parameter dimensions etc in the first iter
+            if (train_iter == 0 and epoch == 0):
+                debug = True
+            # visualize training on the last iteration in that epoch
+            elif(train_iter==1 and epoch==0) or (train_iter == self.max_train_iters):
+                visualize_training = True
 
         # for nitorch models which have a 'debug' and 'visualize_training' switch in the
         # forward() method
+
         if(isinstance(self.model, nn.DataParallel)):
             self.model.module.set_debug(debug)
         else:
@@ -300,30 +322,63 @@ must return a (decoder_output, encoder_output) tuple instead of just (encoder_ou
         outputs, encoder_out = self.model(inputs)
         
         if(visualize_training):
+            # check if result should be plotted in PDF
+            if self.plot_pdf_path != "":
+                pp = PdfPages(os.path.join(self.plot_pdf_path, "training_epoch_" + str(epoch) + "_visualization.pdf"))
+            else:
+                pp = None
             
             # show only the first image in the batch
-            show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap="gray")
-            plt.suptitle("Input image")
-            plt.show()
-            
-            if(not torch.all(torch.eq(inputs[0],labels[0]))):
-                show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap="gray")
-                plt.suptitle("Expected reconstruction")
-                plt.show()            
+            if pp is None:
+                # input image
+                show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, cmap=self.cmap)
+                plt.suptitle("Input image")
+                plt.show()
+                if(not torch.all(torch.eq(inputs[0],labels[0]))):
+                    show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                    plt.suptitle("Expected reconstruction")
+                    plt.show()  
+                # reconstructed image
+                show_brain(outputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                plt.suptitle("Reconstructed Image")
+                plt.show()
+                # statistics
+                print("\nStatistics of expected reconstruction:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
+                    labels[0].min(), labels[0].max(), labels[0].mean(), labels[0].std()))
+                print("\nStatistics of Reconstructed image:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
+                    outputs[0].min(), outputs[0].max(), outputs[0].mean(), outputs[0].std()))   
+                # feature maps
+                visualize_feature_maps(encoder_out[0])
+                plt.suptitle("Encoder output")
+                plt.show()
+            else:
+                # input image
+                fig = show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, return_fig=True,
+                                 cmap=self.cmap)
+                plt.suptitle("Input image")
+                pp.savefig(fig)
+                plt.close(fig)
+                if(not torch.all(torch.eq(inputs[0],labels[0]))):
+                    fig = show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                    plt.suptitle("Expected reconstruction")
+                    pp.savefig(fig)
+                    plt.close(fig)
+                # reconstructed image
+                fig = show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, return_fig=True, cmap=self.cmap)
+                plt.suptitle("Reconstructed Image")
+                pp.savefig(fig)
+                plt.close(fig)
+                # feature maps
+                if self.plotFeatures:
+                    fig = visualize_feature_maps(encoder_out[0], return_fig=True)
+                    plt.suptitle("Encoder output")
+                    pp.savefig(fig)
+                    plt.close(fig)
 
-            show_brain(outputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap="gray")
-            plt.suptitle("Reconstructed Image")
-            plt.show()
-            print("\nStatistics of expected reconstruction:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
-                labels[0].min(), labels[0].max(), labels[0].mean(), labels[0].std()))
-            print("\nStatistics of Reconstructed image:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
-                outputs[0].min(), outputs[0].max(), outputs[0].mean(), outputs[0].std()))
-
-            # show only the first image in the batch
-            visualize_feature_maps(encoder_out[0]) 
-            plt.suptitle("Encoder output")
-            plt.show()
-            
+            # close the PDF
+            if pp is not None:
+                pp.close()
+ 
         if(isinstance(self.model, nn.DataParallel)):
             self.model.module.set_debug(False)
         else:
