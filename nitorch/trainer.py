@@ -8,6 +8,7 @@ import itertools
 import matplotlib.pyplot as plt
 from nitorch.inference import predict
 from nitorch.callbacks import ModelCheckpoint
+from nitorch.utils import *
 
 
 class Trainer:
@@ -91,6 +92,8 @@ class Trainer:
         """
         assert (show_validation_epochs < num_epochs) or (num_epochs == 1), "\
 'show_validation_epochs' value should be less than 'num_epochs'"
+        assert (show_train_steps>0) and (show_train_steps<=len(train_loader)),"\
+'show_train_steps' value out of range. Must be > 0 and < len(train_loader)"
 
         val_metrics = dict()
         train_metrics = dict()
@@ -105,15 +108,17 @@ class Trainer:
                 print("Early stopping in epoch {}".format(epoch))
                 return self.finish_training(train_metrics, val_metrics, epoch)
             else:
-                running_loss = 0.0
+                # running_loss accumulates loss every 'show_train_steps' cycles until it must be printed.
+                running_loss = np.array([])
                 epoch_loss = 0.0
                 if self.scheduler:
                     self.scheduler.step(epoch)
-                # variables to compute metrics
+
+                # Reset all metrics related variables at the start of each epoch
                 all_preds = []
                 all_labels = []
-                multi_batch_metrics = dict()
-                # train
+                self.multi_batch_metrics = dict()
+                # train mode
                 self.model.train()
 
                 for i, data in enumerate(train_loader):
@@ -143,8 +148,7 @@ class Trainer:
 
                     if self.training_time_callback is not None:
                         outputs = self.training_time_callback(
-                            self.model,
-                            inputs,
+                            inputs, 
                             labels,
                             i,
                             epoch
@@ -154,11 +158,10 @@ class Trainer:
 
                     loss = self.criterion(outputs, labels)
                     loss.backward()
-                    if self.training_time_callback is not None:
-                        self.training_time_callback.plot_grad_flow(self.model.named_parameters(),
-                                                                   epoch,
-                                                                   i,
-                                                                   len(train_loader))
+
+                    # enable the below commented code if you want to visualize the 
+                    # gradient flow through the model during training
+                    # plot_grad_flow(self.model.named_parameters())
                     self.optimizer.step()
 
                     # store results
@@ -172,23 +175,22 @@ class Trainer:
                         class_threshold=self.class_threshold
                     )
                     # update loss
-                    running_loss += loss.item()
+                    running_loss= np.append(running_loss, loss.item())
                     epoch_loss += loss.item()
                     # print loss every X mini-batches
                     if (i % show_train_steps == 0) and (i != 0):
                         print(
                             "[%d, %5d] loss: %.5f"
-                            % (epoch + 1, i + 1,
-                               running_loss / show_train_steps)
+                            % (epoch , i , 
+                               running_loss.mean())
                         )
-                        running_loss = 0.0
+                        running_loss = np.array([]) #reset
 
                     # compute training metrics for X/2 mini-batches
                     # useful for large outputs (e.g. reconstructions)
                     if self.prediction_type == "reconstruction":
-                        if i % int(show_train_steps / 2) == 0:
-                            multi_batch_metrics = self.estimate_metrics(
-                                multi_batch_metrics,
+                        if i % int(show_train_steps/2) == 0:
+                            self.estimate_metrics(
                                 all_labels,
                                 all_preds,
                             )
@@ -199,12 +201,11 @@ class Trainer:
                 # report training metrics
                 # weighted averages of metrics are computed over batches
                 train_metrics = self._on_epoch_end(
-                    train_metrics,
-                    multi_batch_metrics,
-                    all_labels,
-                    all_preds,
-                    phase="train"
-                )
+                        train_metrics,
+                        all_labels,
+                        all_preds,
+                        phase="train"
+                    )
                 epoch_loss /= len(train_loader)
 
                 # add loss to metrics data
@@ -213,13 +214,16 @@ class Trainer:
                 else:
                     train_metrics["loss"] = [epoch_loss]
 
+                #<end-of-training-cycle-loop>
+            #<end-of-epoch-loop>
+
             # validate every x iterations
             if epoch % show_validation_epochs == 0:
                 self.model.eval()
                 validation_loss = 0.0
                 all_preds = []
                 all_labels = []
-                multi_batch_metrics = dict()
+                self.multi_batch_metrics = dict()
 
                 with torch.no_grad():
                     for i, data in enumerate(val_loader):
@@ -247,8 +251,7 @@ class Trainer:
                         # forward pass only
                         if self.training_time_callback is not None:
                             outputs = self.training_time_callback(
-                                self.model,
-                                inputs,
+                                inputs, 
                                 labels,
                                 1,  # dummy value
                                 1  # dummy value
@@ -273,9 +276,8 @@ class Trainer:
                         # compute training metrics for X/2 mini-batches
                         # useful for large outputs (e.g. reconstructions)
                         if self.prediction_type == "reconstruction":
-                            if i % int(show_train_steps / 2) == 0:
-                                multi_batch_metrics = self.estimate_metrics(
-                                    multi_batch_metrics,
+                            if i % int(show_train_steps/2) == 0:
+                                self.estimate_metrics(
                                     all_labels,
                                     all_preds,
                                 )
@@ -287,7 +289,6 @@ class Trainer:
                     # weighted averages of metrics are computed over batches
                     val_metrics = self._on_epoch_end(
                         val_metrics,
-                        multi_batch_metrics,
                         all_labels,
                         all_preds,
                         phase="val"
@@ -355,7 +356,9 @@ class Trainer:
             plt.plot(report["train_metrics"][metric.__name__])
             plt.plot(report["val_metrics"][metric.__name__])
             plt.legend(["Train", "Val"])
-            plt.title(metric.__name__)
+            plt.title(metric.__name__)        
+            if(save_fig_path):
+                plt.savefig(save_fig_path+"_"+metric.__name__)
             plt.show()
 
     def evaluate_model(
@@ -432,16 +435,15 @@ class Trainer:
         # print metrics
         if metrics is not None:
             for metric in metrics:
-                print("{}: {}".format(metric.__name__, metric(all_labels, all_preds)))
+                print("{}: {}".format(metric.__name__, np.mean([metric(preds,labels) for preds,labels in zip(all_preds, all_labels)])))
 
         self.model.train()
 
     def report_metrics(
-            self,
-            metrics_dict,
-            multi_batch_metrics,
-            phase
-    ):
+        self,
+        metrics_dict,
+        phase
+        ):
 
         # report execution time only in training phase
         if (phase == "train"):
@@ -457,13 +459,13 @@ class Trainer:
                 # weigh by the number of samples per batch and divide by
                 # the total number of samples
                 batch_results = np.zeros(shape=(
-                    len(multi_batch_metrics["len_" + metric.__name__])))
+                    len(self.multi_batch_metrics["len_" + metric.__name__])))
                 n_samples = 0
                 for b_idx, batch_len in enumerate(
-                        multi_batch_metrics["len_" + metric.__name__]
-                ):
-                    batch_results[b_idx] = multi_batch_metrics[
-                                               metric.__name__][b_idx] * batch_len
+                    self.multi_batch_metrics["len_" + metric.__name__]
+                    ):
+                    batch_results[b_idx] = self.multi_batch_metrics[
+                        metric.__name__][b_idx] * batch_len
                     n_samples += batch_len
 
                 result = np.sum(batch_results) / n_samples
@@ -482,49 +484,47 @@ class Trainer:
         return metrics_dict
 
     def estimate_metrics(
-            self,
-            metrics_dict,
-            all_labels,
-            all_preds
-    ):
+        self,
+        all_labels,
+        all_preds
+        ):
         """ Estimate a list of metric functions. """
         n_predictions = len(all_preds)
+
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss":
-                result = metric(all_labels, all_preds)
-                if metric.__name__ in metrics_dict:
-                    metrics_dict[metric.__name__].append(result)
-                    metrics_dict["len_" + metric.__name__].append(
+                result = np.mean([metric(preds,labels) for preds,labels in zip(all_preds, all_labels)])
+                
+                if metric.__name__ in self.multi_batch_metrics:
+                    self.multi_batch_metrics[metric.__name__].append(result)
+                    self.multi_batch_metrics["len_" + metric.__name__].append(
                         n_predictions)
                 else:
-                    metrics_dict[metric.__name__] = [result]
-                    metrics_dict["len_" + metric.__name__] = [n_predictions]
-        return metrics_dict
+                    self.multi_batch_metrics[metric.__name__] = [result]
+                    self.multi_batch_metrics["len_" + metric.__name__] = [n_predictions]
 
     def _on_epoch_end(
-            self,
-            metrics_dict,
-            multi_batch_metrics,
-            all_labels,
-            all_preds,
-            phase
-    ):
+        self,
+        metrics_dict,
+        all_labels,
+        all_preds,
+        phase
+        ):
         # check for unreported metrics
         if len(all_preds) > 0:
-            multi_batch_metrics = self.estimate_metrics(
-                multi_batch_metrics,
-                all_labels,
-                all_preds,
-            )
+            self.estimate_metrics(
+                    all_labels,
+                    all_preds,
+                )
             # TODO: test if del helps
             all_labels = []
             all_preds = []
 
         metrics_dict = self.report_metrics(
             metrics_dict,
-            multi_batch_metrics,
             phase
         )
 
         return metrics_dict
+        

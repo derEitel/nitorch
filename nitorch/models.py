@@ -24,7 +24,10 @@ class _CAE_3D(nn.Module):
         
         self.layers = len(conv_channels)
         self.conv_channels = self._format_channels(conv_channels, self.is_nested_conv)
-
+        self.valid_activations = {'ELU': nn.ELU, 'HARDSHRINK': nn.Hardshrink, 'HARDTANH': nn.Hardtanh,
+ 'LEAKYRELU':nn.LeakyReLU, 'LOGSIGMOID': nn.LogSigmoid, 'PRELU':nn.PReLU, 'RELU':nn.ReLU, 'RELU6': nn.ReLU6, 
+ 'RRELU': nn.RReLU, 'SELU': nn.SELU, 'SIGMOID': nn.Sigmoid, 'SOFTPLUS': nn.Softplus, 
+ 'SOFTSHRINK': nn.Softshrink, 'TANH': nn.Tanh, 'TANHSHRINK': nn.Tanhshrink, 'THRESHOLD': nn.Threshold}
 
     def _format_channels(self, conv_channels, is_nested_conv = False):
         channels = []
@@ -55,12 +58,12 @@ class _CAE_3D(nn.Module):
         If the parameter is just an single value,
         makes its length equal to the number of layers defined in conv_channels
         '''
-        if(isinstance(parameter, int)):
+        if(isinstance(parameter, (int, str))):
             if(self.is_nested_conv and enable_nested):
                 return_parameter = [len(inner_list)*[parameter] for inner_list in self.conv_channels]
             else:
                 return_parameter = (self.layers * [parameter])
-
+        # Perform sanity checks if a list is already provided 
         elif(isinstance(parameter, (list, tuple))):
             if(len(parameter) != self.layers): 
                 raise ValueError("The parameter '{}' can either be a single int \
@@ -77,24 +80,24 @@ have to be same as the 'conv_channels'".format(param_name))
             return_parameter = parameter
             
         else: 
-            raise TypeError("Parameter {} is neither a int nor a list/tuple".format(
-            param_name))
+            raise TypeError("Parameter {} is neither an int/ valid str nor a list/tuple but is of type {}".format(
+                param_name, parameter))
 
         return return_parameter
 
 
-    def add_conv_with_Relu(self, inp_channels, out_channels, kernel_size, padding, stride):
+    def add_conv_with_activation(self, inp_channels, out_channels, kernel_size, padding, stride, activation_fn):
         node = nn.Sequential(
             nn.Conv3d(inp_channels, out_channels, kernel_size, padding = padding, stride = stride),
-            nn.ReLU(True))        
+            self.valid_activations[activation_fn](inplace=True))        
         return node
         
 
-    def add_deconv_with_Relu(self, inp_channels, out_channels, kernel_size, padding, stride, out_padding):
+    def add_deconv_with_activation(self, inp_channels, out_channels, kernel_size, padding, stride, out_padding, activation_fn):
         node = nn.Sequential(
             nn.ConvTranspose3d(inp_channels, out_channels, kernel_size
                 , padding = padding, stride = stride, output_padding=out_padding),
-            nn.ReLU(True))        
+            self.valid_activations[activation_fn](inplace=True))        
         return node
         
         
@@ -140,8 +143,7 @@ Allowed values are `max`, `avg`.")
                 result.append(e)
         result.reverse()
         return result
-    
-    
+
     
 class CAE_3D(_CAE_3D):
     '''
@@ -150,6 +152,7 @@ class CAE_3D(_CAE_3D):
     '''
     def __init__(self
         , conv_channels
+        , activation_fn = "RELU"
         , conv_kernel = 3
         , conv_padding = 1
         , conv_stride = 1
@@ -161,7 +164,15 @@ class CAE_3D(_CAE_3D):
             conv_channels : A list that defines the number of channels of each convolution layer.
             The length of the list defines the number of layers in the encoder. 
             The decoder is automatically constructed as an exact reversal of the encoder architecture.
-
+            
+            activation_fn (optional):  The non-linear activation function that will be appied after every layer
+            of convolution / deconvolution. 
+            Supported values {'ELU', 'HARDSHRINK', 'HARDTANH', 'LEAKYRELU', 'LOGSIGMOID', 'PRELU', 'RELU', 
+            'RELU6', 'RRELU', 'SELU', 'SIGMOID', 'SOFTPLUS', 'SOFTSHRINK', 'TANH', 'TANHSHRINK', 'THRESHOLD'}
+            By default nn.ReLu() is applied.
+            Can either be a a single int (in which case the same activation is applied to all layers) or 
+            a list of same length and shape as `conv_channels`.
+            
             conv_kernel (optional): The size of the 3D convolutional kernels to be used. 
             Can either be a list of same length as `conv_channels` or a single int. In the
              former case each value in the list represents the kernel size of that particular
@@ -187,7 +198,6 @@ class CAE_3D(_CAE_3D):
             If enabled, the forward() method returns a list of 2 outputs, one from the Autoencoder's
             decoder and the other from this fully-connected decoder network.            
         '''
-
         super().__init__(conv_channels)
 
         assert not(self.is_nested_conv), "The conv_channels must be a list of ints (i.e. number of channels).\
@@ -200,6 +210,16 @@ It cannot be a list of lists."
             deconv_out_padding = [s-1 for s in self.conv_stride]
         self.deconv_out_padding = self.assign_parameter(deconv_out_padding, "deconv_out_padding")
         
+        self.activation_fn = self.assign_parameter(activation_fn, "activation_function")
+
+        for activation in self.activation_fn:
+            assert activation.upper() in self.valid_activations.keys(), "activation functions can only be one of the following str :\n {}".format(
+                    self.valid_activations.keys())
+            
+        # set the switches used in forward() as false  by default
+        self.debug = False
+        self.return_encoder_out = False
+        
         if(second_fc_decoder):
             self.second_fc_decoder = self._format_channels(second_fc_decoder)[1:]
         else:
@@ -211,21 +231,23 @@ It cannot be a list of lists."
         for i in range(self.layers):
             # build the encoder
             self.convs.append(
-                self.add_conv_with_Relu(
+                self.add_conv_with_activation(
                     self.conv_channels[i][0], self.conv_channels[i][1], 
                     self.conv_kernel[i]
                     , self.conv_padding[i]
                     , self.conv_stride[i]
+                    , self.activation_fn[i]
                     )
                 )
             # build the decoder
             self.deconvs.append(
-                self.add_deconv_with_Relu(
+                self.add_deconv_with_activation(
                     self.conv_channels[-i-1][1], self.conv_channels[-i-1][0], 
                     self.conv_kernel[-i-1]
                     , self.conv_padding[-i-1]
                     , self.conv_stride[-i-1]
                     , self.deconv_out_padding[-i-1]
+                    , self.activation_fn[-i-1]
                     )
                 )
         if(self.second_fc_decoder):
@@ -235,29 +257,35 @@ It cannot be a list of lists."
                 self.fcs.append(
                     nn.Linear(layer[0], layer[1])
                 )
-        
+                
+                
+    def set_debug(self, bool_val):
+        self.debug = bool_val
+    
+    def set_return_encoder_out(self, bool_val):
+        self.return_encoder_out = bool_val        
 
-    def forward(self, x, debug = False, return_encoder_out=False):
+    def forward(self, x):
 
-            if(debug): print("\nImage dims ="+str(x.size()))
+            if(self.debug): print("\nImage dims ="+str(x.size()))
 
             #encoder
             for i, conv in enumerate(self.convs):
                 x = conv(x)
-                if(debug): print("conv{} output dim = {}".format(i+1, x.size()))
+                if(self.debug): print("conv{} output dim = {}".format(i+1, x.size()))
             
             encoder_out = x
             
-            if(debug): print("\nEncoder output dims ="+str(encoder_out.size())+"\n")
+            if(self.debug): print("\nEncoder output dims ="+str(encoder_out.size())+"\n")
             
             #decoder
             for i, deconv in enumerate(self.deconvs):
                 x = deconv(x)
-                if(debug): print("deconv{} output dim = {}".format(i+1, x.size()))
+                if(self.debug): print("deconv{} output dim = {}".format(i+1, x.size()))
                         
-            if(debug): print("\nDecoder output dims ="+str(x.size())+"\n")
+            if(self.debug): print("\nDecoder output dims ="+str(x.size())+"\n")
             
-            if(return_encoder_out):
+            if(self.return_encoder_out):
                 
                 return [x, encoder_out]
             else:
@@ -272,6 +300,7 @@ class CAE_3D_with_pooling(_CAE_3D):
     '''
     def __init__(self
         , conv_channels
+        , activation_fn = nn.ReLU
         , conv_kernel = 3, conv_padding = 1, conv_stride = 1
         , pool_type = "max"
         , pool_kernel = 2, pool_padding = 0, pool_stride = 2
@@ -284,7 +313,14 @@ class CAE_3D_with_pooling(_CAE_3D):
             inner list defines the number of convolutions per such layer and the value defines the number of
             channels for each of these convolutions.
             The decoder is constructed to be simply an exact reversal of the encoder architecture.
-
+            
+            activation_fn (optional):  The non-linear activation function that will be appied after every layer
+            of convolution / deconvolution. By default nn.ReLu() is applied.
+            Supported values {'ELU', 'HARDSHRINK', 'HARDTANH', 'LEAKYRELU', 'LOGSIGMOID', 'PRELU', 'RELU', 
+            'RELU6', 'RRELU', 'SELU', 'SIGMOID', 'SOFTPLUS', 'SOFTSHRINK', 'TANH', 'TANHSHRINK', 'THRESHOLD'}
+            Can either be a a single int (in which case the same activation is applied to all layers) or 
+            a list of same length and shape as `conv_channels`.
+            
             conv_kernel (optional): The size of the 3D convolutional kernels to be used. 
             Can either be a list of lists of same lengths as `conv_channels` or a single int. In the
              former case each value in the list represents the kernel size of that particular
@@ -323,18 +359,30 @@ It cannot be a list."
         self.conv_stride = self.assign_parameter(conv_stride, "conv_stride")
         self.pool_kernel = self.assign_parameter(pool_kernel, "pool_kernel", enable_nested=False)
         self.pool_padding = self.assign_parameter(pool_padding, "pool_padding", enable_nested=False)
-        self.pool_stride = self.assign_parameter(pool_stride, "pool_stride", enable_nested=False)
-        self.reversed_conv_channels = self.nested_reverse(self.conv_channels)
-        self.reversed_conv_kernel = self.nested_reverse(self.conv_kernel)
-        self.reversed_conv_padding = self.nested_reverse(self.conv_padding)
-        self.reversed_conv_stride = self.nested_reverse(self.conv_stride)
+        self.pool_stride = self.assign_parameter(pool_stride, "pool_stride", enable_nested=False)        
         
-        if(deconv_out_padding == None):
-            self.deconv_out_padding = [[s-1 for s in layer] for layer in self.reversed_conv_stride]
-        else:
+        self.activation_fn = self.assign_parameter(activation_fn, "activation_function")
+
+        for activations in self.activation_fn:
+            for activation in activations:
+                assert activation.upper() in self.valid_activations.keys(), "activation functions can only be one of the following str :\n {}".format(
+                    self.valid_activations.keys())
+        
+        self.deconv_channels = self.nested_reverse(self.conv_channels)
+        self.deconv_kernel = self.nested_reverse(self.conv_kernel)
+        self.deconv_padding = self.nested_reverse(self.conv_padding)
+        self.deconv_stride = self.nested_reverse(self.conv_stride)
+        
+        # set the switches used by forward() as false by default
+        self.debug = False
+        self.return_encoder_out = False
+        
+        if(deconv_out_padding is not None):
             self.deconv_out_padding = self.nested_reverse(
                 self.assign_parameter(deconv_out_padding, "deconv_out_padding")
-            )
+            )                
+        else:
+            self.deconv_out_padding = [[s-1 for s in layer] for layer in self.deconv_stride]
             
         self.convs = nn.ModuleList()
         self.pools = nn.ModuleList()
@@ -346,24 +394,26 @@ It cannot be a list."
             
             self.convs.append(
                 nn.ModuleList(
-                    [self.add_conv_with_Relu(
+                    [self.add_conv_with_activation(
                         inner_conv_channels[0], inner_conv_channels[1]
                         , self.conv_kernel[i][j]
                         , self.conv_padding[i][j]
-                        , self.conv_stride[i][j]) \
+                        , self.conv_stride[i][j]
+                        , self.activation_fn[i][j]) \
                     for j, inner_conv_channels in enumerate(self.conv_channels[i])]
                     )
                 )
 
             self.deconvs.append(
                 nn.ModuleList(
-                    [self.add_deconv_with_Relu(
+                    [self.add_deconv_with_activation(
                         inner_deconv_channels[0], inner_deconv_channels[1] 
-                        , self.reversed_conv_kernel[i][j]
-                        , self.reversed_conv_padding[i][j]
-                        , self.reversed_conv_stride[i][j]
-                        , self.deconv_out_padding[i][j]) \
-                    for j, inner_deconv_channels in enumerate(self.reversed_conv_channels[i])]
+                        , self.deconv_kernel[i][j]
+                        , self.deconv_padding[i][j]
+                        , self.deconv_stride[i][j]
+                        , self.deconv_out_padding[i][j]
+                        , self.activation_fn[i][j]) \
+                    for j, inner_deconv_channels in enumerate(self.deconv_channels[i])]
                     )
                 )
 
@@ -384,32 +434,36 @@ It cannot be a list."
                 )
             )
         
-
+    def set_debug(self, bool_val):
+        self.debug = bool_val
+    
+    def set_return_encoder_out(self, bool_val):
+        self.return_encoder_out = bool_val
         
-    def forward(self, x, debug=False, return_encoder_out=False):
+    def forward(self, x):
             '''return_encoder_out : If enabled returns a list with 2 values, 
             first one is the Autoencoder's output and the other the intermediary output of the encoder.
             '''
             pool_idxs = []
             pool_sizes = [x.size()] #https://github.com/pytorch/pytorch/issues/580
             
-            if(debug):
+            if(self.debug):
                 print("\nImage dims ="+str(x.size()))
                 
             #encoder
             for i,(convs, pool) in enumerate(zip(self.convs, self.pools)):
                 for j, conv in enumerate(convs):
                     x = conv(x)
-                    if(debug):print("conv{}{} output dim = {}".format(i+1, j+1, x.size()))
+                    if(self.debug):print("conv{}{} output dim = {}".format(i+1, j+1, x.size()))
                         
                 x, idx = pool(x)
                 pool_sizes.append(x.size()) 
                 pool_idxs.append(idx)
-                if(debug):print("pool{} output dim = {}".format(i+1, x.size()))
+                if(self.debug):print("pool{} output dim = {}".format(i+1, x.size()))
             
             encoder_out = x
             
-            if(debug):
+            if(self.debug):
                 print("\nEncoder output dims ="+str(encoder_out.size())+"\n")
                 
             #decoder
@@ -418,16 +472,16 @@ It cannot be a list."
             for i,(deconvs, unpool) in enumerate(zip(self.deconvs, self.unpools)):
 
                 x = unpool(x, pool_idxs.pop(), output_size=pool_sizes.pop())
-                if(debug):print("unpool{} output dim = {}".format(i+1, x.size()))
+                if(self.debug):print("unpool{} output dim = {}".format(i+1, x.size()))
                 
                 for j, deconv in enumerate(deconvs):
                     x = deconv(x)
-                    if(debug):print("deconv{}{} output dim = {}".format(i+1, j+1, x.size()))
+                    if(self.debug):print("deconv{}{} output dim = {}".format(i+1, j+1, x.size()))
                         
-            if(debug):
+            if(self.debug):
                 print("\nDecoder output dims ="+str(x.size())+"\n")
                 
-            if(return_encoder_out):
+            if(self.return_encoder_out):
                 return [x, encoder_out]
             else:
                 return x
@@ -450,6 +504,7 @@ class MLP(nn.Module):
         super().__init__()   
         self.layers = self._format_channels(layers)        
 #         self.output_activation = output_activation
+        self.debug = False
         
         # build the fully-connected layers
         self.fcs = nn.ModuleList()
@@ -466,7 +521,9 @@ class MLP(nn.Module):
                 self.fcs.append(
                     nn.Linear(layer[0], layer[1]))
                 
-
+    def set_debug(self, bool_val):
+        self.debug = bool_val
+        
     def _format_channels(self, layers):   
         layer_inout = []
         for i in range(len(layers)-1):
@@ -479,9 +536,9 @@ class MLP(nn.Module):
             nn.ReLU(True))        
         return node
         
-    def forward(self, x, debug=False):
+    def forward(self, x):
         for i,fc in enumerate(self.fcs):
             x = fc(x)
-            if(debug):print("FC {} output dims ={}".format(i, x.size()))
+            if(self.debug):print("FC {} output dims ={}".format(i, x.size()))
                 
         return x

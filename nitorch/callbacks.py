@@ -50,11 +50,11 @@ class ModelCheckpoint(Callback):
     def __init__(
         self,
         path,
+        retain_metric="loss",
         prepend="",
         num_iters=-1,
         ignore_before=0,
         store_best=False,
-        retain_metric="accuracy_score",
         mode="max"
         ):
         super().__init__()
@@ -91,20 +91,17 @@ class ModelCheckpoint(Callback):
             # store current model if improvement detected
             if self.store_best:
                 current_res = 0
-                # use loss directly
-                if self.retain_metric == "loss":
-                    curent_res = val_metrics["loss"][-1]
-                else: 
-                    try:
-                        # check if value can be used directly or not
-                        if isinstance(self.retain_metric, str):
-                            current_res = val_metrics[self.retain_metric][-1]
-                        else:
-                            current_res = val_metrics[self.retain_metric.__name__][-1]
-                    except KeyError:
-                        print("Couldn't find {} in validation metrics. Using \
-                            loss instead.".format(self.retain_metric))
-                        curent_res = val_metrics["loss"][-1]
+                try:
+                    # check if value can be used directly or not
+                    if isinstance(self.retain_metric, str):
+                        current_res = val_metrics[self.retain_metric][-1]
+                    else:
+                        current_res = val_metrics[self.retain_metric.__name__][-1]
+                except KeyError:
+                    print("Couldn't find {} in validation metrics. Using \
+                        loss instead.".format(self.retain_metric))
+                    current_res = val_metrics["loss"][-1]
+                    
                 if self.has_improved(current_res):
                     self.best_res = current_res
                     self.best_model = deepcopy(trainer.model.state_dict())
@@ -129,7 +126,7 @@ class ModelCheckpoint(Callback):
         if self.best_model is not None:
             best_model = deepcopy(self.best_model)
             best_res = self.best_res
-            print("Best result during training: {}. Saving model..".format(best_res))
+            print("Best result during training: {:.2f}. Saving model..".format(best_res))
             name = self.prepend + "BEST_ITERATION.h5"
             torch.save(best_model, os.path.join(self.path, name))
         self.reset()
@@ -222,7 +219,7 @@ def visualize_feature_maps(features, return_fig=False):
 
     num_features = len(features)
     plt.close('all')
-    figsize=((num_features//8 + 3)*3 ,(num_features//8)*10 )
+    figsize=((num_features//8 + 5)*3 ,(num_features//8)*10 )
     fig = plt.figure(figsize=figsize)
 
     for i, f in enumerate(features, 1):            
@@ -261,12 +258,17 @@ def visualize_feature_maps(features, return_fig=False):
 
 
 class CAE_VisualizeTraining(Callback):
-    ''' training_time_callback that prints the model dimensions,
+    ''' 
+    training_time_callback that prints the model dimensions,
     visualizes CAE encoder outputs, original image and reconstructed image
-    during training
+    during training.
+    
+    NOTE : The forward() function of the CAE model using this callback
+    must return a (decoder_output, encoder_output) tuple.
     '''
-    def __init__(self, max_train_iters, max_epochs, show_epochs_list=[], plotFeatures=True, plot_pdf_path="",
+    def __init__(self, model, max_train_iters, max_epochs, show_epochs_list=[], plotFeatures=True, plot_pdf_path="",
                  cmap="nipy_spectral"):
+		self.model = model
         self.max_train_iters = max_train_iters
         self.max_epochs = max_epochs
         if plot_pdf_path is not None:
@@ -279,8 +281,18 @@ class CAE_VisualizeTraining(Callback):
         self.cmap = cmap
         self.ave_grads = []
         self.layers = []
+        # inform the model to also return the encoder output along with the decoder output
+        try:
+            if(isinstance(model, nn.DataParallel)): 
+                model.module.set_return_encoder_out(True)
+            else:
+                model.set_return_encoder_out(True)
+        except AttributeError:
+            raise "The CAE model must implement a setter function 'set_return_encoder_out'\
+ for a flag 'encoder_out' which when set to true, the forward() function using this callback \
+must return a (decoder_output, encoder_output) tuple instead of just (encoder_output). See the CAE class in models.py for the framework."
 
-    def __call__(self, model, inputs, labels, train_iter, epoch):
+    def __call__(self, inputs, labels, train_iter, epoch):
         debug = False
         visualize_training = False
         tmp_show_epoches_list = []
@@ -302,7 +314,13 @@ class CAE_VisualizeTraining(Callback):
 
         # for nitorch models which have a 'debug' and 'visualize_training' switch in the
         # forward() method
-        outputs, encoder_out = model(inputs, debug, return_encoder_out=True)
+
+        if(isinstance(self.model, nn.DataParallel)):
+            self.model.module.set_debug(debug)
+        else:
+            self.model.set_debug(debug)
+
+        outputs, encoder_out = self.model(inputs)
         
         if(visualize_training):
             # check if result should be plotted in PDF
@@ -313,34 +331,46 @@ class CAE_VisualizeTraining(Callback):
             
             # show only the first image in the batch
             if pp is None:
+				# input image
                 show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, cmap=self.cmap)
                 plt.suptitle("Input image")
                 plt.show()
+                if(not torch.all(torch.eq(inputs[0],labels[0]))):
+					show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+					plt.suptitle("Expected reconstruction")
+					plt.show()  
+				# reconstructed image
+				show_brain(outputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+				plt.suptitle("Reconstructed Image")
+				plt.show()
+				# statistics
+				print("\nStatistics of expected reconstruction:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
+					labels[0].min(), labels[0].max(), labels[0].mean(), labels[0].std()))
+				print("\nStatistics of Reconstructed image:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
+					outputs[0].min(), outputs[0].max(), outputs[0].mean(), outputs[0].std()))   
+				# feature maps
+				visualize_feature_maps(encoder_out[0])
+                plt.suptitle("Encoder output")
+                plt.show()
             else:
+				# input image
                 fig = show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, return_fig=True,
                                  cmap=self.cmap)
                 plt.suptitle("Input image")
                 pp.savefig(fig)
                 plt.close(fig)
-
-            if pp is None:
-                show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, cmap=self.cmap)
-                plt.suptitle("Reconstructed Image")
-                plt.show()
-            else:
-                fig = show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, return_fig=True,
-                                 cmap=self.cmap)
+                if(not torch.all(torch.eq(inputs[0],labels[0]))):
+					fig = show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+					plt.suptitle("Expected reconstruction")
+					pp.savefig(fig)
+					plt.close(fig)
+                # reconstructed image
+				fig = show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, return_fig=True, cmap=self.cmap)
                 plt.suptitle("Reconstructed Image")
                 pp.savefig(fig)
                 plt.close(fig)
-
-            # show only the first image in the batch
-            if pp is None:
-                visualize_feature_maps(encoder_out[0])
-                plt.suptitle("Encoder output")
-                plt.show()
-            else:
-                if self.plotFeatures:
+                # feature maps
+				if self.plotFeatures:
                     fig = visualize_feature_maps(encoder_out[0], return_fig=True)
                     plt.suptitle("Encoder output")
                     pp.savefig(fig)
@@ -349,6 +379,11 @@ class CAE_VisualizeTraining(Callback):
             # close the PDF
             if pp is not None:
                 pp.close()
+ 
+        if(isinstance(self.model, nn.DataParallel)):
+            self.model.module.set_debug(False)
+        else:
+            self.model.set_debug(False)
 
         return outputs
         
