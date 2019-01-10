@@ -55,7 +55,8 @@ def load_nifti(file_path, dtype=np.float32, incl_header=False, z_factor=None, ma
 
 def show_brain(img, cut_coords=None, 
                figsize=(10,5), cmap="nipy_spectral",
-               draw_cross = True
+               draw_cross = True,
+               return_fig = False
                ):
     """Displays 2D cross-sections of a 3D image along all 3 axis
     Arg:
@@ -149,3 +150,5 @@ the image file stored as a nifTI format.".format(type(img)))
         ax[2].axhline(y=cut_coords[1], color='k', linewidth=1)
 
     plt.tight_layout()
+    if return_fig:
+        return f

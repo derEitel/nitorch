@@ -3,6 +3,7 @@ import copy
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 from mpl_toolkits.mplot3d import Axes3D
 # pytorch
 import torch
@@ -214,7 +215,7 @@ class EarlyStopping(Callback):
         
 # Functions which can be used in custom-callbacks for visualizing 3D-features during training 
 # (using the argument 'training_time_callback' in nitorch's Trainer class )
-def visualize_feature_maps(features):
+def visualize_feature_maps(features, return_fig=False):
     
     if(features.is_cuda):
         features = features.cpu().detach().numpy()
@@ -255,47 +256,156 @@ def visualize_feature_maps(features):
             plt.axis('off')
             
     plt.tight_layout()
-    
+    if return_fig:
+        return fig
 
-    
+
 class CAE_VisualizeTraining(Callback):
     ''' training_time_callback that prints the model dimensions,
     visualizes CAE encoder outputs, original image and reconstructed image
     during training
     '''
-    def __init__(self, max_train_iters, max_epochs):
+    def __init__(self, max_train_iters, max_epochs, show_epochs_list=[], plotFeatures=True, plot_pdf_path="",
+                 cmap="nipy_spectral"):
         self.max_train_iters = max_train_iters
         self.max_epochs = max_epochs
+        if plot_pdf_path is not None:
+            assert isinstance(plot_pdf_path, str), "pp is not a path!"
+        self.plot_pdf_path = plot_pdf_path
+        assert isinstance(plotFeatures, bool), "plotFeatures not boolean object!"
+        self.plotFeatures = plotFeatures
+        assert isinstance(show_epochs_list, list), "show_epochs_list is not a list!"
+        self.show_epochs_list = show_epochs_list
+        self.cmap = cmap
+        self.ave_grads = []
+        self.layers = []
 
     def __call__(self, model, inputs, labels, train_iter, epoch):
         debug = False
         visualize_training = False
+        tmp_show_epoches_list = []
 
-        # print the model's parameter dimensions etc in the first iter
-        if(train_iter==0 and epoch==0):
-            debug = True
-        # visualize training on the last iteration in an epoch 
-        elif(train_iter==1 and epoch==0) or (train_iter == self.max_train_iters):
-            visualize_training = True
+        # if show_epochs_list is empty, all epoches should be plotted. Therefore, add current epoch to the list
+        if not self.show_epochs_list:
+            tmp_show_epoches_list.append(epoch)
+        else:
+            tmp_show_epoches_list = self.show_epochs_list
+
+        # check if epoch should be visualized
+        if epoch in tmp_show_epoches_list:
+            # print the model's parameter dimensions etc in the first iter
+            if (train_iter == 0 and epoch == 0):
+                debug = True
+            # visualize training on the last iteration in that epoch
+            elif(train_iter==1 and epoch==0) or (train_iter == self.max_train_iters):
+                visualize_training = True
 
         # for nitorch models which have a 'debug' and 'visualize_training' switch in the
         # forward() method
-        outputs, encoder_out = model(inputs, debug, return_encoder_out = True)
+        outputs, encoder_out = model(inputs, debug, return_encoder_out=True)
         
         if(visualize_training):
+            # check if result should be plotted in PDF
+            if self.plot_pdf_path != "":
+                pp = PdfPages(os.path.join(self.plot_pdf_path, "training_epoch_" + str(epoch) + "_visualization.pdf"))
+            else:
+                pp = None
             
             # show only the first image in the batch
-            show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False)
-            plt.suptitle("Input image")
-            plt.show()
-            
-            show_brain(outputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False)
-            plt.suptitle("Reconstructed Image")
-            plt.show()
-                
+            if pp is None:
+                show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, cmap=self.cmap)
+                plt.suptitle("Input image")
+                plt.show()
+            else:
+                fig = show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, return_fig=True,
+                                 cmap=self.cmap)
+                plt.suptitle("Input image")
+                pp.savefig(fig)
+                plt.close(fig)
+
+            if pp is None:
+                show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, cmap=self.cmap)
+                plt.suptitle("Reconstructed Image")
+                plt.show()
+            else:
+                fig = show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, return_fig=True,
+                                 cmap=self.cmap)
+                plt.suptitle("Reconstructed Image")
+                pp.savefig(fig)
+                plt.close(fig)
+
             # show only the first image in the batch
-            visualize_feature_maps(encoder_out[0]) 
-            plt.suptitle("Encoder output")
-            plt.show()
-            
+            if pp is None:
+                visualize_feature_maps(encoder_out[0])
+                plt.suptitle("Encoder output")
+                plt.show()
+            else:
+                if self.plotFeatures:
+                    fig = visualize_feature_maps(encoder_out[0], return_fig=True)
+                    plt.suptitle("Encoder output")
+                    pp.savefig(fig)
+                    plt.close(fig)
+
+            # close the PDF
+            if pp is not None:
+                pp.close()
+
         return outputs
+        
+    def plot_grad_flow(self, named_parameters, epoch, i, last_batch):
+        tmp_show_epoches_list = []
+
+        # if show_epochs_list is empty, all epoches should be plotted. Therefore, add current epoch to the list
+        if not self.show_epochs_list:
+            tmp_show_epoches_list.append(epoch)
+        else:
+            tmp_show_epoches_list = self.show_epochs_list
+
+        # check if epoch should be visualized
+        if epoch in tmp_show_epoches_list:
+
+            # save the levels at each beginning of an epoch
+            if i == 0:
+                for n, p in named_parameters:
+                    if p.requires_grad and "bias" not in n:
+                        self.layers.append(n)
+
+            # save gradient flows for each iteration
+            grads = []
+            if i != last_batch-1:
+                for n, p in named_parameters:
+                    if p.requires_grad and "bias" not in n:
+                        grads.append(p.grad.abs().mean())
+            self.ave_grads.append(grads)
+
+            # only plot when epoch is done
+            if i == last_batch-1:
+
+                if self.plot_pdf_path != "":
+                    pp = PdfPages(os.path.join(self.plot_pdf_path, "training_epoch_" + str(epoch) + "_gradient_flow.pdf"))
+                else:
+                    pp = None
+                # add last gradient
+                for n, p in named_parameters:
+                    if p.requires_grad and "bias" not in n:
+                        grads.append(p.grad.abs().mean())
+                self.ave_grads.append(grads)
+
+                # visualize gradients
+                fig = plt.figure()
+                for grad in self.ave_grads:
+                    plt.plot(grad, alpha=0.3, color="b")
+                    plt.hlines(0, 0, len(grad)+1, linewidth=1, color="k")
+                    plt.xticks(range(0, len(grad), 1), self.layers, rotation="vertical")
+                    plt.xlim(xmin=0, xmax=len(grad))
+                    plt.xlabel("Layers")
+                    plt.ylabel("average gradient")
+                    plt.title("Gradient flow for epoch " + str(epoch))
+                    plt.grid(True)
+                pp.savefig(fig)
+                plt.close(fig)
+                pp.close()
+
+                # reset gradients
+                self.ave_grads = []
+                self.layers = []

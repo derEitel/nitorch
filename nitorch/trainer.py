@@ -12,41 +12,39 @@ from nitorch.callbacks import ModelCheckpoint
 
 class Trainer:
     def __init__(
-        self, 
-        model, 
-        criterion,
-        optimizer,
-        scheduler=None,
-        metrics=[], 
-        callbacks=[],
-        training_time_callback = None,
-        device=torch.device('cuda'),
-        prediction_type="binary",
-        **kwargs
-        ):
+            self,
+            model,
+            criterion,
+            optimizer,
+            scheduler=None,
+            metrics=[],
+            callbacks=[],
+            training_time_callback=None,
+            device=torch.device('cuda'),
+            prediction_type="binary",
+            **kwargs
+    ):
         """ Main class for training.
-
         # Arguments
-            model: neural network to train. 
-            criterion: loss function. 
+            model: neural network to train.
+            criterion: loss function.
             optimizer: optimization function.
             scheduler: schedules the optimizer.
             metrics: list of metrics to report. Default is None.
             callbacks: list of callbacks to execute at the end of training epochs. Default is None.
-            training_time_callback: a user-defined callback that executes the model.forward() 
-                and returns the output to the trainer. 
+            training_time_callback: a user-defined callback that executes the model.forward()
+                and returns the output to the trainer.
                 This can be used to perform debug during train time, Visualize features,
-                call model.forward() with custom arguments, run multiple decoder networks etc. 
+                call model.forward() with custom arguments, run multiple decoder networks etc.
                 Default is None.
-            class_threshold: classification threshold for binary 
+            class_threshold: classification threshold for binary
                 classification. Default is 0.5.
             prediction_type: accepts one of ["binary", "classification",
-                "regression", "reconstruction", "variational", "other"]. 
+                "regression", "reconstruction", "variational", "other"].
                 This is used to determine output type.
             device: The device to use for training. Must be integer or
                     a torch.device object. By default, GPU with current
                     node is used.
-
         """
         if not isinstance(model, nn.Module):
             raise ValueError("Expects model type to be torch.nn.Module")
@@ -66,33 +64,32 @@ class Trainer:
                 integer.")
         if "class_threshold" in kwargs.keys():
             self.class_threshold = kwargs["class_threshold"]
-        else:            
+        else:
             self.class_threshold = None
         self.stop_training = False
         self.start_time = None
         self.prediction_type = prediction_type
 
-
     def train_model(
-        self,
-        train_loader,
-        val_loader,
-        inputs_key = "image",
-        labels_key = "label",
-        num_epochs=25,
-        show_train_steps=25,
-        show_validation_epochs=1
-        ):
+            self,
+            train_loader,
+            val_loader,
+            inputs_key="image",
+            labels_key="label",
+            num_epochs=25,
+            show_train_steps=25,
+            show_validation_epochs=1
+    ):
         """ Main function to train a network for one epoch.
         Args:
             train_loader: a pytorch Dataset iterator for training data
             val_loader: a pytorch Dataset iterator for validation data
-            inputs_key, labels_key: The data returned by `train_loader` and `val_loader`can 
-                            either be a dict of format data_loader[X_key] = inputs and 
-                            data_loader[y_key] = labels or a list with data_loader[0] = inputs 
+            inputs_key, labels_key: The data returned by `train_loader` and `val_loader`can
+                            either be a dict of format data_loader[X_key] = inputs and
+                            data_loader[y_key] = labels or a list with data_loader[0] = inputs
                             and data_loader[1] = labels. The default keys are "image" and "label".
         """
-        assert (show_validation_epochs < num_epochs) or (num_epochs == 1),"\
+        assert (show_validation_epochs < num_epochs) or (num_epochs == 1), "\
 'show_validation_epochs' value should be less than 'num_epochs'"
 
         val_metrics = dict()
@@ -101,7 +98,7 @@ class Trainer:
         self.start_time = time.time()
         self.best_metric = 0.0
         self.best_model = None
-        
+
         for epoch in range(num_epochs):
             if self.stop_training:
                 # TODO: check position of this
@@ -118,7 +115,7 @@ class Trainer:
                 multi_batch_metrics = dict()
                 # train
                 self.model.train()
-            
+
                 for i, data in enumerate(train_loader):
                     try:
                         inputs, labels = data[inputs_key], data[labels_key]
@@ -143,40 +140,45 @@ class Trainer:
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
                     # forward + backward + optimize
-                    
+
                     if self.training_time_callback is not None:
                         outputs = self.training_time_callback(
                             self.model,
-                            inputs, 
+                            inputs,
                             labels,
                             i,
-                            epoch                            
-                        )               
+                            epoch
+                        )
                     else:
                         outputs = self.model(inputs)
-                        
-                    loss = self.criterion(outputs, labels)  
+
+                    loss = self.criterion(outputs, labels)
                     loss.backward()
+                    if self.training_time_callback is not None:
+                        self.training_time_callback.plot_grad_flow(self.model.named_parameters(),
+                                                                   epoch,
+                                                                   i,
+                                                                   len(train_loader))
                     self.optimizer.step()
 
                     # store results
                     all_preds, all_labels = predict(
-                                outputs,
-                                labels,
-                                all_preds,
-                                all_labels,
-                                self.prediction_type,
-                                self.criterion,
-                                class_threshold=self.class_threshold
-                            )
+                        outputs,
+                        labels,
+                        all_preds,
+                        all_labels,
+                        self.prediction_type,
+                        self.criterion,
+                        class_threshold=self.class_threshold
+                    )
                     # update loss
                     running_loss += loss.item()
                     epoch_loss += loss.item()
                     # print loss every X mini-batches
-                    if (i % show_train_steps == 0) and (i != 0) :  
+                    if (i % show_train_steps == 0) and (i != 0):
                         print(
                             "[%d, %5d] loss: %.5f"
-                            % (epoch + 1, i + 1, 
+                            % (epoch + 1, i + 1,
                                running_loss / show_train_steps)
                         )
                         running_loss = 0.0
@@ -184,7 +186,7 @@ class Trainer:
                     # compute training metrics for X/2 mini-batches
                     # useful for large outputs (e.g. reconstructions)
                     if self.prediction_type == "reconstruction":
-                        if i % int(show_train_steps/2) == 0:
+                        if i % int(show_train_steps / 2) == 0:
                             multi_batch_metrics = self.estimate_metrics(
                                 multi_batch_metrics,
                                 all_labels,
@@ -197,12 +199,12 @@ class Trainer:
                 # report training metrics
                 # weighted averages of metrics are computed over batches
                 train_metrics = self._on_epoch_end(
-                        train_metrics,
-                        multi_batch_metrics,
-                        all_labels,
-                        all_preds,
-                        phase="train"
-                    )
+                    train_metrics,
+                    multi_batch_metrics,
+                    all_labels,
+                    all_preds,
+                    phase="train"
+                )
                 epoch_loss /= len(train_loader)
 
                 # add loss to metrics data
@@ -246,32 +248,32 @@ class Trainer:
                         if self.training_time_callback is not None:
                             outputs = self.training_time_callback(
                                 self.model,
-                                inputs, 
+                                inputs,
                                 labels,
-                                1, #dummy value
-                                1  #dummy value                          
-                            )               
+                                1,  # dummy value
+                                1  # dummy value
+                            )
                         else:
                             outputs = self.model(inputs)
-                            
+
                         loss = self.criterion(outputs, labels)
                         # compute validation accuracy
                         all_preds, all_labels = predict(
-                                outputs,
-                                labels,
-                                all_preds,
-                                all_labels,
-                                self.prediction_type,
-                                self.criterion,
-                                class_threshold=self.class_threshold
-                            )
+                            outputs,
+                            labels,
+                            all_preds,
+                            all_labels,
+                            self.prediction_type,
+                            self.criterion,
+                            class_threshold=self.class_threshold
+                        )
 
                         validation_loss += loss.item()
 
                         # compute training metrics for X/2 mini-batches
                         # useful for large outputs (e.g. reconstructions)
                         if self.prediction_type == "reconstruction":
-                            if i % int(show_train_steps/2) == 0:
+                            if i % int(show_train_steps / 2) == 0:
                                 multi_batch_metrics = self.estimate_metrics(
                                     multi_batch_metrics,
                                     all_labels,
@@ -303,7 +305,6 @@ class Trainer:
                     callback(self, epoch, val_metrics)
         # End training
         return self.finish_training(train_metrics, val_metrics, epoch)
-        
 
     def finish_training(self, train_metrics, val_metrics, epoch):
         """
@@ -311,7 +312,7 @@ class Trainer:
         """
         time_elapsed = int(time.time() - self.start_time)
         print("Total time elapsed: {}h:{}m:{}s".format(
-            time_elapsed//3600, (time_elapsed//60)%60, time_elapsed%60))
+            time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60))
         # execute final methods of callbacks
         if self.callbacks is not None:
             for callback in self.callbacks:
@@ -319,7 +320,7 @@ class Trainer:
                 method_list = [
                     func
                     for func in dir(callback)
-                    if (callable(getattr(callback, func)) 
+                    if (callable(getattr(callback, func))
                         and not func.startswith("__"))
                 ]
                 if "final" in method_list:
@@ -329,15 +330,13 @@ class Trainer:
             self.best_metric = val_metrics["loss"][-1]
             self.best_model = self.model
 
-        return (self.model, 
+        return (self.model,
                 {
-                 "train_metrics" : train_metrics,
-                 "val_metrics" : val_metrics,
-                 "best_model" : self.best_model,
-                 "best_metric" : self.best_metric}
+                    "train_metrics": train_metrics,
+                    "val_metrics": val_metrics,
+                    "best_model": self.best_model,
+                    "best_metric": self.best_metric}
                 )
-
-
 
     def visualize_training(self, report, metrics=None, save_fig_path=""):
         # Plot loss first
@@ -346,7 +345,7 @@ class Trainer:
         plt.plot(report["val_metrics"]["loss"])
         plt.title("Loss during training")
         plt.legend(["Train", "Val"])
-        if(save_fig_path):
+        if (save_fig_path):
             plt.savefig(save_fig_path)
         plt.show()
         if metrics is None:
@@ -359,30 +358,28 @@ class Trainer:
             plt.title(metric.__name__)
             plt.show()
 
-
     def evaluate_model(
-        self,
-        val_loader,
-        additional_gpu=None,
-        metrics=None,
-        inputs_key = "image",
-        labels_key = "label"
-        ):
+            self,
+            val_loader,
+            additional_gpu=None,
+            metrics=None,
+            inputs_key="image",
+            labels_key="label"
+    ):
         # predict on the validation set
         """
         Predict on the validation set.
-
         # Arguments
             val_loader : data loader of the validation set
-            additional_gpu : GPU number if evaluation should be done on 
+            additional_gpu : GPU number if evaluation should be done on
                 separate GPU
-            metrics: list of 
+            metrics: list of
         """
         all_preds = []
         all_labels = []
-        
+
         self.model.eval()
-        
+
         if additional_gpu is not None:
             device = additional_gpu
         else:
@@ -398,15 +395,15 @@ class Trainer:
                 outputs = self.model(inputs)
                 # run inference
                 all_preds, all_labels = predict(
-                                outputs,
-                                labels,
-                                all_preds,
-                                all_labels,
-                                self.prediction_type,
-                                self.criterion,
-                                class_threshold=self.class_threshold
-                            )
-                
+                    outputs,
+                    labels,
+                    all_preds,
+                    all_labels,
+                    self.prediction_type,
+                    self.criterion,
+                    class_threshold=self.class_threshold
+                )
+
         # compute confusion matrix
         cm = confusion_matrix(all_labels, all_preds)
         plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
@@ -440,17 +437,17 @@ class Trainer:
         self.model.train()
 
     def report_metrics(
-        self,
-        metrics_dict,
-        multi_batch_metrics,
-        phase
-        ):
+            self,
+            metrics_dict,
+            multi_batch_metrics,
+            phase
+    ):
 
         # report execution time only in training phase
-        if(phase=="train"):
+        if (phase == "train"):
             time_elapsed = int(time.time() - self.start_time)
             print("Time elapsed: {}h:{}m:{}s".format(
-                time_elapsed//3600, (time_elapsed//60)%60, time_elapsed%60))
+                time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60))
 
         """ Store and report a list of metric functions. """
         for metric in self.metrics:
@@ -463,10 +460,10 @@ class Trainer:
                     len(multi_batch_metrics["len_" + metric.__name__])))
                 n_samples = 0
                 for b_idx, batch_len in enumerate(
-                    multi_batch_metrics["len_" + metric.__name__]
-                    ):
+                        multi_batch_metrics["len_" + metric.__name__]
+                ):
                     batch_results[b_idx] = multi_batch_metrics[
-                        metric.__name__][b_idx] * batch_len
+                                               metric.__name__][b_idx] * batch_len
                     n_samples += batch_len
 
                 result = np.sum(batch_results) / n_samples
@@ -484,18 +481,17 @@ class Trainer:
                         phase, metric.__name__, str(result)))
         return metrics_dict
 
-
     def estimate_metrics(
-        self,
-        metrics_dict,
-        all_labels,
-        all_preds
-        ):
+            self,
+            metrics_dict,
+            all_labels,
+            all_preds
+    ):
         """ Estimate a list of metric functions. """
         n_predictions = len(all_preds)
         for metric in self.metrics:
             # report everything but loss
-            if metric.__name__ is not "loss": 
+            if metric.__name__ is not "loss":
                 result = metric(all_labels, all_preds)
                 if metric.__name__ in metrics_dict:
                     metrics_dict[metric.__name__].append(result)
@@ -506,22 +502,21 @@ class Trainer:
                     metrics_dict["len_" + metric.__name__] = [n_predictions]
         return metrics_dict
 
-
     def _on_epoch_end(
-        self,
-        metrics_dict,
-        multi_batch_metrics,
-        all_labels,
-        all_preds,
-        phase
-        ):
+            self,
+            metrics_dict,
+            multi_batch_metrics,
+            all_labels,
+            all_preds,
+            phase
+    ):
         # check for unreported metrics
         if len(all_preds) > 0:
             multi_batch_metrics = self.estimate_metrics(
-                    multi_batch_metrics,
-                    all_labels,
-                    all_preds,
-                )
+                multi_batch_metrics,
+                all_labels,
+                all_preds,
+            )
             # TODO: test if del helps
             all_labels = []
             all_preds = []
