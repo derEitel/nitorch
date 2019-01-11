@@ -266,10 +266,9 @@ class CAE_VisualizeTraining(Callback):
     NOTE : The forward() function of the CAE model using this callback
     must return a (decoder_output, encoder_output) tuple.
     '''
-    def __init__(self, model, max_train_iters, max_epochs, show_epochs_list=[], plotFeatures=True, plot_pdf_path="", cmap="nipy_spectral"):
+    def __init__(self, model, max_train_iters, show_epochs_list=[], plotFeatures=True, plot_pdf_path="", cmap="nipy_spectral"):
         self.model = model
         self.max_train_iters = max_train_iters
-        self.max_epochs = max_epochs
         if plot_pdf_path is not None:
             assert isinstance(plot_pdf_path, str), "pp is not a path!"
         self.plot_pdf_path = plot_pdf_path

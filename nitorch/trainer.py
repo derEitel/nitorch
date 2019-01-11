@@ -7,7 +7,6 @@ from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
 from nitorch.inference import predict
-from nitorch.callbacks import ModelCheckpoint
 from nitorch.utils import *
 
 
