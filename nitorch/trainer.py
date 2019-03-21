@@ -493,8 +493,8 @@ class Trainer:
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss":
-                result = np.mean([metric(preds,labels) for preds,labels in zip(all_preds, all_labels)])
-                
+                result = np.mean(metric(all_preds,all_labels))
+
                 if metric.__name__ in self.multi_batch_metrics:
                     self.multi_batch_metrics[metric.__name__].append(result)
                     self.multi_batch_metrics["len_" + metric.__name__].append(
