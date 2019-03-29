@@ -1,5 +1,6 @@
 from sklearn.metrics import recall_score
 
+
 def specificity(y_true, y_pred):
     return recall_score(y_true, y_pred, pos_label=0)
 

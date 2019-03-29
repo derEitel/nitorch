@@ -2,7 +2,6 @@ import numpy as np
 import numbers
 import torch
 from scipy.ndimage.interpolation import rotate
-from scipy.ndimage.interpolation import zoom
 
 
 def normalize_float(x, min=-1):
@@ -21,18 +20,19 @@ def normalize_float(x, min=-1):
 
 
 def normalize_float_torch(x, min=-1):
-    '''
+    """
     Function that performs min-max normalization on a Pytorch tensor 
     matrix. Can also deal with Pytorch dictionaries where the data
     matrix key is 'image'.
-    '''
+    """
     import torch
+
     if min == -1:
         norm = (2 * (x - torch.min(x)) / (torch.max(x) - torch.min(x))) - 1
     elif min == 0:
         if torch.max(x) == 0 and torch.min(x) == 0:
             norm = x
-        else:    
+        else:
             norm = (x - torch.min(x)) / (torch.max(x) - torch.min(x))
     return norm
 
@@ -68,48 +68,56 @@ class CenterCrop(object):
             int instead of sequence like (h, w, d), a cube crop (size, size, size) is
             made.
     """
+
     def __init__(self, size):
         if isinstance(size, numbers.Number):
             self.size = (int(size), int(size), int(size))
         else:
             self.size = np.asarray(size)
-        assert len(self.size) == 3, "The `size` must be a tuple of length 3 but is \
-length {}".format(len(self.size))
-        
+        assert (
+            len(self.size) == 3
+        ), "The `size` must be a tuple of length 3 but is \
+length {}".format(
+            len(self.size)
+        )
+
     def __call__(self, img):
         """
         Args:
             3D ndarray Image : Image to be cropped.
         Returns:
             3D ndarray Image: Cropped image.
-        """     
-        # if the 4th dimension of the image is the batch then ignore that dim 
+        """
+        # if the 4th dimension of the image is the batch then ignore that dim
         if len(img.shape) == 4:
             img_size = img.shape[1:]
         elif len(img.shape) == 3:
             img_size = img.shape
         else:
-            raise ValueError("The size of the image can be either 3 dimension or 4\
-dimension with one dimension as the batch size")
-            
+            raise ValueError(
+                "The size of the image can be either 3 dimension or 4\
+dimension with one dimension as the batch size"
+            )
+
         # crop only if the size of the image is bigger than the size to be cropped to.
         if all(img_size >= self.size):
-            slice_start = (img_size - self.size)//2
+            slice_start = (img_size - self.size) // 2
             slice_end = self.size + slice_start
-            cropped = img[slice_start[0]:slice_end[0],
-                          slice_start[1]:slice_end[1],
-                          slice_start[2]:slice_end[2]
-                         ]
+            cropped = img[
+                slice_start[0] : slice_end[0],
+                slice_start[1] : slice_end[1],
+                slice_start[2] : slice_end[2],
+            ]
             if len(img.shape) == 4:
                 cropped = np.expand_dims(cropped, 0)
         else:
             cropped = img
-        
+
         return cropped
 
     def __repr__(self):
-        return self.__class__.__name__ + '(size={0})'.format(self.size)
-    
+        return self.__class__.__name__ + "(size={0})".format(self.size)
+
 
 class Normalize(object):
     """
@@ -144,7 +152,7 @@ class Normalize(object):
         img_mask = image == 0
         # do transform
         image = self.apply_transform(image)
-        image[img_mask] = 0.
+        image[img_mask] = 0.0
         return image
 
 
@@ -182,13 +190,14 @@ class IntensityRescale:
         img_mask = image == 0
         # do transform
         image = self.apply_transform(image)
-        image[img_mask] = 0.
+        image[img_mask] = 0.0
         return image
 
 
 ########################################################################
 # Data augmentations
 ########################################################################
+
 
 class ToTensor(object):
     """
@@ -213,6 +222,7 @@ class Flip:
         prob: probability to flip the image. Executes always when set to
              1. Default is 0.5
     """
+
     def __init__(self, axis=0, prob=0.5):
         self.axis = axis
         self.prob = prob
@@ -231,23 +241,26 @@ class SagittalFlip(Flip):
     Flip image along the sagittal axis (x-axis). 
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, prob=0.5):
         super().__init__(axis=0, prob=prob)
-    
+
     def __call__(self, image):
-        assert(len(image.shape) == 3)
+        assert len(image.shape) == 3
         return super().__call__(image)
+
 
 class CoronalFlip(Flip):
     """
     Flip image along the coronal axis (y-axis). 
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, prob=0.5):
         super().__init__(axis=1, prob=prob)
 
     def __call__(self, image):
-        assert(len(image.shape) == 3)
+        assert len(image.shape) == 3
         return super().__call__(image)
 
 
@@ -256,11 +269,12 @@ class AxialFlip(Flip):
     Flip image along the axial axis (z-axis). 
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, prob=0.5):
         super().__init__(axis=2, prob=prob)
 
     def __call__(self, image):
-        assert(len(image.shape) == 3)
+        assert len(image.shape) == 3
         return super().__call__(image)
 
 
@@ -275,6 +289,7 @@ class Rotate:
             scalar it rotates between -abs(deg) and abs(deg). Default is
             (-3, 3).
     """
+
     def __init__(self, axis=0, deg=(-3, 3)):
         if axis == 0:
             self.axes = (1, 0)
@@ -284,7 +299,7 @@ class Rotate:
             self.axes = (0, 2)
 
         if isinstance(deg, tuple) or isinstance(deg, list):
-            assert(len(deg) == 2)
+            assert len(deg) == 2
             self.min_rot = np.min(deg)
             self.max_rot = np.max(deg)
         else:
@@ -294,11 +309,8 @@ class Rotate:
     def __call__(self, image):
         rand = np.random.randint(self.min_rot, self.max_rot + 1)
         augmented = rotate(
-            image,
-            angle=rand,
-            axes=self.axes,
-            reshape=False
-            ).copy()
+            image, angle=rand, axes=self.axes, reshape=False
+        ).copy()
         return augmented
 
 
@@ -307,6 +319,7 @@ class SagittalRotate(Rotate):
     Rotate image's sagittal axis (x-axis). 
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, deg=(-3, 3)):
         super().__init__(axis=0, deg=deg)
 
@@ -316,6 +329,7 @@ class CoronalRotate(Rotate):
     Rotate image's coronal axis (y-axis). 
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, deg=(-3, 3)):
         super().__init__(axis=1, deg=deg)
 
@@ -325,6 +339,7 @@ class AxialRotate(Rotate):
     Rotate image's axial axis (z-axis). 
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, deg=(-3, 3)):
         super().__init__(axis=2, deg=deg)
 
@@ -340,11 +355,12 @@ class Translate:
             In case of scalar it translates between -abs(dist) and 
             abs(dist). Default is (-3, 3).
     """
+
     def __init__(self, axis=0, dist=(-3, 3)):
         self.axis = axis
 
         if isinstance(dist, tuple) or isinstance(dist, list):
-            assert(len(dist) == 2)
+            assert len(dist) == 2
             self.min_trans = np.min(dist)
             self.max_trans = np.max(dist)
         else:
@@ -363,16 +379,16 @@ class Translate:
                 augmented = image
         elif self.axis == 1:
             if rand < 0:
-                augmented[:,-rand:, :] = image[:,:rand, :]
+                augmented[:, -rand:, :] = image[:, :rand, :]
             elif rand > 0:
-                augmented[:,:-rand, :] = image[:,rand:, :]
+                augmented[:, :-rand, :] = image[:, rand:, :]
             else:
                 augmented = image
         elif self.axis == 2:
             if rand < 0:
-                augmented[:,:,-rand:] = image[:,:,:rand]
+                augmented[:, :, -rand:] = image[:, :, :rand]
             elif rand > 0:
-                augmented[:,:,:-rand] = image[:,:,rand:]
+                augmented[:, :, :-rand] = image[:, :, rand:]
             else:
                 augmented = image
         return augmented
@@ -383,6 +399,7 @@ class SagittalTranslate(Translate):
     Translate image along the sagittal axis (x-axis).
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, dist=(-3, 3)):
         super().__init__(axis=0, dist=dist)
 
@@ -392,6 +409,7 @@ class CoronalTranslate(Translate):
     Translate image along the coronal axis (y-axis).
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, dist=(-3, 3)):
         super().__init__(axis=1, dist=dist)
 
@@ -401,6 +419,6 @@ class AxialTranslate(Translate):
     Translate image along the axial axis (z-axis).
     Expects input shape (X, Y, Z).
     """
+
     def __init__(self, dist=(-3, 3)):
         super().__init__(axis=2, dist=dist)
-        

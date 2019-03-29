@@ -1,17 +1,16 @@
 import os
-import copy
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-from mpl_toolkits.mplot3d import Axes3D
+
 # pytorch
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
+
 # nitorch
 from nitorch.data import show_brain
+
 
 class Callback:
     """
@@ -29,6 +28,7 @@ class Callback:
 
     def final(self, **kwargs):
         self.reset()
+
 
 class ModelCheckpoint(Callback):
     """
@@ -55,8 +55,8 @@ class ModelCheckpoint(Callback):
         num_iters=-1,
         ignore_before=0,
         store_best=False,
-        mode="max"
-        ):
+        mode="max",
+    ):
         super().__init__()
         if os.path.isdir(path):
             self.path = path
@@ -79,7 +79,7 @@ class ModelCheckpoint(Callback):
         # do not store intermediate iterations
         if epoch >= self.ignore_before and epoch != 0:
             if not self.num_iters == -1:
-            
+
                 # counting epochs starts from 1; i.e. +1
                 epoch += 1
                 # store model recurrently if set
@@ -96,12 +96,18 @@ class ModelCheckpoint(Callback):
                     if isinstance(self.retain_metric, str):
                         current_res = val_metrics[self.retain_metric][-1]
                     else:
-                        current_res = val_metrics[self.retain_metric.__name__][-1]
+                        current_res = val_metrics[self.retain_metric.__name__][
+                            -1
+                        ]
                 except KeyError:
-                    print("Couldn't find {} in validation metrics. Using \
-                        loss instead.".format(self.retain_metric))
+                    print(
+                        "Couldn't find {} in validation metrics. Using \
+                        loss instead.".format(
+                            self.retain_metric
+                        )
+                    )
                     current_res = val_metrics["loss"][-1]
-                    
+
                 if self.has_improved(current_res):
                     self.best_res = current_res
                     self.best_model = deepcopy(trainer.model.state_dict())
@@ -126,7 +132,11 @@ class ModelCheckpoint(Callback):
         if self.best_model is not None:
             best_model = deepcopy(self.best_model)
             best_res = self.best_res
-            print("Best result during training: {:.2f}. Saving model..".format(best_res))
+            print(
+                "Best result during training: {:.2f}. Saving model..".format(
+                    best_res
+                )
+            )
             name = self.prepend + "BEST_ITERATION.h5"
             torch.save(best_model, os.path.join(self.path, name))
         self.reset()
@@ -164,7 +174,6 @@ class EarlyStopping(Callback):
         ignore_before: does not start the first window until this epoch.
             Can be useful when training spikes a lot in early epochs.
     """
-
 
     def __init__(self, patience, retain_metric, mode, ignore_before=0):
         self.patience = patience
@@ -209,79 +218,91 @@ class EarlyStopping(Callback):
     def final(self, **kwargs):
         self.reset()
 
-        
-# Functions which can be used in custom-callbacks for visualizing 3D-features during training 
+
+# Functions which can be used in custom-callbacks for visualizing 3D-features during training
 # (using the argument 'training_time_callback' in nitorch's Trainer class )
 def visualize_feature_maps(features, return_fig=False):
-    
-    if(features.is_cuda):
+
+    if features.is_cuda:
         features = features.cpu().detach().numpy()
 
     num_features = len(features)
-    plt.close('all')
-    figsize=((num_features//8 + 5)*3 ,(num_features//8)*10 )
+    plt.close("all")
+    figsize = ((num_features // 8 + 5) * 3, (num_features // 8) * 10)
     fig = plt.figure(figsize=figsize)
 
-    for i, f in enumerate(features, 1):            
-        # normalize to range [0, 1] first as the values can be very small            
-        if((f.max() - f.min()) != 0):
+    for i, f in enumerate(features, 1):
+        # normalize to range [0, 1] first as the values can be very small
+        if (f.max() - f.min()) != 0:
             f = (f - f.min()) / (f.max() - f.min())
 
             idxs = np.nonzero(f)
-            vals = np.ravel(f[idxs])                
-            if(len(vals)):
+            vals = np.ravel(f[idxs])
+            if len(vals):
                 # calculate the index where the mean value would lie
-                mean_idx = np.average(idxs, axis = 1, weights=vals)
-                # calculate the angel ratios for each non-zero val            
-                angles = (mean_idx.reshape(-1,1) - idxs)
-                angles = angles/ (np.max(abs(angles), axis=1).reshape(-1,1))    
-            else: # if all values in f are zero, set dummy angle
+                mean_idx = np.average(idxs, axis=1, weights=vals)
+                # calculate the angel ratios for each non-zero val
+                angles = mean_idx.reshape(-1, 1) - idxs
+                angles = angles / (np.max(abs(angles), axis=1).reshape(-1, 1))
+            else:  # if all values in f are zero, set dummy angle
                 angles = [1, 1, 1]
 
-#             print("values = ",vals)
-            ax = fig.add_subplot(num_features//3+1, 3, i,
-                                  projection='3d')
+            #             print("values = ",vals)
+            ax = fig.add_subplot(num_features // 3 + 1, 3, i, projection="3d")
             ax.set_title("Feature-{} in the bottleneck".format(i))
-            ax.quiver(*idxs
-                      , angles[0]*vals, angles[1]*vals, angles[2]*vals
-                     )    
+            ax.quiver(
+                *idxs, angles[0] * vals, angles[1] * vals, angles[2] * vals
+            )
             plt.grid()
 
         else:
-            ax = fig.add_subplot(num_features//3+1, 3, i)
+            ax = fig.add_subplot(num_features // 3 + 1, 3, i)
             ax.text(0.5, 0.5, "All values zero!", transform=ax.transAxes)
-            plt.axis('off')
-            
+            plt.axis("off")
+
     plt.tight_layout()
     if return_fig:
         return fig
 
 
 class CAE_VisualizeTraining(Callback):
-    ''' 
+    """ 
     training_time_callback that prints the model dimensions,
     visualizes CAE encoder outputs, original image and reconstructed image
     during training.
     
     NOTE : The forward() function of the CAE model using this callback
     must return a (decoder_output, encoder_output) tuple.
-    '''
-    def __init__(self, model, max_train_iters, show_epochs_list=[], plotFeatures=True, plot_pdf_path="", cmap="nipy_spectral"):
+    """
+
+    def __init__(
+        self,
+        model,
+        max_train_iters,
+        show_epochs_list=[],
+        plotFeatures=True,
+        plot_pdf_path="",
+        cmap="nipy_spectral",
+    ):
         self.model = model
         self.max_train_iters = max_train_iters
         if plot_pdf_path is not None:
             assert isinstance(plot_pdf_path, str), "pp is not a path!"
         self.plot_pdf_path = plot_pdf_path
-        assert isinstance(plotFeatures, bool), "plotFeatures not boolean object!"
+        assert isinstance(
+            plotFeatures, bool
+        ), "plotFeatures not boolean object!"
         self.plotFeatures = plotFeatures
-        assert isinstance(show_epochs_list, list), "show_epochs_list is not a list!"
+        assert isinstance(
+            show_epochs_list, list
+        ), "show_epochs_list is not a list!"
         self.show_epochs_list = show_epochs_list
         self.cmap = cmap
         self.ave_grads = []
         self.layers = []
         # inform the model to also return the encoder output along with the decoder output
         try:
-            if(isinstance(model, nn.DataParallel)): 
+            if isinstance(model, nn.DataParallel):
                 model.module.set_return_encoder_out(True)
             else:
                 model.set_return_encoder_out(True)
@@ -304,72 +325,118 @@ must return a (decoder_output, encoder_output) tuple instead of just (encoder_ou
         # check if epoch should be visualized
         if epoch in tmp_show_epoches_list:
             # print the model's parameter dimensions etc in the first iter
-            if (train_iter == 0 and epoch == 0):
+            if train_iter == 0 and epoch == 0:
                 debug = True
             # visualize training on the last iteration in that epoch
-            elif(train_iter==1 and epoch==0) or (train_iter == self.max_train_iters):
+            elif (train_iter == 1 and epoch == 0) or (
+                train_iter == self.max_train_iters
+            ):
                 visualize_training = True
 
         # for nitorch models which have a 'debug' and 'visualize_training' switch in the
         # forward() method
 
-        if(isinstance(self.model, nn.DataParallel)):
+        if isinstance(self.model, nn.DataParallel):
             self.model.module.set_debug(debug)
         else:
             self.model.set_debug(debug)
 
         outputs, encoder_out = self.model(inputs)
-        
-        if(visualize_training):
+
+        if visualize_training:
             # check if result should be plotted in PDF
             if self.plot_pdf_path != "":
-                pp = PdfPages(os.path.join(self.plot_pdf_path, "training_epoch_" + str(epoch) + "_visualization.pdf"))
+                pp = PdfPages(
+                    os.path.join(
+                        self.plot_pdf_path,
+                        "training_epoch_" + str(epoch) + "_visualization.pdf",
+                    )
+                )
             else:
                 pp = None
-            
+
             # show only the first image in the batch
             if pp is None:
                 # input image
-                show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, cmap=self.cmap)
+                show_brain(
+                    inputs[0].squeeze().cpu().detach().numpy(),
+                    draw_cross=False,
+                    cmap=self.cmap,
+                )
                 plt.suptitle("Input image")
                 plt.show()
-                if(not torch.all(torch.eq(inputs[0],labels[0]))):
-                    show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                if not torch.all(torch.eq(inputs[0], labels[0])):
+                    show_brain(
+                        labels[0].squeeze().cpu().detach().numpy(),
+                        draw_cross=False,
+                        cmap=self.cmap,
+                    )
                     plt.suptitle("Expected reconstruction")
-                    plt.show()  
+                    plt.show()
                 # reconstructed image
-                show_brain(outputs[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                show_brain(
+                    outputs[0].squeeze().cpu().detach().numpy(),
+                    draw_cross=False,
+                    cmap=self.cmap,
+                )
                 plt.suptitle("Reconstructed Image")
                 plt.show()
                 # statistics
-                print("\nStatistics of expected reconstruction:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
-                    labels[0].min(), labels[0].max(), labels[0].mean(), labels[0].std()))
-                print("\nStatistics of Reconstructed image:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
-                    outputs[0].min(), outputs[0].max(), outputs[0].mean(), outputs[0].std()))   
+                print(
+                    "\nStatistics of expected reconstruction:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
+                        labels[0].min(),
+                        labels[0].max(),
+                        labels[0].mean(),
+                        labels[0].std(),
+                    )
+                )
+                print(
+                    "\nStatistics of Reconstructed image:\n(min, max)=({:.4f}, {:.4f})\nmean={:.4f}\nstd={:.4f}".format(
+                        outputs[0].min(),
+                        outputs[0].max(),
+                        outputs[0].mean(),
+                        outputs[0].std(),
+                    )
+                )
                 # feature maps
                 visualize_feature_maps(encoder_out[0])
                 plt.suptitle("Encoder output")
                 plt.show()
             else:
                 # input image
-                fig = show_brain(inputs[0].squeeze().cpu().detach().numpy(),  draw_cross=False, return_fig=True,
-                                 cmap=self.cmap)
+                fig = show_brain(
+                    inputs[0].squeeze().cpu().detach().numpy(),
+                    draw_cross=False,
+                    return_fig=True,
+                    cmap=self.cmap,
+                )
                 plt.suptitle("Input image")
                 pp.savefig(fig)
                 plt.close(fig)
-                if(not torch.all(torch.eq(inputs[0],labels[0]))):
-                    fig = show_brain(labels[0].squeeze().cpu().detach().numpy(),  draw_cross = False, cmap=self.cmap)
+                if not torch.all(torch.eq(inputs[0], labels[0])):
+                    fig = show_brain(
+                        labels[0].squeeze().cpu().detach().numpy(),
+                        draw_cross=False,
+                        cmap=self.cmap,
+                    )
                     plt.suptitle("Expected reconstruction")
                     pp.savefig(fig)
                     plt.close(fig)
                 # reconstructed image
-                fig = show_brain(outputs[0].squeeze().cpu().detach().numpy(), draw_cross=False, return_fig=True, cmap=self.cmap)
+                fig = show_brain(
+                    outputs[0].squeeze().cpu().detach().numpy(),
+                    draw_cross=False,
+                    return_fig=True,
+                    cmap=self.cmap,
+                )
                 plt.suptitle("Reconstructed Image")
                 pp.savefig(fig)
                 plt.close(fig)
                 # feature maps
                 if self.plotFeatures:
-                    fig = visualize_feature_maps(encoder_out[0], return_fig=True)
+                    fig = visualize_feature_maps(
+                        encoder_out[0], return_fig=True
+                    )
                     plt.suptitle("Encoder output")
                     pp.savefig(fig)
                     plt.close(fig)
@@ -377,8 +444,8 @@ must return a (decoder_output, encoder_output) tuple instead of just (encoder_ou
             # close the PDF
             if pp is not None:
                 pp.close()
- 
-        if(isinstance(self.model, nn.DataParallel)):
+
+        if isinstance(self.model, nn.DataParallel):
             self.model.module.set_debug(False)
         else:
             self.model.set_debug(False)
