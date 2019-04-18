@@ -79,7 +79,7 @@ def bce_with_logits_inference(
     predicted = sigmoid.data >= class_threshold
     for pred, label in zip(predicted, labels):
         all_preds.append(pred.cpu().item())
-        all_labels.append(label.cpu().item())
+        all_labels.append(int(label.cpu().item()))
     return all_preds, all_labels
 
 def bce_inference(

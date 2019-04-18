@@ -240,7 +240,7 @@ class Trainer:
                         else:
                             inputs = inputs.to(self.device)
                         if isinstance(labels, list):
-                            labels = [(label.to(self.device) for label in labels]
+                            labels = [label.to(self.device) for label in labels]
                         else:
                             labels = labels.to(self.device)
 
@@ -430,7 +430,11 @@ class Trainer:
         # print metrics
         if metrics is not None:
             for metric in metrics:
-                print("{}: {}".format(metric.__name__, np.mean([metric(labels, preds) for preds,labels in zip(all_preds, all_labels)])))
+                if isinstance(all_preds[0], list):
+                    print("{}: {}".format(metric.__name__, np.mean([metric(labels, preds) for preds,labels in zip(all_preds, all_labels)])))
+                else:
+                    print("{}: {}".format(metric.__name__, metric(all_labels, all_preds)))
+
 
         self.model.train()
 
@@ -489,8 +493,11 @@ class Trainer:
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss":
-                result = np.mean([metric(labels, preds) for preds,labels in zip(all_preds, all_labels)])
-                
+                if isinstance(all_preds[0], list):
+                    result = np.mean([metric(labels, preds) for preds,labels in zip(all_preds, all_labels)])
+                else:
+                    result = metric(all_labels, all_preds)
+ 
                 if metric.__name__ in self.multi_batch_metrics:
                     self.multi_batch_metrics[metric.__name__].append(result)
                     self.multi_batch_metrics["len_" + metric.__name__].append(
