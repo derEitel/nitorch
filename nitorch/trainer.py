@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 # torch
 import torch
-from torch.autograd import Variable
 from torch import nn
 
 # nitorch
@@ -140,20 +139,15 @@ class Trainer:
                             inputs, labels = data[0], data[1]
                         except TypeError:
                             raise TypeError
-                    # wrap data in Variable
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
-                        inputs = [
-                            Variable(inp.to(self.device)) for inp in inputs
-                        ]
+                        inputs = [inp.to(self.device) for inp in inputs]
                     else:
-                        inputs = Variable(inputs.to(self.device))
+                        inputs = inputs.to(self.device)
                     if isinstance(labels, list):
-                        labels = [
-                            Variable(label.to(self.device)) for label in labels
-                        ]
+                        labels = [label.to(self.device) for label in labels]
                     else:
-                        labels = Variable(labels.to(self.device))
+                    labels = labels.to(self.device)
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
@@ -242,21 +236,15 @@ class Trainer:
                                     "Data not in correct \
                                  sequence format."
                                 )
-                        # wrap data in Variable
                         # in case of multi-input or output create a list
                         if isinstance(inputs, list):
-                            inputs = [
-                                Variable(inp.to(self.device)) for inp in inputs
-                            ]
+                            inputs = [inp.to(self.device) for inp in inputs]
                         else:
-                            inputs = Variable(inputs.to(self.device))
+                            inputs = inputs.to(self.device)
                         if isinstance(labels, list):
-                            labels = [
-                                Variable(label.to(self.device))
-                                for label in labels
-                            ]
+                            labels = [label.to(self.device) for label in labels]
                         else:
-                            labels = Variable(labels.to(self.device))
+                            labels = labels.to(self.device)
 
                         # forward pass only
                         if self.training_time_callback is not None:
@@ -404,9 +392,8 @@ class Trainer:
         with torch.no_grad():
             for i, data in enumerate(val_loader):
                 inputs, labels = data[inputs_key], data[labels_key]
-                # wrap data in Variable
-                inputs = Variable(inputs.to(device))
-                labels = Variable(labels.to(device))
+                inputs = inputs.to(device)
+                labels = labels.to(device)
                 # forward + backward + optimize
                 outputs = self.model(inputs)
                 # run inference
@@ -448,17 +435,11 @@ class Trainer:
         # print metrics
         if metrics is not None:
             for metric in metrics:
-                print(
-                    "{}: {}".format(
-                        metric.__name__,
-                        np.mean(
-                            [
-                                metric(preds, labels)
-                                for preds, labels in zip(all_preds, all_labels)
-                            ]
-                        ),
-                    )
-                )
+                if isinstance(all_preds[0], list):
+                    print("{}: {}".format(metric.__name__, np.mean(
+                        [metric(labels, preds) for preds, labels in zip(all_preds, all_labels)])))
+                else:
+                    print("{}: {}".format(metric.__name__, metric(all_labels, all_preds)))
 
         self.model.train()
 
@@ -523,7 +504,10 @@ class Trainer:
         for metric in self.metrics:
             # report everything but loss
             if metric.__name__ is not "loss":
-                result = np.mean(metric(all_preds, all_labels))
+                if isinstance(all_preds[0], list):
+                    result = np.mean([metric(labels, preds) for preds, labels in zip(all_preds, all_labels)])
+                else:
+                    result = metric(all_labels, all_preds)
 
                 if metric.__name__ in self.multi_batch_metrics:
                     self.multi_batch_metrics[metric.__name__].append(result)
