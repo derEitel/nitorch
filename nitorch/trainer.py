@@ -147,7 +147,7 @@ class Trainer:
                     if isinstance(labels, list):
                         labels = [label.to(self.device) for label in labels]
                     else:
-                    labels = labels.to(self.device)
+                        labels = labels.to(self.device)
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
