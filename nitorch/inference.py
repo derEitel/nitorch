@@ -30,9 +30,12 @@ def predict(
                 **kwargs
             )
     elif prediction_type == "classification":
-        # TODO: develop inference
-        raise NotImplementedError("Multiclass-classification \
-            not yet implemented")
+        all_preds, all_labels = crossentropy_inference(
+                outputs,
+                labels,
+                all_preds,
+                all_labels
+        )
     elif prediction_type == "regression":
         # TODO: test different loss functions
         all_preds, all_labels = regression_inference(
@@ -94,6 +97,19 @@ def bce_inference(
     else:
         class_threshold = 0.5
     predicted = outputs.data >= class_threshold
+    for pred, label in zip(predicted, labels):
+        all_preds.append(pred.cpu().item())
+        all_labels.append(label.cpu().item())
+    return all_preds, all_labels
+
+def crossentropy_inference(
+    outputs,
+    labels,
+    all_preds,
+    all_labels,
+    **kwargs
+    ):
+    _, predicted = torch.max(outputs.data, 1)
     for pred, label in zip(predicted, labels):
         all_preds.append(pred.cpu().item())
         all_labels.append(label.cpu().item())

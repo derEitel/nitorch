@@ -153,6 +153,8 @@ class Trainer:
                     else:
                         outputs = self.model(inputs)
 
+                    if self.prediction_type == "classification":
+                        labels = labels.squeeze(1)
                     loss = self.criterion(outputs, labels)
                     loss.backward()
 
@@ -255,6 +257,8 @@ class Trainer:
                         else:
                             outputs = self.model(inputs)
 
+                        if self.prediction_type == "classification":
+                            labels = labels.squeeze(1)
                         loss = self.criterion(outputs, labels)
                         # compute validation accuracy
                         all_preds, all_labels = predict(
