@@ -6,8 +6,9 @@ from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
 from nitorch.inference import predict
+from nitorch.callbacks import ModelCheckpoint
 from nitorch.utils import *
-
+import json
 
 class Trainer:
     def __init__(
@@ -76,7 +77,7 @@ class Trainer:
             inputs_key="image",
             labels_key="label",
             num_epochs=25,
-            show_train_steps=25,
+            show_train_steps=None,
             show_validation_epochs=1
     ):
         """ Main function to train a network for one epoch.
@@ -88,10 +89,16 @@ class Trainer:
                             data_loader[y_key] = labels or a list with data_loader[0] = inputs
                             and data_loader[1] = labels. The default keys are "image" and "label".
         """
+        n = len(train_loader)
+        
+        # if show_train_steps is not specified then default it to print training progress thrice per epoch
+        if not(show_train_steps):
+            show_train_steps = n//3 if((n//3)>1) else 1
+
+        assert (show_train_steps>0) and (show_train_steps<=n),"\
+'show_train_steps' value-{} is out of range. Must be >0 and <={} i.e. len(train_loader)".format(show_train_steps, n)
         assert (show_validation_epochs < num_epochs) or (num_epochs == 1), "\
 'show_validation_epochs' value should be less than 'num_epochs'"
-        assert (show_train_steps>0) and (show_train_steps<=len(train_loader)),"\
-'show_train_steps' value out of range. Must be > 0 and < len(train_loader)"
 
         val_metrics = dict()
         train_metrics = dict()
@@ -141,7 +148,6 @@ class Trainer:
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
-                    # forward + backward + optimize
 
                     if self.training_time_callback is not None:
                         outputs = self.training_time_callback(
@@ -151,11 +157,11 @@ class Trainer:
                             epoch
                         )
                     else:
+                        # forward + backward + optimize
                         outputs = self.model(inputs)
 
                     loss = self.criterion(outputs, labels)
                     loss.backward()
-
                     # enable the below commented code if you want to visualize the 
                     # gradient flow through the model during training
                     # plot_grad_flow(self.model.named_parameters())
@@ -175,7 +181,7 @@ class Trainer:
                     running_loss= np.append(running_loss, loss.item())
                     epoch_loss += loss.item()
                     # print loss every X mini-batches
-                    if (i % show_train_steps == 0) and (i != 0):
+                    if (i != 0) and (i % show_train_steps):
                         print(
                             "[%d, %5d] loss: %.5f"
                             % (epoch , i , 
@@ -183,10 +189,10 @@ class Trainer:
                         )
                         running_loss = np.array([]) #reset
 
-                    # compute training metrics for X/2 mini-batches
-                    # useful for large outputs (e.g. reconstructions)
+                    # compute training metrics for mini-batches when outputs (all_labels, all_preds) 
+                    # are large tensors (e.g. reconstructions). Reduces memory usage
                     if self.prediction_type == "reconstruction":
-                        if i % int(show_train_steps/2) == 0:
+                        if (i != 0) and (i % 2):
                             self.estimate_metrics(
                                 all_labels,
                                 all_preds,
@@ -195,6 +201,7 @@ class Trainer:
                             all_labels = []
                             all_preds = []
 
+                #<end-of-training-cycle-loop>
                 # report training metrics
                 # weighted averages of metrics are computed over batches
                 train_metrics = self._on_epoch_end(
@@ -203,7 +210,7 @@ class Trainer:
                         all_preds,
                         phase="train"
                     )
-                epoch_loss /= len(train_loader)
+                epoch_loss /= n
 
                 # add loss to metrics data
                 if "loss" in train_metrics:
@@ -211,9 +218,7 @@ class Trainer:
                 else:
                     train_metrics["loss"] = [epoch_loss]
 
-                #<end-of-training-cycle-loop>
             #<end-of-epoch-loop>
-
             # validate every x iterations
             if epoch % show_validation_epochs == 0:
                 self.model.eval()
@@ -297,11 +302,12 @@ class Trainer:
                         val_metrics["loss"].append(validation_loss)
                     else:
                         val_metrics["loss"] = [validation_loss]
-            if self.callbacks is not None:
+            if self.callbacks:
                 for callback in self.callbacks:
                     callback(self, epoch, val_metrics)
         # End training
         return self.finish_training(train_metrics, val_metrics, epoch)
+
 
     def finish_training(self, train_metrics, val_metrics, epoch):
         """
@@ -356,6 +362,7 @@ class Trainer:
             if(save_fig_path):
                 plt.savefig(save_fig_path+"_"+metric.__name__)
             plt.show()
+
 
     def evaluate_model(
             self,
@@ -437,6 +444,7 @@ class Trainer:
 
 
         self.model.train()
+
 
     def report_metrics(
         self,
@@ -522,7 +530,6 @@ class Trainer:
             # TODO: test if del helps
             all_labels = []
             all_preds = []
-
         metrics_dict = self.report_metrics(
             metrics_dict,
             phase
