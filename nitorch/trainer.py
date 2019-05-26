@@ -368,9 +368,10 @@ class Trainer:
             self,
             val_loader,
             additional_gpu=None,
-            metrics=None,
+            metrics=[],
             inputs_key="image",
-            labels_key="label"
+            labels_key="label",
+            write_to_dir=''
     ):
         # predict on the validation set
         """
@@ -380,6 +381,7 @@ class Trainer:
             additional_gpu : GPU number if evaluation should be done on
                 separate GPU
             metrics: list of
+            write_to_dir: the outputs of the evaluation are written to files path provided 
         """
         all_preds = []
         all_labels = []
@@ -396,7 +398,7 @@ class Trainer:
                 inputs, labels = data[inputs_key], data[labels_key]
                 inputs = inputs.to(device)
                 labels = labels.to(device)
-                # forward + backward + optimize
+
                 outputs = self.model(inputs)
                 # run inference
                 all_preds, all_labels = predict(
@@ -409,39 +411,51 @@ class Trainer:
                     class_threshold=self.class_threshold
                 )
 
-        # compute confusion matrix
-        cm = confusion_matrix(all_labels, all_preds)
-        plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
+        # compute confusion matrix if it is a binary classification task
+        if(self.prediction_type == "binary"):
+            cm = confusion_matrix(all_labels, all_preds)
+            plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
 
-        # Visualize the confusion matrix
-        classes = ["control", "patient"]
-        tick_marks = np.arange(len(classes))
-        plt.xticks(tick_marks, classes, rotation=45)
-        plt.yticks(tick_marks, classes)
+            # Visualize the confusion matrix
+            classes = ["control", "patient"]
+            tick_marks = np.arange(len(classes))
+            plt.xticks(tick_marks, classes, rotation=45)
+            plt.yticks(tick_marks, classes)
 
-        fmt = "d"
-        thresh = cm.max() / 2.
-        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-            plt.text(
-                j,
-                i,
-                format(cm[i, j], fmt),
-                horizontalalignment="center",
-                color="white" if cm[i, j] > thresh else "black",
-            )
-        plt.title("Confusion Matrix")
-        plt.ylabel("True label")
-        plt.xlabel("Predicted label")
-        plt.show()
+            fmt = "d"
+            thresh = cm.max() / 2.
+            for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+                plt.text(
+                    j,
+                    i,
+                    format(cm[i, j], fmt),
+                    horizontalalignment="center",
+                    color="white" if cm[i, j] > thresh else "black",
+                )
+            plt.title("Confusion Matrix")
+            plt.ylabel("True label")
+            plt.xlabel("Predicted label")
+            if(write_to_dir):
+                plt.savefig(write_to_dir+"confusion_matrix.png")
+            else:
+                plt.show()
 
-        # print metrics
-        if metrics is not None:
-            for metric in metrics:
-                if isinstance(all_preds[0], list):
-                    print("{}: {}".format(metric.__name__, np.mean([metric(labels, preds) for preds,labels in zip(all_preds, all_labels)])))
-                else:
-                    print("{}: {}".format(metric.__name__, metric(all_labels, all_preds)))
+        # first calculate the loss criterion metric
+        loss_score = np.mean([self.criterion(preds, labels) for preds,labels in zip(all_preds, all_labels)])
+        results = {"loss":loss_score}
+        # calculate metrics
+        for metric in metrics:                
+            if isinstance(all_preds[0], list):
+                score = np.mean([metric(preds, labels) for preds,labels in zip(all_preds, all_labels)])
+            else:
+                score = metric(all_preds, all_labels)
+            results.update({metric.__name__:score})
 
+        if(write_to_dir):
+            with open(write_to_dir+"results.json","w") as f:
+                json.dump(results, f)
+
+        print("evaluation results :\n",results)
 
         self.model.train()
 
