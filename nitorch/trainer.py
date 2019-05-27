@@ -70,6 +70,7 @@ class Trainer:
         self.start_time = None
         self.prediction_type = prediction_type
 
+
     def train_model(
             self,
             train_loader,
@@ -90,18 +91,20 @@ class Trainer:
                             and data_loader[1] = labels. The default keys are "image" and "label".
         """
         n = len(train_loader)
-        
-        # if show_train_steps is not specified then default it to print training progress thrice per epoch
+        # if show_train_steps is not specified then default it to print training progress 4 times per epoch
         if not(show_train_steps):
-            show_train_steps = n//3 if((n//3)>1) else 1
-
+            show_train_steps = n//4 if((n//4)>1) else 1
         assert (show_train_steps>0) and (show_train_steps<=n),"\
 'show_train_steps' value-{} is out of range. Must be >0 and <={} i.e. len(train_loader)".format(show_train_steps, n)
         assert (show_validation_epochs < num_epochs) or (num_epochs == 1), "\
 'show_validation_epochs' value should be less than 'num_epochs'"
-
-        val_metrics = dict()
-        train_metrics = dict()
+        
+        # store metrics and loss for each epoch to report in the end
+        self.val_metrics = {"loss":[]}
+        self.train_metrics = {"loss":[]}
+        if(self.metrics):
+            self.val_metrics.update({m.__name__:[] for m in self.metrics})
+            self.train_metrics.update({m.__name__:[] for m in self.metrics})
 
         self.start_time = time.time()
         self.best_metric = 0.0
@@ -111,18 +114,17 @@ class Trainer:
             if self.stop_training:
                 # TODO: check position of this
                 print("Early stopping in epoch {}".format(epoch))
-                return self.finish_training(train_metrics, val_metrics, epoch)
+                return self.finish_training(epoch)
             else:
-                # running_loss accumulates loss every 'show_train_steps' cycles until it must be printed.
-                running_loss = np.array([])
-                epoch_loss = 0.0
+                # 'running_loss' accumulates loss until it gets printed every 'show_train_steps'.
+                running_loss = []
+                # 'accumulates predictions and labels until the metrics are calculated in the epoch
+                all_outputs = torch.Tensor().to(self.device)
+                all_labels = torch.Tensor().to(self.device)
+
                 if self.scheduler:
                     self.scheduler.step(epoch)
 
-                # Reset all metrics related variables at the start of each epoch
-                all_preds = []
-                all_labels = []
-                self.multi_batch_metrics = dict()
                 # train mode
                 self.model.train()
 
@@ -151,11 +153,7 @@ class Trainer:
 
                     if self.training_time_callback is not None:
                         outputs = self.training_time_callback(
-                            inputs, 
-                            labels,
-                            i,
-                            epoch
-                        )
+                            inputs, labels, i, epoch)
                     else:
                         # forward + backward + optimize
                         outputs = self.model(inputs)
@@ -167,65 +165,39 @@ class Trainer:
                     # plot_grad_flow(self.model.named_parameters())
                     self.optimizer.step()
 
-                    # store results
-                    all_preds, all_labels = predict(
-                        outputs,
-                        labels,
-                        all_preds,
-                        all_labels,
-                        self.prediction_type,
-                        self.criterion,
-                        class_threshold=self.class_threshold
-                    )
                     # update loss
-                    running_loss= np.append(running_loss, loss.item())
-                    epoch_loss += loss.item()
-                    # print loss every X mini-batches
-                    if (i != 0) and (i % show_train_steps):
+                    running_loss.append(loss.item())
+                    # print loss every 'show_train_steps' mini-batches
+                    if (i != 0) and (i % show_train_steps == 0):
                         print(
                             "[%d, %5d] loss: %.5f"
-                            % (epoch , i , 
-                               running_loss.mean())
+                            % (epoch , i , np.mean(running_loss))
                         )
-                        running_loss = np.array([]) #reset
 
-                    # compute training metrics for mini-batches when outputs (all_labels, all_preds) 
-                    # are large tensors (e.g. reconstructions). Reduces memory usage
-                    if self.prediction_type == "reconstruction":
-                        if (i != 0) and (i % 2):
-                            self.estimate_metrics(
-                                all_labels,
-                                all_preds,
-                            )
-                            # TODO: test if del helps
-                            all_labels = []
-                            all_preds = []
+                    # store the outputs and labels for computing metrics later
+                    if(self.prediction_type == "reconstruction"):
+                    # when output/label tensors are very large (e.g. for reconstruction tasks) 
+                    # store the outputs/labels only a few times
+                        if((i != 0) and (i % show_train_steps == 0)):
+                            all_outputs = torch.cat((all_outputs, outputs.float()))
+                            all_labels = torch.cat((all_labels, labels.float()))
+                    else:
+                        all_outputs = torch.cat((all_outputs, outputs.float()))
+                        all_labels = torch.cat((all_labels, labels.float()))
 
                 #<end-of-training-cycle-loop>
-                # report training metrics
-                # weighted averages of metrics are computed over batches
-                train_metrics = self._on_epoch_end(
-                        train_metrics,
-                        all_labels,
-                        all_preds,
-                        phase="train"
-                    )
-                epoch_loss /= n
-
-                # add loss to metrics data
-                if "loss" in train_metrics:
-                    train_metrics["loss"].append(epoch_loss)
-                else:
-                    train_metrics["loss"] = [epoch_loss]
-
             #<end-of-epoch-loop>
+            # at the end of an epoch, calculate metrics, report them and
+            # store them in respective report dicts
+            self._estimate_metrics(all_outputs, all_labels, np.mean(running_loss), phase="train")
+
             # validate every x iterations
-            if epoch % show_validation_epochs == 0:
+            if(epoch % show_validation_epochs == 0):
+                running_loss_val = []
+                all_outputs = torch.Tensor().to(self.device)
+                all_labels = torch.Tensor().to(self.device)
+
                 self.model.eval()
-                validation_loss = 0.0
-                all_preds = []
-                all_labels = []
-                self.multi_batch_metrics = dict()
 
                 with torch.no_grad():
                     for i, data in enumerate(val_loader):
@@ -261,55 +233,36 @@ class Trainer:
                             outputs = self.model(inputs)
 
                         loss = self.criterion(outputs, labels)
-                        # compute validation accuracy
-                        all_preds, all_labels = predict(
-                            outputs,
-                            labels,
-                            all_preds,
-                            all_labels,
-                            self.prediction_type,
-                            self.criterion,
-                            class_threshold=self.class_threshold
-                        )
 
-                        validation_loss += loss.item()
+                        running_loss_val.append(loss.item())
 
-                        # compute training metrics for X/2 mini-batches
-                        # useful for large outputs (e.g. reconstructions)
-                        if self.prediction_type == "reconstruction":
-                            if i % int(show_train_steps/2) == 0:
-                                self.estimate_metrics(
-                                    all_labels,
-                                    all_preds,
-                                )
-                                # TODO: test if del helps
-                                all_labels = []
-                                all_preds = []
+                        # store the outputs and labels for computing metrics later
+                        if(self.prediction_type == "reconstruction"):
+                        # when output/label tensors are very large (e.g. for reconstruction tasks) 
+                        # store the outputs/labels only a few times
+                            if((i != 0) and (i % show_train_steps == 0)):
+                                all_outputs = torch.cat((all_outputs, outputs.float()))
+                                all_labels = torch.cat((all_labels, labels.float()))
+                        else:
+                            all_outputs = torch.cat((all_outputs, outputs.float()))
+                            all_labels = torch.cat((all_labels, labels.float()))
 
-                    # report validation metrics
-                    # weighted averages of metrics are computed over batches
-                    val_metrics = self._on_epoch_end(
-                        val_metrics,
-                        all_labels,
-                        all_preds,
-                        phase="val"
-                    )
-
-                    validation_loss /= len(val_loader)
-                    print("Val loss: {0:.6f}".format(validation_loss))
+                    validation_loss = np.mean(running_loss_val)
+                    print("val loss: {0:.6f}".format(validation_loss))
                     # add loss to metrics data
-                    if "loss" in val_metrics:
-                        val_metrics["loss"].append(validation_loss)
-                    else:
-                        val_metrics["loss"] = [validation_loss]
+
+                # report validation metrics
+                # weighted averages of metrics are computed over batches
+                self._estimate_metrics(all_outputs, all_labels, validation_loss, phase="val")
+
             if self.callbacks:
                 for callback in self.callbacks:
                     callback(self, epoch, val_metrics)
         # End training
-        return self.finish_training(train_metrics, val_metrics, epoch)
+        return self.finish_training(epoch)
 
 
-    def finish_training(self, train_metrics, val_metrics, epoch):
+    def finish_training(self, epoch):
         """
         End the training cyle, return a model and finish callbacks.
         """
@@ -330,13 +283,13 @@ class Trainer:
                     callback.final(trainer=self, epoch=epoch)
         # in case of no model selection, pick the last loss
         if self.best_metric == 0.0:
-            self.best_metric = val_metrics["loss"][-1]
+            self.best_metric = self.val_metrics["loss"][-1]
             self.best_model = self.model
 
         return (self.model,
                 {
-                    "train_metrics": train_metrics,
-                    "val_metrics": val_metrics,
+                    "train_metrics": self.train_metrics,
+                    "val_metrics": self.val_metrics,
                     "best_model": self.best_model,
                     "best_metric": self.best_metric}
                 )
@@ -383,8 +336,6 @@ class Trainer:
             metrics: list of
             write_to_dir: the outputs of the evaluation are written to files path provided 
         """
-        all_preds = []
-        all_labels = []
 
         self.model.eval()
 
@@ -393,6 +344,9 @@ class Trainer:
         else:
             device = self.device
 
+        all_outputs = torch.Tensor().to(device)
+        all_labels = torch.Tensor().to(device)
+
         with torch.no_grad():
             for i, data in enumerate(val_loader):
                 inputs, labels = data[inputs_key], data[labels_key]
@@ -400,16 +354,35 @@ class Trainer:
                 labels = labels.to(device)
 
                 outputs = self.model(inputs)
-                # run inference
-                all_preds, all_labels = predict(
-                    outputs,
-                    labels,
-                    all_preds,
-                    all_labels,
-                    self.prediction_type,
-                    self.criterion,
-                    class_threshold=self.class_threshold
-                )
+                all_outputs = torch.cat((all_outputs, outputs.float()))
+                all_labels = torch.cat((all_labels, labels.float()))
+
+            # run inference
+            all_preds = predict(
+                all_outputs,
+                self.prediction_type,
+                self.criterion,
+                class_threshold=self.class_threshold
+            )
+
+        # calculate the loss criterion metric
+        loss_score = self.criterion(all_outputs, all_labels)
+        results = {"loss":loss_score.item()}
+
+        # calculate metrics
+        for metric in metrics:                
+            if isinstance(all_preds[0], list):
+                score = np.mean([metric(preds, labels) for preds,labels in zip(all_preds, all_labels)])
+            else:
+                score = metric(all_preds, all_labels)
+
+            results.update({metric.__name__:score})
+
+        if(write_to_dir):
+            with open(write_to_dir+"results.json","w") as f:
+                json.dump(results, f)
+
+        print("evaluation results :\n",results)
 
         # compute confusion matrix if it is a binary classification task
         if(self.prediction_type == "binary"):
@@ -440,27 +413,11 @@ class Trainer:
             else:
                 plt.show()
 
-        # first calculate the loss criterion metric
-        loss_score = np.mean([self.criterion(preds, labels) for preds,labels in zip(all_preds, all_labels)])
-        results = {"loss":loss_score}
-        # calculate metrics
-        for metric in metrics:                
-            if isinstance(all_preds[0], list):
-                score = np.mean([metric(preds, labels) for preds,labels in zip(all_preds, all_labels)])
-            else:
-                score = metric(all_preds, all_labels)
-            results.update({metric.__name__:score})
-
-        if(write_to_dir):
-            with open(write_to_dir+"results.json","w") as f:
-                json.dump(results, f)
-
-        print("evaluation results :\n",results)
 
         self.model.train()
 
 
-    def report_metrics(
+    def _report_metrics(
         self,
         metrics_dict,
         phase
@@ -472,82 +429,56 @@ class Trainer:
             print("Time elapsed: {}h:{}m:{}s".format(
                 time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60))
 
-        """ Store and report a list of metric functions. """
+        # print the scores
         for metric in self.metrics:
-            # report everything but loss
-            if metric.__name__ is not "loss":
-                # weighted average over previous batches
-                # weigh by the number of samples per batch and divide by
-                # the total number of samples
-                batch_results = np.zeros(shape=(
-                    len(self.multi_batch_metrics["len_" + metric.__name__])))
-                n_samples = 0
-                for b_idx, batch_len in enumerate(
-                    self.multi_batch_metrics["len_" + metric.__name__]
-                    ):
-                    batch_results[b_idx] = self.multi_batch_metrics[
-                        metric.__name__][b_idx] * batch_len
-                    n_samples += batch_len
-
-                result = np.sum(batch_results) / n_samples
-
-                if metric.__name__ in metrics_dict:
-                    metrics_dict[metric.__name__].append(result)
-                else:
-                    metrics_dict[metric.__name__] = [result]
-                # print result
-                if isinstance(result, float):
+                score = metrics_dict[metric.__name__][-1]
+                if isinstance(score, float):
                     print("{} {}: {:.2f} %".format(
-                        phase, metric.__name__, result * 100))
+                        phase, metric.__name__, score * 100))
                 else:
                     print("{} {}: {} ".format(
-                        phase, metric.__name__, str(result)))
-        return metrics_dict
+                        phase, metric.__name__, str(score)))
 
-    def estimate_metrics(
+
+    def _estimate_metrics(
         self,
+        all_outputs,
         all_labels,
-        all_preds
+        loss,
+        phase
         ):
-        """ Estimate a list of metric functions. """
-        n_predictions = len(all_preds)
+        '''at the end of an epoch 
+        (a) calculate metrics 
+        (b) report metrics 
+        (c) store results in respective report dicts - train_metrics / val_metrics '''
+        # print("<_estimate_metrics>", phase, all_outputs.shape, "loss", loss.shape)
+        # print("<train_metrics>", self.train_metrics)
+        # print("<val_metrics>", self.val_metrics)
+        if(phase.lower() == 'train'):
+            metrics_dict = self.train_metrics
+        elif(phase.lower() == 'val'):
+            metrics_dict = self.val_metrics
+        else:
+            assert "Invalid 'phase' defined. Can only be one of ['train', 'val']"
 
-        for metric in self.metrics:
-            # report everything but loss
-            if metric.__name__ is not "loss":
+        # add loss to metrics_dict
+        metrics_dict["loss"].append(loss)
+        # add other metrics to the metrics_dict
+        if (all_outputs.nelement()): # check for unreported metrics
+            # perform inference on the outputs
+            all_preds = predict(all_outputs
+                , self.prediction_type
+                , self.criterion
+                , class_threshold=self.class_threshold
+                )
+
+            for metric in self.metrics:
                 if isinstance(all_preds[0], list):
                     result = np.mean([metric(labels, preds) for preds,labels in zip(all_preds, all_labels)])
                 else:
-                    result = metric(all_labels, all_preds)
- 
-                if metric.__name__ in self.multi_batch_metrics:
-                    self.multi_batch_metrics[metric.__name__].append(result)
-                    self.multi_batch_metrics["len_" + metric.__name__].append(
-                        n_predictions)
-                else:
-                    self.multi_batch_metrics[metric.__name__] = [result]
-                    self.multi_batch_metrics["len_" + metric.__name__] = [n_predictions]
+                    result = metric(all_preds, all_labels)
 
-    def _on_epoch_end(
-        self,
-        metrics_dict,
-        all_labels,
-        all_preds,
-        phase
-        ):
-        # check for unreported metrics
-        if len(all_preds) > 0:
-            self.estimate_metrics(
-                    all_labels,
-                    all_preds,
-                )
-            # TODO: test if del helps
-            all_labels = []
-            all_preds = []
-        metrics_dict = self.report_metrics(
-            metrics_dict,
-            phase
-        )
+                metrics_dict[metric.__name__].append(result)
 
-        return metrics_dict
+        self._report_metrics(metrics_dict, phase)
         
