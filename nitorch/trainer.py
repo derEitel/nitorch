@@ -91,9 +91,12 @@ class Trainer:
                             and data_loader[1] = labels. The default keys are "image" and "label".
         """
         n = len(train_loader)
+        n_val = len(val_loader)
         # if show_train_steps is not specified then default it to print training progress 4 times per epoch
         if not(show_train_steps):
             show_train_steps = n//4 if((n//4)>1) else 1
+        store_val_steps = n_val//4 if((n_val//4)>1) else 1
+
         assert (show_train_steps>0) and (show_train_steps<=n),"\
 'show_train_steps' value-{} is out of range. Must be >0 and <={} i.e. len(train_loader)".format(show_train_steps, n)
         assert (show_validation_epochs < num_epochs) or (num_epochs == 1), "\
@@ -178,7 +181,7 @@ class Trainer:
                     if(self.prediction_type == "reconstruction"):
                     # when output/label tensors are very large (e.g. for reconstruction tasks) 
                     # store the outputs/labels only a few times
-                        if((i != 0) and (i % show_train_steps == 0)):
+                        if(i % show_train_steps == 0):
                             all_outputs = torch.cat((all_outputs, outputs.float()))
                             all_labels = torch.cat((all_labels, labels.float()))
                     else:
@@ -236,16 +239,14 @@ class Trainer:
 
                         running_loss_val.append(loss.item())
 
-                        # store the outputs and labels for computing metrics later
-                        if(self.prediction_type == "reconstruction"):
-                        # when output/label tensors are very large (e.g. for reconstruction tasks) 
-                        # store the outputs/labels only a few times
-                            if((i != 0) and (i % show_train_steps == 0)):
-                                all_outputs = torch.cat((all_outputs, outputs.float()))
-                                all_labels = torch.cat((all_labels, labels.float()))
-                        else:
+                    # store the outputs and labels for computing metrics later
+                    if(self.prediction_type == "reconstruction"):
+                        if(i % store_val_steps == 0):
                             all_outputs = torch.cat((all_outputs, outputs.float()))
                             all_labels = torch.cat((all_labels, labels.float()))
+                    else:
+                        all_outputs = torch.cat((all_outputs, outputs.float()))
+                        all_labels = torch.cat((all_labels, labels.float()))
 
                     validation_loss = np.mean(running_loss_val)
                     print("val loss: {0:.6f}".format(validation_loss))
@@ -257,7 +258,7 @@ class Trainer:
 
             if self.callbacks:
                 for callback in self.callbacks:
-                    callback(self, epoch, val_metrics)
+                    callback(self, epoch, self.val_metrics)
         # End training
         return self.finish_training(epoch)
 
@@ -431,13 +432,13 @@ class Trainer:
 
         # print the scores
         for metric in self.metrics:
-                score = metrics_dict[metric.__name__][-1]
-                if isinstance(score, float):
-                    print("{} {}: {:.2f} %".format(
-                        phase, metric.__name__, score * 100))
-                else:
-                    print("{} {}: {} ".format(
-                        phase, metric.__name__, str(score)))
+            score = metrics_dict[metric.__name__][-1]
+            if isinstance(score, float):
+                print("{} {}: {:.2f} %".format(
+                    phase, metric.__name__, score * 100))
+            else:
+                print("{} {}: {} ".format(
+                    phase, metric.__name__, str(score)))
 
 
     def _estimate_metrics(
@@ -476,7 +477,7 @@ class Trainer:
                 if isinstance(all_preds[0], list):
                     result = np.mean([metric(labels, preds) for preds,labels in zip(all_preds, all_labels)])
                 else:
-                    result = metric(all_preds, all_labels)
+                    result = metric(all_labels, all_preds)
 
                 metrics_dict[metric.__name__].append(result)
 

@@ -2,6 +2,7 @@ import os
 import copy
 from copy import deepcopy
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from mpl_toolkits.mplot3d import Axes3D
@@ -219,7 +220,8 @@ def visualize_feature_maps(features, return_fig=False):
 
     num_features = len(features)
     plt.close('all')
-    figsize=((num_features//8 + 5)*3 ,(num_features//8)*10 )
+    n = int(math.log2(num_features))
+    figsize=(n*2 ,n*6)
     fig = plt.figure(figsize=figsize)
 
     for i, f in enumerate(features, 1):            
