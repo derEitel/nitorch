@@ -106,7 +106,7 @@ if __name__ == "__main__":
                            lr=1e-3,
                            weight_decay=1e-5)
     
-    metrics = [specificity, sensitivity, balanced_accuracy]
+    metrics = [specificity, sensitivity, classif_accuracy]
     
     #TEST
     trainer = Trainer(
@@ -149,5 +149,5 @@ if __name__ == "__main__":
     # since the seed is set, the value of the init_sensitivity is fixed
 #     assert (init_sens-0.3684210526315789 < 1e-8), "Test 1-b : The initial metric score is unexpected - TEST FAILED.\
 # \nHint: check if the pred and labels are interchanged within the Trainer() class"
-    assert (report["val_metrics"]['balanced_accuracy'][0]<report["val_metrics"]['balanced_accuracy'][-1]) or (report["val_metrics"]['balanced_accuracy'][0] < report["val_metrics"]['balanced_accuracy'][-2]),  "Test 1-b : The accuracy did not improve with training - TEST FAILED"
-    print("Test 1-a : 'balanced_accuracy' metric improved with training - TEST PASSED")
+    assert (report["val_metrics"]['classif_accuracy'][0]<report["val_metrics"]['classif_accuracy'][-1]) or (report["val_metrics"]['classif_accuracy'][0] < report["val_metrics"]['classif_accuracy'][-2]),  "Test 1-b : The accuracy did not improve with training - TEST FAILED"
+    print("Test 1-b : 'classif_accuracy' metric improved with training - TEST PASSED")
