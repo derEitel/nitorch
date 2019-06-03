@@ -110,13 +110,12 @@ class Trainer:
             self.train_metrics.update({m.__name__:[] for m in self.metrics})
 
         self.start_time = time.time()
-        self.best_metric = 0.0
+        self.best_metric = None
         self.best_model = None
 
         for epoch in range(num_epochs):
+            # if early stopping is on, check if stop signal is switched on
             if self.stop_training:
-                # TODO: check position of this
-                print("Early stopping in epoch {}".format(epoch))
                 return self.finish_training(epoch)
             else:
                 # 'running_loss' accumulates loss until it gets printed every 'show_train_steps'.
@@ -256,9 +255,8 @@ class Trainer:
                 # weighted averages of metrics are computed over batches
                 self._estimate_metrics(all_outputs, all_labels, validation_loss, phase="val")
 
-            if self.callbacks:
-                for callback in self.callbacks:
-                    callback(self, epoch, self.val_metrics)
+            for callback in self.callbacks:
+                callback(self, epoch=epoch)
         # End training
         return self.finish_training(epoch)
 
@@ -270,20 +268,17 @@ class Trainer:
         time_elapsed = int(time.time() - self.start_time)
         print("Total time elapsed: {}h:{}m:{}s".format(
             time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60))
+
         # execute final methods of callbacks
-        if self.callbacks is not None:
-            for callback in self.callbacks:
-                # find all methods of the callback
-                method_list = [
-                    func
-                    for func in dir(callback)
-                    if (callable(getattr(callback, func))
-                        and not func.startswith("__"))
-                ]
-                if "final" in method_list:
-                    callback.final(trainer=self, epoch=epoch)
+        for callback in self.callbacks:
+            # find all methods of the callback
+            try:
+                callback.final(trainer=self, epoch=epoch)
+            except AttributeError:
+                pass
+
         # in case of no model selection, pick the last loss
-        if self.best_metric == 0.0:
+        if not self.best_metric:
             self.best_metric = self.val_metrics["loss"][-1]
             self.best_model = self.model
 
@@ -482,4 +477,3 @@ class Trainer:
                 metrics_dict[metric.__name__].append(result)
 
         self._report_metrics(metrics_dict, phase)
-        

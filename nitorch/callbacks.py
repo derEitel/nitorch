@@ -176,20 +176,26 @@ class EarlyStopping(Callback):
         # set to first iteration which is interesting
         self.best_epoch = self.ignore_before
 
-    def __call__(self, trainer, epoch, val_metrics):
+    def __call__(self, trainer, epoch):
         if epoch >= self.ignore_before:
             if epoch - self.best_epoch < self.patience:
                 if isinstance(self.retain_metric, str):
-                    current_res = val_metrics[self.retain_metric][-1]
+                    current_res = trainer.val_metrics[self.retain_metric][-1]
                 else:
-                    current_res = val_metrics[self.retain_metric.__name__][-1]
+                    current_res = trainer.val_metrics[self.retain_metric.__name__][-1]
                 if self.has_improved(current_res):
-                    self.best_res = current_res
                     self.best_epoch = epoch
+                    self.best_res = current_res
+                    trainer.best_metric = current_res
+                    trainer.best_model = trainer.model
+                    
             else:
                 # end training run
                 trainer.stop_training = True
-
+                print("Early stopping at epoch {}.\nBest model was at epoch {} with val metric score = {}".format(
+                epoch, self.best_epoch, self.best_res)
+                     )
+                
     def has_improved(self, res):
         if self.mode == "max":
             return res > self.best_res
