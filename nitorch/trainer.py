@@ -121,8 +121,8 @@ class Trainer:
                 # 'running_loss' accumulates loss until it gets printed every 'show_train_steps'.
                 running_loss = []
                 # 'accumulates predictions and labels until the metrics are calculated in the epoch
-                all_outputs = torch.Tensor().to(self.device)
-                all_labels = torch.Tensor().to(self.device)
+                all_outputs = []#torch.Tensor().to(self.device)
+                all_labels = []#torch.Tensor().to(self.device)
 
                 if self.scheduler:
                     self.scheduler.step(epoch)
@@ -181,23 +181,22 @@ class Trainer:
                     # when output/label tensors are very large (e.g. for reconstruction tasks) 
                     # store the outputs/labels only a few times
                         if(i % show_train_steps == 0):
-                            all_outputs = torch.cat((all_outputs, outputs.float()))
-                            all_labels = torch.cat((all_labels, labels.float()))
+                            all_outputs.append(outputs.float())
+                            all_labels.append(labels.float())
                     else:
-                        all_outputs = torch.cat((all_outputs, outputs.float()))
-                        all_labels = torch.cat((all_labels, labels.float()))
-
+                        all_outputs.append(outputs.float())
+                        all_labels.append(labels.float())
                 #<end-of-training-cycle-loop>
             #<end-of-epoch-loop>
             # at the end of an epoch, calculate metrics, report them and
             # store them in respective report dicts
-            self._estimate_metrics(all_outputs, all_labels, np.mean(running_loss), phase="train")
+            self._estimate_metrics(torch.cat(all_outputs), torch.cat(all_labels), np.mean(running_loss), phase="train")
 
             # validate every x iterations
             if(epoch % show_validation_epochs == 0):
                 running_loss_val = []
-                all_outputs = torch.Tensor().to(self.device)
-                all_labels = torch.Tensor().to(self.device)
+                all_outputs = []
+                all_labels = []
 
                 self.model.eval()
 
@@ -241,11 +240,11 @@ class Trainer:
                     # store the outputs and labels for computing metrics later
                     if(self.prediction_type == "reconstruction"):
                         if(i % store_val_steps == 0):
-                            all_outputs = torch.cat((all_outputs, outputs.float()))
-                            all_labels = torch.cat((all_labels, labels.float()))
+                            all_outputs.append(outputs.float())
+                            all_labels.append(labels.float())
                     else:
-                        all_outputs = torch.cat((all_outputs, outputs.float()))
-                        all_labels = torch.cat((all_labels, labels.float()))
+                        all_outputs.append(outputs.float())
+                        all_labels.append(labels.float())
 
                     validation_loss = np.mean(running_loss_val)
                     print("val loss: {0:.6f}".format(validation_loss))
@@ -253,7 +252,7 @@ class Trainer:
 
                 # report validation metrics
                 # weighted averages of metrics are computed over batches
-                self._estimate_metrics(all_outputs, all_labels, validation_loss, phase="val")
+                self._estimate_metrics(torch.cat(all_outputs), torch.cat(all_labels), validation_loss, phase="val")
 
             for callback in self.callbacks:
                 callback(self, epoch=epoch)
@@ -310,7 +309,9 @@ class Trainer:
             plt.title(metric.__name__)        
             if(save_fig_path):
                 plt.savefig(save_fig_path+"_"+metric.__name__)
-            plt.show()
+                plt.close()
+            else:
+                plt.show()
 
 
     def evaluate_model(
@@ -406,9 +407,9 @@ class Trainer:
             plt.xlabel("Predicted label")
             if(write_to_dir):
                 plt.savefig(write_to_dir+"confusion_matrix.png")
+                plt.close()
             else:
                 plt.show()
-
 
         self.model.train()
 
