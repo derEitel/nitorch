@@ -182,7 +182,11 @@ def _force_to_shape(img_nii_X, shape, rtol=1e-8, copy=True):
 
     slices = [slice(s, e) for s, e in zip(start, end)]
 
-    return _crop_img_to(img_nii_X, slices, copy=copy)
+    new_img = _crop_img_to(img_nii_X, slices, copy=copy)
+
+    print("Input img shape: {}. Desired shape: {}. New img shape: {}".format(data.shape, shape, new_img.get_data().shape))
+
+    return new_img
 
 
 def _crop_img_to(img, slices, copy=True):
