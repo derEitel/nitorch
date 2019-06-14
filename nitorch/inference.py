@@ -1,13 +1,13 @@
-import numpy
 import torch
 from torch import nn
 
+
 def predict(
-    all_outputs,
-    prediction_type,
-    criterion,
-    **kwargs
-    ):
+        all_outputs,
+        prediction_type,
+        criterion,
+        **kwargs
+):
     """ Predict according to loss and prediction type."""
     if prediction_type == "binary":
         all_preds = classif_inference(all_outputs, criterion=criterion, **kwargs)
@@ -26,10 +26,10 @@ def predict(
 
 
 def classif_inference(
-    all_outputs
-    , criterion
-    , **kwargs
-    ):
+        all_outputs,
+        criterion,
+        **kwargs
+):
     if isinstance(criterion, nn.BCEWithLogitsLoss):
         all_outputs = torch.sigmoid(all_outputs)
 

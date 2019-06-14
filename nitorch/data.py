@@ -42,13 +42,13 @@ def balanced_subsample(y, size=None):
 
 
 def load_nifti(
-    file_path,
-    dtype=np.float32,
-    incl_header=False,
-    z_factor=None,
-    mask=None,
-    force_to_shape=None,
-    remove_nan=True,
+        file_path,
+        dtype=np.float32,
+        incl_header=False,
+        z_factor=None,
+        mask=None,
+        force_to_shape=None,
+        remove_nan=True,
 ):
     """
     Loads a volumetric image in nifti format (extensions .nii, .nii.gz etc.)
@@ -184,7 +184,8 @@ def _force_to_shape(img_nii_X, shape, rtol=1e-8, copy=True):
 
     new_img = _crop_img_to(img_nii_X, slices, copy=copy)
 
-    print("Input img shape: {}. Desired shape: {}. New img shape: {}".format(data.shape, shape, new_img.get_data().shape))
+    print(
+        "Input img shape: {}. Desired shape: {}. New img shape: {}".format(data.shape, shape, new_img.get_data().shape))
 
     return new_img
 
@@ -250,14 +251,14 @@ class MRIDataset(Dataset):
     """
 
     def __init__(
-        self,
-        filenames,
-        labels,
-        id2label,
-        z_factor=None,
-        mask=None,
-        transform=None,
-        force_to_shape=None,
+            self,
+            filenames,
+            labels,
+            id2label,
+            z_factor=None,
+            mask=None,
+            transform=None,
+            force_to_shape=None,
     ):
         self.filenames = filenames
         self.labels = torch.FloatTensor(labels)
@@ -392,30 +393,30 @@ class DataBunch:
     CACHE_NAME = "databunch.pkl"
 
     def __init__(
-        self,
-        source_dir: str,
-        path: str,
-        table: str,
-        image_dir: str = None,
-        mask: str = None,
-        transforms: Compose = Compose(
-            [ToTensor(), IntensityRescale(masked=False, on_gpu=True)]
-        ),
-        labels_to_keep: list = None,
-        get_file_path: callable = None,
-        balance: bool = False,
-        num_samples: int = None,
-        num_training_samples: int = None,
-        z_factor: float = 0.5,
-        test_size: float = 0.1,
-        grouped: bool = False,
-        no_cache: bool = True,
-        force_to_shape: list = None,
-        file_col="file_path",
-        label_col="DX",
-        ptid_col="PTID",
-        random_state: int = 42,
-        **kwargs,
+            self,
+            source_dir: str,
+            path: str,
+            table: str,
+            image_dir: str = None,
+            mask: str = None,
+            transforms: Compose = Compose(
+                [ToTensor(), IntensityRescale(masked=False, on_gpu=True)]
+            ),
+            labels_to_keep: list = None,
+            get_file_path: callable = None,
+            balance: bool = False,
+            num_samples: int = None,
+            num_training_samples: int = None,
+            z_factor: float = 0.5,
+            test_size: float = 0.1,
+            grouped: bool = False,
+            no_cache: bool = True,
+            force_to_shape: list = None,
+            file_col="file_path",
+            label_col="DX",
+            ptid_col="PTID",
+            random_state: int = 42,
+            **kwargs,
     ):
 
         """DataBunch class to built training and test MRIDatasets and DataLoaders from a single input csv file containing .nii file paths.
@@ -521,9 +522,9 @@ class DataBunch:
         )
         if self.FILE not in df.columns:
             if (
-                get_file_path is not None
-                and self.image_dir is not None
-                and callable(get_file_path)
+                    get_file_path is not None
+                    and self.image_dir is not None
+                    and callable(get_file_path)
             ):
                 df[self.FILE] = df.apply(
                     lambda r: get_file_path(r, self.image_dir), axis=1
@@ -576,13 +577,13 @@ class DataBunch:
         )
 
     def build_datasets(
-        self,
-        test_size: float = 0.1,
-        transforms: list = None,
-        num_samples=None,
-        num_training_samples=None,
-        random_state: int = None,
-        grouped=False,
+            self,
+            test_size: float = 0.1,
+            transforms: list = None,
+            num_samples=None,
+            num_training_samples=None,
+            random_state: int = None,
+            grouped=False,
     ):
         print("Building datasets")
         print(f"Patient-wise train/test splitting with test_size = {test_size}")
@@ -671,11 +672,11 @@ class DataBunch:
         self.test_ds.transform = None
 
     def build_dataloaders(
-        self,
-        bs: int = 8,
-        normalize: bool = False,
-        use_samples: int = None,
-        num_workers: int = None,
+            self,
+            bs: int = 8,
+            normalize: bool = False,
+            use_samples: int = None,
+            num_workers: int = None,
     ):
         """Build DataLoaders with bs, optionally normalizing the datasets too, or performing downsampling."""
 
@@ -759,7 +760,7 @@ class DataBunch:
             )
         img, lbl = self.train_ds[np.random.randint(0, len(self.train_ds))]
         print(f"label={self.id2label[lbl.item()]}")
-        f = show_brain(img[0].numpy(), cmap=cmap)
+        _ = show_brain(img[0].numpy(), cmap=cmap)
         plt.show()
 
     def save(self):
@@ -779,12 +780,12 @@ class DataBunch:
 
 
 def show_brain(
-    img,
-    cut_coords=None,
-    figsize=(10, 5),
-    cmap="nipy_spectral",
-    draw_cross=True,
-    return_fig=False,
+        img,
+        cut_coords=None,
+        figsize=(10, 5),
+        cmap="nipy_spectral",
+        draw_cross=True,
+        return_fig=False,
 ):
     """Displays 2D cross-sections of a 3D image along all 3 axis
     Arg:
@@ -815,7 +816,7 @@ def show_brain(
 
     elif isinstance(img, np.ndarray):
         assert (
-            img.ndim == 3
+                img.ndim == 3
         ), "The numpy.ndarray must be 3-dimensional with shape (H x W x Z)"
         img_arr = img
     else:

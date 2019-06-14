@@ -104,9 +104,9 @@ dimension with one dimension as the batch size"
             slice_start = (img_size - self.size) // 2
             slice_end = self.size + slice_start
             cropped = img[
-                slice_start[0] : slice_end[0],
-                slice_start[1] : slice_end[1],
-                slice_start[2] : slice_end[2],
+                slice_start[0]: slice_end[0],
+                slice_start[1]: slice_end[1],
+                slice_start[2]: slice_end[2],
             ]
             if len(img.shape) == 4:
                 cropped = np.expand_dims(cropped, 0)

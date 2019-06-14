@@ -52,7 +52,8 @@ class _CAE_3D(nn.Module):
             "THRESHOLD": nn.Threshold,
         }
 
-    def _format_channels(self, conv_channels, is_nested_conv=False):
+    @staticmethod
+    def _format_channels(conv_channels, is_nested_conv=False):
         channels = []
         if is_nested_conv:
             for i in range(len(conv_channels)):
@@ -171,7 +172,8 @@ have to be same as the 'conv_channels'".format(
         )
         return node
 
-    def add_pool(self, pool_type, kernel_size, padding, stride):
+    @staticmethod
+    def add_pool(pool_type, kernel_size, padding, stride):
         if pool_type == "max":
             node = nn.MaxPool3d(
                 kernel_size, padding=padding, stride=stride, return_indices=True
@@ -186,7 +188,8 @@ Allowed values are `max`, `avg`."
 
         return node
 
-    def add_unpool(self, pool_type, kernel_size, padding, stride):
+    @staticmethod
+    def add_unpool(pool_type, kernel_size, padding, stride):
         if pool_type == "max":
             node = nn.MaxUnpool3d(kernel_size, padding=padding, stride=stride)
         elif pool_type == "avg":
@@ -275,7 +278,7 @@ It cannot be a list of lists."
         self.conv_kernel = self.assign_parameter(conv_kernel, "conv_kernel")
         self.conv_padding = self.assign_parameter(conv_padding, "conv_kernel")
         self.conv_stride = self.assign_parameter(conv_stride, "conv_stride")
-        if deconv_out_padding == None:
+        if deconv_out_padding is None:
             deconv_out_padding = [s - 1 for s in self.conv_stride]
         self.deconv_out_padding = self.assign_parameter(
             deconv_out_padding, "deconv_out_padding"

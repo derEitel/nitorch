@@ -6,23 +6,23 @@ from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
 from nitorch.inference import predict
-from nitorch.callbacks import ModelCheckpoint
 from nitorch.utils import *
 import json
 
+
 class Trainer:
     def __init__(
-        self,
-        model,
-        criterion,
-        optimizer,
-        scheduler=None,
-        metrics=[],
-        callbacks=[],
-        training_time_callback=None,
-        device=torch.device("cuda"),
-        prediction_type="binary",
-        **kwargs
+            self,
+            model,
+            criterion,
+            optimizer,
+            scheduler=None,
+            metrics=[],
+            callbacks=[],
+            training_time_callback=None,
+            device=torch.device("cuda"),
+            prediction_type="binary",
+            **kwargs
     ):
         """ Main class for training.
         # Arguments
@@ -69,6 +69,10 @@ class Trainer:
         self.stop_training = False
         self.start_time = None
         self.prediction_type = prediction_type
+        self.val_metrics = {"loss": []}
+        self.train_metrics = {"loss": []}
+        self.best_metric = None
+        self.best_model = None
 
     def train_model(
             self,
@@ -92,21 +96,21 @@ class Trainer:
         n = len(train_loader)
         n_val = len(val_loader)
         # if show_train_steps is not specified then default it to print training progress 4 times per epoch
-        if not(show_train_steps):
-            show_train_steps = n//4 if((n//4)>1) else 1
-        store_val_steps = n_val//4 if((n_val//4)>1) else 1
+        if not show_train_steps:
+            show_train_steps = n // 4 if ((n // 4) > 1) else 1
+        store_val_steps = n_val // 4 if ((n_val // 4) > 1) else 1
 
-        assert (show_train_steps>0) and (show_train_steps<=n),"\
+        assert (show_train_steps > 0) and (show_train_steps <= n), "\
 'show_train_steps' value-{} is out of range. Must be >0 and <={} i.e. len(train_loader)".format(show_train_steps, n)
         assert (show_validation_epochs < num_epochs) or (num_epochs == 1), "\
 'show_validation_epochs' value should be less than 'num_epochs'"
 
         # store metrics and loss for each epoch to report in the end
-        self.val_metrics = {"loss":[]}
-        self.train_metrics = {"loss":[]}
-        if(self.metrics):
-            self.val_metrics.update({m.__name__:[] for m in self.metrics})
-            self.train_metrics.update({m.__name__:[] for m in self.metrics})
+        self.val_metrics = {"loss": []}
+        self.train_metrics = {"loss": []}
+        if self.metrics:
+            self.val_metrics.update({m.__name__: [] for m in self.metrics})
+            self.train_metrics.update({m.__name__: [] for m in self.metrics})
 
         self.start_time = time.time()
         self.best_metric = None
@@ -172,27 +176,27 @@ class Trainer:
                     if (i != 0) and (i % show_train_steps == 0):
                         print(
                             "[%d, %5d] loss: %.5f"
-                            % (epoch , i , np.mean(running_loss))
+                            % (epoch, i, np.mean(running_loss))
                         )
 
                     # store the outputs and labels for computing metrics later
-                    if(self.prediction_type == "reconstruction"):
-                    # when output/label tensors are very large (e.g. for reconstruction tasks)
-                    # store the outputs/labels only a few times
-                        if(i % show_train_steps == 0):
+                    if self.prediction_type == "reconstruction":
+                        # when output/label tensors are very large (e.g. for reconstruction tasks)
+                        # store the outputs/labels only a few times
+                        if i % show_train_steps == 0:
                             all_outputs.append(outputs.float())
                             all_labels.append(labels.float())
                     else:
                         all_outputs.append(outputs.float())
                         all_labels.append(labels.float())
-                #<end-of-training-cycle-loop>
-            #<end-of-epoch-loop>
+                # <end-of-training-cycle-loop>
+            # <end-of-epoch-loop>
             # at the end of an epoch, calculate metrics, report them and
             # store them in respective report dicts
             self._estimate_metrics(torch.cat(all_outputs), torch.cat(all_labels), np.mean(running_loss), phase="train")
 
             # validate every x iterations
-            if(epoch % show_validation_epochs == 0):
+            if epoch % show_validation_epochs == 0:
                 running_loss_val = []
                 all_outputs = []
                 all_labels = []
@@ -224,7 +228,7 @@ class Trainer:
                         # forward pass only
                         if self.training_time_callback is not None:
                             outputs = self.training_time_callback(
-                                inputs, 
+                                inputs,
                                 labels,
                                 1,  # dummy value
                                 1  # dummy value
@@ -237,8 +241,8 @@ class Trainer:
                         running_loss_val.append(loss.item())
 
                     # store the outputs and labels for computing metrics later
-                    if(self.prediction_type == "reconstruction"):
-                        if(i % store_val_steps == 0):
+                    if self.prediction_type == "reconstruction":
+                        if i % store_val_steps == 0:
                             all_outputs.append(outputs.float())
                             all_labels.append(labels.float())
                     else:
@@ -257,7 +261,6 @@ class Trainer:
                 callback(self, epoch=epoch)
         # End training
         return self.finish_training(epoch)
-
 
     def finish_training(self, epoch):
         """
@@ -306,12 +309,11 @@ class Trainer:
             plt.plot(report["val_metrics"][metric.__name__])
             plt.legend(["Train", "Val"])
             plt.title(metric.__name__)
-            if(save_fig_path):
-                plt.savefig(save_fig_path+"_"+metric.__name__)
+            if save_fig_path:
+                plt.savefig(save_fig_path + "_" + metric.__name__)
                 plt.close()
             else:
                 plt.show()
-
 
     def evaluate_model(
             self,
@@ -363,25 +365,25 @@ class Trainer:
 
         # calculate the loss criterion metric
         loss_score = self.criterion(all_outputs, all_labels)
-        results = {"loss":loss_score.item()}
+        results = {"loss": loss_score.item()}
 
         # calculate metrics
         for metric in metrics:
             if isinstance(all_preds[0], list):
-                score = np.mean([metric(preds, labels) for preds,labels in zip(all_preds, all_labels)])
+                score = np.mean([metric(labels, preds) for preds, labels in zip(all_preds, all_labels)])
             else:
-                score = metric(all_preds, all_labels)
+                score = metric(all_labels, all_preds)
 
-            results.update({metric.__name__:score})
+            results.update({metric.__name__: score})
 
-        if(write_to_dir):
-            with open(write_to_dir+"results.json","w") as f:
+        if write_to_dir:
+            with open(write_to_dir + "results.json", "w") as f:
                 json.dump(results, f)
 
-        print("evaluation results :\n",results)
+        print("evaluation results :\n", results)
 
         # compute confusion matrix if it is a binary classification task
-        if(self.prediction_type == "binary"):
+        if self.prediction_type == "binary":
             cm = confusion_matrix(all_labels, all_preds)
             plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
 
@@ -404,23 +406,22 @@ class Trainer:
             plt.title("Confusion Matrix")
             plt.ylabel("True label")
             plt.xlabel("Predicted label")
-            if(write_to_dir):
-                plt.savefig(write_to_dir+"confusion_matrix.png")
+            if write_to_dir:
+                plt.savefig(write_to_dir + "confusion_matrix.png")
                 plt.close()
             else:
                 plt.show()
 
         self.model.train()
 
-
     def _report_metrics(
-        self,
-        metrics_dict,
-        phase
-        ):
+            self,
+            metrics_dict,
+            phase
+    ):
 
         # report execution time only in training phase
-        if (phase == "train"):
+        if phase == "train":
             time_elapsed = int(time.time() - self.start_time)
             print("Time elapsed: {}h:{}m:{}s".format(
                 time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60))
@@ -435,24 +436,23 @@ class Trainer:
                 print("{} {}: {} ".format(
                     phase, metric.__name__, str(score)))
 
-
     def _estimate_metrics(
-        self,
-        all_outputs,
-        all_labels,
-        loss,
-        phase
-        ):
-        '''at the end of an epoch
+            self,
+            all_outputs,
+            all_labels,
+            loss,
+            phase
+    ):
+        """at the end of an epoch
         (a) calculate metrics
         (b) report metrics
-        (c) store results in respective report dicts - train_metrics / val_metrics '''
+        (c) store results in respective report dicts - train_metrics / val_metrics """
         # print("<_estimate_metrics>", phase, all_outputs.shape, "loss", loss.shape)
         # print("<train_metrics>", self.train_metrics)
         # print("<val_metrics>", self.val_metrics)
-        if(phase.lower() == 'train'):
+        if phase.lower() == 'train':
             metrics_dict = self.train_metrics
-        elif(phase.lower() == 'val'):
+        elif phase.lower() == 'val':
             metrics_dict = self.val_metrics
         else:
             assert "Invalid 'phase' defined. Can only be one of ['train', 'val']"
@@ -460,17 +460,17 @@ class Trainer:
         # add loss to metrics_dict
         metrics_dict["loss"].append(loss)
         # add other metrics to the metrics_dict
-        if (all_outputs.nelement()): # check for unreported metrics
+        if all_outputs.nelement():  # check for unreported metrics
             # perform inference on the outputs
-            all_preds = predict(all_outputs
-                , self.prediction_type
-                , self.criterion
-                , class_threshold=self.class_threshold
-                )
+            all_preds = predict(all_outputs,
+                                self.prediction_type,
+                                self.criterion,
+                                class_threshold=self.class_threshold
+                                )
 
             for metric in self.metrics:
                 if isinstance(all_preds[0], list):
-                    result = np.mean([metric(labels, preds) for preds,labels in zip(all_preds, all_labels)])
+                    result = np.mean([metric(labels, preds) for preds, labels in zip(all_preds, all_labels)])
                 else:
                     result = metric(all_labels, all_preds)
 
