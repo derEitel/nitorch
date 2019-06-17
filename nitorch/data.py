@@ -290,7 +290,7 @@ class MRIDataset(Dataset):
 
     def __repr__(self):
 
-        return f"MRIDataset - no. samples: {len(self)}; shape: {self.shape}; no. classes: {len(self.labels.unique())}"
+        return "MRIDataset - no. samples: {len(self)}; shape: {self.shape}; no. classes: {len(self.labels.unique())}"
 
     def __getitem__(self, idx):
         """Return the image as a FloatTensor and its corresponding label."""
@@ -416,7 +416,7 @@ class DataBunch:
             label_col="DX",
             ptid_col="PTID",
             random_state: int = 42,
-            **kwargs,
+            **kwargs
     ):
 
         """DataBunch class to built training and test MRIDatasets and DataLoaders from a single input csv file containing .nii file paths.
@@ -457,14 +457,14 @@ class DataBunch:
         self.set_column_ids(file_col, label_col, ptid_col)
 
         if not os.path.isdir(source_dir):
-            raise RuntimeError(f"{source_dir} not existing!")
+            raise RuntimeError("{source_dir} not existing!")
         self.source_dir = Path(source_dir)
         self.path = Path(path)
         if not no_cache:
             if os.path.exists(self.path / self.CACHE_NAME):
                 ans = str(
                     input(
-                        f"Do you want to load cache from {self.path / self.CACHE_NAME}? [y/n]"
+                        "Do you want to load cache from {self.path / self.CACHE_NAME}? [y/n]"
                     )
                 ).strip()
                 if ans == "y":
@@ -472,7 +472,7 @@ class DataBunch:
                         self.load()
                         self.loaded_cache = True
                         self.print_stats()
-                        print(f"DataBunch initialized at {self.path}")
+                        print("DataBunch initialized at {self.path}")
                         return
                     except EOFError:
                         logger.warning(
@@ -481,13 +481,13 @@ class DataBunch:
                             )
                         )
                         print(
-                            f"Cannot load {self.CACHE_NAME} because it is corrupted. Building Databunch..\n"
+                            "Cannot load {self.CACHE_NAME} because it is corrupted. Building Databunch..\n"
                         )
 
                 elif ans == "n":
                     pass
                 else:
-                    raise RuntimeError(f"Invalid answer {ans}.")
+                    raise RuntimeError("Invalid answer {ans}.")
         self.loaded_cache = False
         os.makedirs(path, exist_ok=True)
         self.table = table
@@ -508,9 +508,9 @@ class DataBunch:
 
         self.random_state = random_state
         df = pd.read_csv(self.source_dir / self.table, index_col=None)
-        print(f"Found {len(df)} images in {self.table}")
+        print("Found {len(df)} images in {self.table}")
         print(
-            f"Found {len(df[self.LABEL].unique())} labels: {df[self.LABEL].unique().tolist()}"
+            "Found {len(df[self.LABEL].unique())} labels: {df[self.LABEL].unique().tolist()}"
         )
 
         if balance:
@@ -531,8 +531,8 @@ class DataBunch:
                 )
             else:
                 raise RuntimeError(
-                    f"If {self.FILE} column is not in {self.table},"
-                    f"please pass a valid `get_file_path` function and an `image_dir`."
+                    "If {self.FILE} column is not in {self.table},"
+                    "please pass a valid `get_file_path` function and an `image_dir`."
                 )
         len_before = len(df)
         self.labels_to_keep = (
@@ -543,12 +543,12 @@ class DataBunch:
         df = df[df[self.LABEL].isin(self.labels_to_keep)]
 
         print(
-            f"Dropped {len_before - len(df)} samples that were not in {self.labels_to_keep}"
+            "Dropped {len_before - len(df)} samples that were not in {self.labels_to_keep}"
         )
         self.df = df[[self.FILE, self.LABEL, self.PTID]].dropna()
 
         print(
-            f"Final dataframe contains {len(self.df)} samples from {len(df[self.PTID].unique())} patients"
+            "Final dataframe contains {len(self.df)} samples from {len(df[self.PTID].unique())} patients"
         )
         self.classes = self.df[self.LABEL].unique().tolist()[::-1]
         self.label2id = {
@@ -566,14 +566,14 @@ class DataBunch:
                 grouped=grouped,
             )
             self.print_stats()
-        print(f"DataBunch initialized at {self.path}")
+        print("DataBunch initialized at {self.path}")
 
     def set_column_ids(self, file_col, label_col, ptid_col):
         self.FILE = self.DEFAULT_FILE if file_col is None else file_col
         self.LABEL = self.DEFAULT_LABEL if label_col is None else label_col
         self.PTID = self.DEFAULT_PTID if ptid_col is None else ptid_col
         logger.info(
-            f"Using file column {self.FILE}; label column {self.LABEL} and patient_id column {self.PTID}"
+            "Using file column {self.FILE}; label column {self.LABEL} and patient_id column {self.PTID}"
         )
 
     def build_datasets(
@@ -586,14 +586,14 @@ class DataBunch:
             grouped=False,
     ):
         print("Building datasets")
-        print(f"Patient-wise train/test splitting with test_size = {test_size}")
+        print("Patient-wise train/test splitting with test_size = {test_size}")
         random_state = (
             self.random_state if random_state is None else random_state
         )
 
         if num_samples is not None:
             self.df = self.df.sample(n=num_samples)
-            logger.info(f"Sampling {num_training_samples} samples")
+            logger.info("Sampling {num_training_samples} samples")
 
         if grouped:
             gss = GroupShuffleSplit(
@@ -616,7 +616,7 @@ class DataBunch:
 
         if num_training_samples is not None:
             self.df_trn = self.df_trn.sample(n=num_training_samples)
-            logger.info(f"Sampling {num_training_samples} training samples")
+            logger.info("Sampling {num_training_samples} training samples")
 
         self.train_ds = MRIDataset(
             self.df_trn[self.FILE].tolist(),
@@ -645,7 +645,7 @@ class DataBunch:
         """Normalizes the dataset with mean and std calculated on the training set"""
 
         if not hasattr(self, "train_ds"):
-            raise RuntimeError(f"Attribute `train_ds` not found.")
+            raise RuntimeError("Attribute `train_ds` not found.")
         print("Normalizing datasets")
 
         if use_samples is None:
@@ -657,7 +657,7 @@ class DataBunch:
                 else use_samples
             )
         print(
-            f"Calculating mean and std for normalization based on {use_samples} train samples:"
+            "Calculating mean and std for normalization based on {use_samples} train samples:"
         )
         self.train_ds.fit_normalization(
             num_sample=use_samples, show_progress=True
@@ -695,7 +695,7 @@ class DataBunch:
                 "Dataset not normalized, performance might be significantly hurt!"
             )
         print(
-            f"No. training/test samples: {len(self.train_ds)}/{len(self.test_ds)}"
+            "No. training/test samples: {len(self.train_ds)}/{len(self.test_ds)}"
         )
 
         if num_workers is None:
@@ -745,10 +745,10 @@ class DataBunch:
         ]
         print(tabulate(stats, headers=headers))
         print()
-        print(f"Data shape: {self.train_ds.shape}")
+        print("Data shape: {self.train_ds.shape}")
         if self.z_factor is not None:
             print(
-                f"NOTE: data have been downsized by a factor of {self.z_factor}"
+                "NOTE: data have been downsized by a factor of {self.z_factor}"
             )
 
     def show_sample(self, cmap="gray", **kwargs):
@@ -756,10 +756,10 @@ class DataBunch:
 
         if self.train_ds is None:
             raise RuntimeError(
-                f"`train_ds` not found, please call `build` method first."
+                "`train_ds` not found, please call `build` method first."
             )
         img, lbl = self.train_ds[np.random.randint(0, len(self.train_ds))]
-        print(f"label={self.id2label[lbl.item()]}")
+        print("label={self.id2label[lbl.item()]}")
         _ = show_brain(img[0].numpy(), cmap=cmap)
         plt.show()
 
@@ -768,7 +768,7 @@ class DataBunch:
 
         with open(self.path / self.CACHE_NAME, "wb", closefd=True) as file:
             pickle.dump(self.__dict__, file, protocol=pickle.HIGHEST_PROTOCOL)
-        print(f"Saved DataBunch to {self.path / self.CACHE_NAME}")
+        print("Saved DataBunch to {self.path / self.CACHE_NAME}")
 
     def load(self):
         """Load cached DataBunch object from `path`."""
@@ -776,7 +776,7 @@ class DataBunch:
         with open(self.path / self.CACHE_NAME, "rb") as file:
             tmp_dict = pickle.load(file)
             self.__dict__.update(tmp_dict)
-        print(f"Cached DataBunch has been successfully loaded.")
+        print("Cached DataBunch has been successfully loaded.")
 
 
 def show_brain(

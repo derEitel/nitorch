@@ -82,7 +82,8 @@ class Trainer:
             labels_key="label",
             num_epochs=25,
             show_train_steps=None,
-            show_validation_epochs=1
+            show_validation_epochs=1,
+            store_grads=False
     ):
         """ Main function to train a network for one epoch.
         Args:
@@ -92,6 +93,8 @@ class Trainer:
                             either be a dict of format data_loader[X_key] = inputs and
                             data_loader[y_key] = labels or a list with data_loader[0] = inputs
                             and data_loader[1] = labels. The default keys are "image" and "label".
+            store_grads (optional): allows visualization of the gradient flow through the model during training.
+            After calling this method, do plt.show() to see the gradient flow diagram.
         """
         n = len(train_loader)
         n_val = len(val_loader)
@@ -132,7 +135,7 @@ class Trainer:
 
                 # train mode
                 self.model.train()
-
+    
                 for i, data in enumerate(train_loader):
                     try:
                         inputs, labels = data[inputs_key], data[labels_key]
@@ -143,6 +146,7 @@ class Trainer:
                             inputs, labels = data[0], data[1]
                         except TypeError:
                             raise TypeError
+                    
                     # in case of multi-input or output create a list
                     if isinstance(inputs, list):
                         inputs = [inp.to(self.device) for inp in inputs]
@@ -156,7 +160,7 @@ class Trainer:
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
 
-                    if self.training_time_callback is not None:
+                    if self.training_time_callback:
                         outputs = self.training_time_callback(
                             inputs, labels, i, epoch)
                     else:
@@ -165,98 +169,94 @@ class Trainer:
 
                     loss = self.criterion(outputs, labels)
                     loss.backward()
-                    # enable the below commented code if you want to visualize the
-                    # gradient flow through the model during training
-                    # plot_grad_flow(self.model.named_parameters())
                     self.optimizer.step()
-
+                    
                     # update loss
                     running_loss.append(loss.item())
                     # print loss every 'show_train_steps' mini-batches
-                    if (i != 0) and (i % show_train_steps == 0):
-                        print(
-                            "[%d, %5d] loss: %.5f"
-                            % (epoch, i, np.mean(running_loss))
-                        )
-
-                    # store the outputs and labels for computing metrics later
-                    if self.prediction_type == "reconstruction":
-                        # when output/label tensors are very large (e.g. for reconstruction tasks)
-                        # store the outputs/labels only a few times
-                        if i % show_train_steps == 0:
-                            all_outputs.append(outputs.float())
-                            all_labels.append(labels.float())
-                    else:
-                        all_outputs.append(outputs.float())
-                        all_labels.append(labels.float())
-                # <end-of-training-cycle-loop>
-            # <end-of-epoch-loop>
-            # at the end of an epoch, calculate metrics, report them and
-            # store them in respective report dicts
-            self._estimate_metrics(torch.cat(all_outputs), torch.cat(all_labels), np.mean(running_loss), phase="train")
-
-            # validate every x iterations
-            if epoch % show_validation_epochs == 0:
-                running_loss_val = []
-                all_outputs = []
-                all_labels = []
-
-                self.model.eval()
-
-                with torch.no_grad():
-                    for i, data in enumerate(val_loader):
-                        try:
-                            inputs, labels = data[inputs_key], data[labels_key]
-                        except TypeError:
-                            # if data does not come in dictionary, assume
-                            # that data is ordered like [input, label]
-                            try:
-                                inputs, labels = data[0], data[1]
-                            except TypeError:
-                                raise TypeError("Data not in correct \
-                                 sequence format.")
-                        # in case of multi-input or output create a list
-                        if isinstance(inputs, list):
-                            inputs = [inp.to(self.device) for inp in inputs]
-                        else:
-                            inputs = inputs.to(self.device)
-                        if isinstance(labels, list):
-                            labels = [label.to(self.device) for label in labels]
-                        else:
-                            labels = labels.to(self.device)
-
-                        # forward pass only
-                        if self.training_time_callback is not None:
-                            outputs = self.training_time_callback(
-                                inputs,
-                                labels,
-                                1,  # dummy value
-                                1  # dummy value
+                    if(i % show_train_steps == 0):
+                        if(i != 0):
+                            print(
+                                "[%d, %5d] loss: %.5f"
+                                % (epoch, i, np.mean(running_loss))
                             )
-                        else:
-                            outputs = self.model(inputs)
+                        
+                        # store the outputs and labels for computing metrics later
+                        all_outputs.append(outputs)
+                        all_labels.append(labels)
+                        # allows visualization of the gradient flow through the model during training
+                        if(store_grads):
+                            plot_grad_flow(self.model.named_parameters())
+                            
+                # <end-of-training-cycle-loop>
+                all_outputs = torch.cat(all_outputs).float()
+                all_labels = torch.cat(all_labels).float()
+                # at the end of an epoch, calculate metrics, report them and
+                # store them in respective report dicts
+                self._estimate_metrics(all_outputs, all_labels, np.mean(running_loss), phase="train")
+                del all_outputs, all_labels, running_loss
+                
+                # validate every x iterations
+                if epoch % show_validation_epochs == 0:
+                    running_loss_val = []
+                    all_outputs = []
+                    all_labels = []
 
-                        loss = self.criterion(outputs, labels)
+                    self.model.eval()
 
-                        running_loss_val.append(loss.item())
+                    with torch.no_grad():
+                        for i, data in enumerate(val_loader):
+                            try:
+                                inputs, labels = data[inputs_key], data[labels_key]
+                            except TypeError:
+                                # if data does not come in dictionary, assume
+                                # that data is ordered like [input, label]
+                                try:
+                                    inputs, labels = data[0], data[1]
+                                except TypeError:
+                                    raise TypeError("Data not in correct \
+                                     sequence format.")
+                            # in case of multi-input or output create a list
+                            if isinstance(inputs, list):
+                                inputs = [inp.to(self.device) for inp in inputs]
+                            else:
+                                inputs = inputs.to(self.device)
+                            if isinstance(labels, list):
+                                labels = [label.to(self.device) for label in labels]
+                            else:
+                                labels = labels.to(self.device)
 
-                    # store the outputs and labels for computing metrics later
-                    if self.prediction_type == "reconstruction":
-                        if i % store_val_steps == 0:
-                            all_outputs.append(outputs.float())
-                            all_labels.append(labels.float())
-                    else:
-                        all_outputs.append(outputs.float())
-                        all_labels.append(labels.float())
+                            # forward pass only
+                            if self.training_time_callback is not None:
+                                outputs = self.training_time_callback(
+                                    inputs,
+                                    labels,
+                                    1,  # dummy value
+                                    1  # dummy value
+                                )
+                            else:
+                                outputs = self.model(inputs)
 
-                    validation_loss = np.mean(running_loss_val)
-                    print("val loss: {0:.6f}".format(validation_loss))
-                    # add loss to metrics data
+                            loss = self.criterion(outputs, labels)
 
-                # report validation metrics
-                # weighted averages of metrics are computed over batches
-                self._estimate_metrics(torch.cat(all_outputs), torch.cat(all_labels), validation_loss, phase="val")
+                            running_loss_val.append(loss.item())
+                            if (i % store_val_steps == 0):
+                                # store the outputs and labels for computing metrics later
+                                all_outputs.append(outputs)
+                                all_labels.append(labels)
 
+                        validation_loss = np.mean(running_loss_val)
+                        print("val loss: {0:.6f}".format(validation_loss))
+                        # add loss to metrics data
+
+                    # report validation metrics
+                    # weighted averages of metrics are computed over batches
+                    all_outputs = torch.cat(all_outputs).float()
+                    all_labels = torch.cat(all_labels).float()
+                    self._estimate_metrics(all_outputs, all_labels, validation_loss, phase="val")
+                    del all_outputs, all_labels, running_loss_val
+                    
+            # <end-of-epoch-loop>
             for callback in self.callbacks:
                 callback(self, epoch=epoch)
         # End training
@@ -342,8 +342,8 @@ class Trainer:
         else:
             device = self.device
 
-        all_outputs = torch.Tensor().to(device)
-        all_labels = torch.Tensor().to(device)
+        all_outputs = []
+        all_labels = []
 
         with torch.no_grad():
             for i, data in enumerate(val_loader):
@@ -352,9 +352,11 @@ class Trainer:
                 labels = labels.to(device)
 
                 outputs = self.model(inputs)
-                all_outputs = torch.cat((all_outputs, outputs.float()))
-                all_labels = torch.cat((all_labels, labels.float()))
+                all_outputs.append(outputs)
+                all_labels.append(labels)
 
+            all_outputs = torch.cat(all_outputs).float()
+            all_labels = torch.cat(all_labels).float()
             # run inference
             all_preds = predict(
                 all_outputs,
@@ -362,19 +364,18 @@ class Trainer:
                 self.criterion,
                 class_threshold=self.class_threshold
             )
-
-        # calculate the loss criterion metric
-        loss_score = self.criterion(all_outputs, all_labels)
-        results = {"loss": loss_score.item()}
+            # calculate the loss criterion metric
+            loss_score = self.criterion(all_outputs, all_labels)
+            results = {"loss": loss_score.item()}
 
         # calculate metrics
-        for metric in metrics:
+        for metric in self.metrics:
             if isinstance(all_preds[0], list):
-                score = np.mean([metric(labels, preds) for preds, labels in zip(all_preds, all_labels)])
+                result = np.mean([metric(labels, preds) for labels,preds in zip(all_labels, all_preds)])
             else:
-                score = metric(all_labels, all_preds)
+                result = metric(all_labels, all_preds)
 
-            results.update({metric.__name__: score})
+            results.update({metric.__name__: result})
 
         if write_to_dir:
             with open(write_to_dir + "results.json", "w") as f:
@@ -447,9 +448,6 @@ class Trainer:
         (a) calculate metrics
         (b) report metrics
         (c) store results in respective report dicts - train_metrics / val_metrics """
-        # print("<_estimate_metrics>", phase, all_outputs.shape, "loss", loss.shape)
-        # print("<train_metrics>", self.train_metrics)
-        # print("<val_metrics>", self.val_metrics)
         if phase.lower() == 'train':
             metrics_dict = self.train_metrics
         elif phase.lower() == 'val':
@@ -470,7 +468,7 @@ class Trainer:
 
             for metric in self.metrics:
                 if isinstance(all_preds[0], list):
-                    result = np.mean([metric(labels, preds) for preds, labels in zip(all_preds, all_labels)])
+                    result = np.mean([metric(labels, preds) for labels,preds in zip(all_labels, all_preds)])
                 else:
                     result = metric(all_labels, all_preds)
 
