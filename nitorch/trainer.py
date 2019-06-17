@@ -101,7 +101,6 @@ class Trainer:
         # if show_train_steps is not specified then default it to print training progress 4 times per epoch
         if not show_train_steps:
             show_train_steps = n // 4 if ((n // 4) > 1) else 1
-        store_val_steps = n_val // 4 if ((n_val // 4) > 1) else 1
 
         assert (show_train_steps > 0) and (show_train_steps <= n), "\
 'show_train_steps' value-{} is out of range. Must be >0 and <={} i.e. len(train_loader)".format(show_train_steps, n)
@@ -240,10 +239,9 @@ class Trainer:
                             loss = self.criterion(outputs, labels)
 
                             running_loss_val.append(loss.item())
-                            if (i % store_val_steps == 0):
-                                # store the outputs and labels for computing metrics later
-                                all_outputs.append(outputs)
-                                all_labels.append(labels)
+                            # store the outputs and labels for computing metrics later
+                            all_outputs.append(outputs)
+                            all_labels.append(labels)
 
                         validation_loss = np.mean(running_loss_val)
                         print("val loss: {0:.6f}".format(validation_loss))
