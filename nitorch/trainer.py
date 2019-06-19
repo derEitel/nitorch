@@ -68,7 +68,7 @@ class Trainer:
             self.class_threshold = None
         self.stop_training = False
         self.start_time = None
-        self.prediction_type = prediction_type
+        self.prediction_type = prediction_type #TODO : for multi-head tasks allow a list of prediction_types to be provided
         self.val_metrics = {"loss": []}
         self.train_metrics = {"loss": []}
         self.best_metric = None
@@ -107,12 +107,9 @@ class Trainer:
         assert (show_validation_epochs < num_epochs) or (num_epochs == 1), "\
 'show_validation_epochs' value should be less than 'num_epochs'"
 
-        # store metrics and loss for each epoch to report in the end
+        # reset metric dicts
         self.val_metrics = {"loss": []}
         self.train_metrics = {"loss": []}
-        if self.metrics:
-            self.val_metrics.update({m.__name__: [] for m in self.metrics})
-            self.train_metrics.update({m.__name__: [] for m in self.metrics})
 
         self.start_time = time.time()
         self.best_metric = None
@@ -123,17 +120,16 @@ class Trainer:
             if self.stop_training:
                 return self.finish_training(epoch)
             else:
+                # train mode
+                self.model.train()
                 # 'running_loss' accumulates loss until it gets printed every 'show_train_steps'.
-                running_loss = []
                 # 'accumulates predictions and labels until the metrics are calculated in the epoch
+                running_loss = []
                 all_outputs = []
                 all_labels = []
 
                 if self.scheduler:
                     self.scheduler.step(epoch)
-
-                # train mode
-                self.model.train()
     
                 for i, data in enumerate(train_loader):
                     try:
@@ -179,8 +175,8 @@ class Trainer:
                                 "[%d, %5d] loss: %.5f"
                                 % (epoch, i, np.mean(running_loss))
                             )
-                        
-                        # store the outputs and labels for computing metrics later
+                            
+                        # store the outputs and labels for computing metrics later     
                         all_outputs.append(outputs)
                         all_labels.append(labels)
                         # allows visualization of the gradient flow through the model during training
@@ -188,11 +184,13 @@ class Trainer:
                             plot_grad_flow(self.model.named_parameters())
                             
                 # <end-of-training-cycle-loop>
-                all_outputs = torch.cat(all_outputs).float()
-                all_labels = torch.cat(all_labels).float()
                 # at the end of an epoch, calculate metrics, report them and
                 # store them in respective report dicts
-                self._estimate_metrics(all_outputs, all_labels, np.mean(running_loss), phase="train")
+                self._estimate_and_report_metrics(
+                    all_outputs, all_labels, running_loss, 
+                    metrics_dict=self.train_metrics, 
+                    phase="train"
+                )
                 del all_outputs, all_labels, running_loss
                 
                 # validate every x iterations
@@ -243,15 +241,12 @@ class Trainer:
                             all_outputs.append(outputs)
                             all_labels.append(labels)
 
-                        validation_loss = np.mean(running_loss_val)
-                        print("val loss: {0:.6f}".format(validation_loss))
-                        # add loss to metrics data
-
                     # report validation metrics
-                    # weighted averages of metrics are computed over batches
-                    all_outputs = torch.cat(all_outputs).float()
-                    all_labels = torch.cat(all_labels).float()
-                    self._estimate_metrics(all_outputs, all_labels, validation_loss, phase="val")
+                    self._estimate_and_report_metrics(
+                        all_outputs, all_labels, running_loss_val, 
+                        metrics_dict=self.val_metrics, 
+                        phase="val"
+                    )
                     del all_outputs, all_labels, running_loss_val
                     
             # <end-of-epoch-loop>
@@ -290,6 +285,7 @@ class Trainer:
                 )
 
     def visualize_training(self, report, metrics=None, save_fig_path=""):
+        # TODO plot metrics for all tasks in a multi-task training 
         # Plot loss first
         plt.figure()
         plt.plot(report["train_metrics"]["loss"])
@@ -339,137 +335,146 @@ class Trainer:
             device = additional_gpu
         else:
             device = self.device
-
+            
+        running_loss = []
         all_outputs = []
         all_labels = []
 
         with torch.no_grad():
             for i, data in enumerate(val_loader):
                 inputs, labels = data[inputs_key], data[labels_key]
-                inputs = inputs.to(device)
-                labels = labels.to(device)
-
-                outputs = self.model(inputs)
+                # in case of multi-input or output create a list
+                if isinstance(inputs, list):
+                    inputs = [inp.to(self.device) for inp in inputs]
+                else:
+                    inputs = inputs.to(self.device)
+                if isinstance(labels, list):
+                    labels = [label.to(self.device) for label in labels]
+                else:
+                    labels = labels.to(self.device)
+                    
+                if self.training_time_callback:
+                    outputs = self.training_time_callback(
+                        inputs, labels, 1, 1)
+                else:
+                    outputs = self.model(inputs)
+                    
+                loss = self.criterion(outputs, labels)
+                
+                running_loss.append(loss.item())
                 all_outputs.append(outputs)
                 all_labels.append(labels)
-
-            all_outputs = torch.cat(all_outputs).float()
-            all_labels = torch.cat(all_labels).float()
-            # run inference
-            all_preds = predict(
-                all_outputs,
-                self.prediction_type,
-                self.criterion,
-                class_threshold=self.class_threshold
-            )
+                
             # calculate the loss criterion metric
-            loss_score = self.criterion(all_outputs, all_labels)
-            results = {"loss": loss_score.item()}
-
-        # calculate metrics
-        for metric in self.metrics:
-            if isinstance(all_preds[0], list):
-                result = np.mean([metric(labels, preds) for labels,preds in zip(all_labels, all_preds)])
-            else:
-                result = metric(all_labels, all_preds)
-
-            results.update({metric.__name__: result})
+            results = {"loss": []}
+                
+            # calculate metrics
+            self._estimate_and_report_metrics(
+                all_outputs, all_labels, running_loss, 
+                metrics_dict=results, 
+                phase="eval"
+            )
 
         if write_to_dir:
+            results = {k:v[0] for k,v in results.items()}
             with open(write_to_dir + "results.json", "w") as f:
                 json.dump(results, f)
-
-        print("evaluation results :\n", results)
-
-        # compute confusion matrix if it is a binary classification task
-        if self.prediction_type == "binary":
-            cm = confusion_matrix(all_labels, all_preds)
-            plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
-
-            # Visualize the confusion matrix
-            classes = ["control", "patient"]
-            tick_marks = np.arange(len(classes))
-            plt.xticks(tick_marks, classes, rotation=45)
-            plt.yticks(tick_marks, classes)
-
-            fmt = "d"
-            thresh = cm.max() / 2.
-            for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-                plt.text(
-                    j,
-                    i,
-                    format(cm[i, j], fmt),
-                    horizontalalignment="center",
-                    color="white" if cm[i, j] > thresh else "black",
-                )
-            plt.title("Confusion Matrix")
-            plt.ylabel("True label")
-            plt.xlabel("Predicted label")
-            if write_to_dir:
+            
+            # compute confusion matrix if it is a binary classification task
+            if self.prediction_type == 'binary':
                 plt.savefig(write_to_dir + "confusion_matrix.png")
                 plt.close()
-            else:
+        else:
+            if self.prediction_type == 'binary':
                 plt.show()
 
         self.model.train()
 
-    def _report_metrics(
+        
+    def _estimate_and_report_metrics(
             self,
+            all_outputs,
+            all_labels,
+            running_loss,
             metrics_dict,
             phase
     ):
-
-        # report execution time only in training phase
+        """
+        at the end of an epoch
+        (a) calculate metrics
+        (b) store results in respective report dicts
+        (c) report metrics """                        
+        # report execution time, only in training phase
         if phase == "train":
             time_elapsed = int(time.time() - self.start_time)
             print("Time elapsed: {}h:{}m:{}s".format(
                 time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60))
-
-        # print the scores
-        for metric in self.metrics:
-            score = metrics_dict[metric.__name__][-1]
-            if isinstance(score, float):
-                print("{} {}: {:.2f} %".format(
-                    phase, metric.__name__, score * 100))
-            else:
-                print("{} {}: {} ".format(
-                    phase, metric.__name__, str(score)))
-
-    def _estimate_metrics(
-            self,
-            all_outputs,
-            all_labels,
-            loss,
-            phase
-    ):
-        """at the end of an epoch
-        (a) calculate metrics
-        (b) report metrics
-        (c) store results in respective report dicts - train_metrics / val_metrics """
-        if phase.lower() == 'train':
-            metrics_dict = self.train_metrics
-        elif phase.lower() == 'val':
-            metrics_dict = self.val_metrics
+            
+        if isinstance(all_outputs[0], list):
+            all_outputs = [torch.cat(out).float() for out in zip(*all_outputs)]
+            all_labels = [torch.cat(lbl).float() for lbl in zip(*all_labels)]                   
         else:
-            assert "Invalid 'phase' defined. Can only be one of ['train', 'val']"
+            all_outputs = [torch.cat(all_outputs).float()]
+            all_labels = [torch.cat(all_labels).float()]
 
         # add loss to metrics_dict
+        loss = np.mean(running_loss)
         metrics_dict["loss"].append(loss)
+        # print the loss for val and eval phases
+        if phase != "train":
+            print("{} loss: {:.5f}".format(phase, loss))
+            
         # add other metrics to the metrics_dict
-        if all_outputs.nelement():  # check for unreported metrics
+        for i, (all_output, all_label) in enumerate(zip(all_outputs, all_labels)):
             # perform inference on the outputs
-            all_preds = predict(all_outputs,
+            all_pred = predict(all_output,
                                 self.prediction_type,
                                 self.criterion,
                                 class_threshold=self.class_threshold
                                 )
-
+            # If it is a multi-head training then append prefix            
+            if i==0:
+                metric_prefix = "" 
+            else:
+                metric_prefix = "task{} ".format(i+1)
+                
+            # report metrics
             for metric in self.metrics:
-                if isinstance(all_preds[0], list):
-                    result = np.mean([metric(labels, preds) for labels,preds in zip(all_labels, all_preds)])
+                metric_name = metric_prefix + metric.__name__ 
+                result = metric(all_label, all_pred)
+                if isinstance(result, float):
+                    print("{} {}: {:.2f} %".format(
+                        phase, metric_name, result * 100))
                 else:
-                    result = metric(all_labels, all_preds)
+                    print("{} {}: {} ".format(
+                        phase, metric_name, str(result)))
+                # store results in the report dict
+                if metric_name in metrics_dict:
+                    metrics_dict[metric_name].append(result)
+                else:                    
+                    metrics_dict[metric_name] = [result]
+                
+                # plot confusion graph if it is a binary classification
+                if phase == "eval" and self.prediction_type == "binary":      
+                    cm = confusion_matrix(all_label, all_pred)
+                    plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
 
-                metrics_dict[metric.__name__].append(result)
+                    # Visualize the confusion matrix
+                    classes = ["control", "patient"]
+                    tick_marks = np.arange(len(classes))
+                    plt.xticks(tick_marks, classes, rotation=45)
+                    plt.yticks(tick_marks, classes)
 
-        self._report_metrics(metrics_dict, phase)
+                    fmt = "d"
+                    thresh = cm.max() / 2.
+                    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+                        plt.text(
+                            j,
+                            i,
+                            format(cm[i, j], fmt),
+                            horizontalalignment="center",
+                            color="white" if cm[i, j] > thresh else "black",
+                        )
+                    plt.title("Confusion Matrix")
+                    plt.ylabel("True label")
+                    plt.xlabel("Predicted label")

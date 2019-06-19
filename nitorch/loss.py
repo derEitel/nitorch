@@ -79,7 +79,7 @@ class Multihead_loss(torch.nn.Module):
         self.weights = weights
 
     def forward(self, outputs, target):
-        assert len(outputs) == len(target)
+        assert len(outputs) == len(target), "len(outputs)={} and len(target)={}".format(len(outputs),len(target))
         assert (
             len(self.loss_function) == len(target)
             or len(self.loss_function) == 1
