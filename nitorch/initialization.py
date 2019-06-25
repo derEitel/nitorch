@@ -5,11 +5,14 @@ from torch.nn import init, Conv3d, BatchNorm3d, Linear
 def xavier(x):
     return init.xavier_normal_(x)
 
+
 def xavier_uniform(x):
     return init.xavier_uniform_(x)
 
+
 def he(x):
     return init.kaiming_normal_(x)
+
 
 def he_uniform(x):
     return init.kaiming_uniform_(x)

@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 
+
 class BCE_KL_loss(torch.nn.Module):
     """ 
     Reconstruction loss for variational auto-encoders.
@@ -13,6 +14,7 @@ class BCE_KL_loss(torch.nn.Module):
         outputs: List of the form [reconstruction, mean, logvariance].
         x: ground-truth.
     """
+
     def __init__(self):
         super(BCE_KL_loss, self).__init__()
 
@@ -28,6 +30,7 @@ class BCE_KL_loss(torch.nn.Module):
 
         return BCE + KLD
 
+
 class MSE_KL_loss(torch.nn.Module):
     """ 
     Reconstruction loss for variational auto-encoders.
@@ -40,6 +43,7 @@ class MSE_KL_loss(torch.nn.Module):
         outputs: List of the form [reconstruction, mean, logvariance].
         x: ground-truth.
     """
+
     def __init__(self):
         super(MSE_KL_loss, self).__init__()
 
@@ -55,6 +59,7 @@ class MSE_KL_loss(torch.nn.Module):
 
         return MSE + KLD
 
+
 class Multihead_loss(torch.nn.Module):
     """
     Compute the loss on multiple outputs.
@@ -66,6 +71,7 @@ class Multihead_loss(torch.nn.Module):
             len(loss_function) = len(targets) or len(loss_function) = 1.
         weights: List of weights for each loss. Default = [1]
     """
+
     def __init__(self, loss_function, weights=[1]):
         super(Multihead_loss, self).__init__()
 
@@ -73,20 +79,26 @@ class Multihead_loss(torch.nn.Module):
         self.weights = weights
 
     def forward(self, outputs, target):
-        assert(len(outputs) == len(target))
-        assert(len(self.loss_function) == len(target) \
-            or len(self.loss_function) == 1)
+        assert len(outputs) == len(target), "len(outputs)={} and len(target)={}".format(len(outputs),len(target))
+        assert (
+            len(self.loss_function) == len(target)
+            or len(self.loss_function) == 1
+        )
 
         # expand loss_function list if univariate
         if len(self.loss_function) == 1:
-            self.loss_function = [self.loss_function[0] for i in range(len(target))]
+            self.loss_function = [
+                self.loss_function[0] for _ in range(len(target))
+            ]
         # expand weights list if univariate
         if len(self.weights) == 1:
-            self.weights = [self.weights[0] for i in range(len(target))]
+            self.weights = [self.weights[0] for _ in range(len(target))]
 
         # compute loss for each head
-        total_loss = 0.
-        for out, gt, loss_func, weight in zip(outputs, target, self.loss_function, self.weights):
+        total_loss = 0.0
+        for out, gt, loss_func, weight in zip(
+            outputs, target, self.loss_function, self.weights
+        ):
             loss = loss_func(out, gt)
             total_loss += loss * weight
         return total_loss
