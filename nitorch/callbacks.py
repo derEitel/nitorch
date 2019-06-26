@@ -34,19 +34,25 @@ class Callback:
 
 class ModelCheckpoint(Callback):
     """
-    # TODO
+    Monitors training process. Saves model parameters after certain iterations or/and
+    finds best parameters in all training steps. Optionally, saves parameters to disk.
 
     Arguments:
         path:
         num_iters: number of iterations after which to store the model.
             If set to -1, it will only store the last iteration's model.
+        retain_metric: the metric which will be monitored
         prepend: string to prepend the filename with.
         ignore_before: ignore early iterations.
-        store_best: boolen whether to save the best model during
+        store_best: boolean, whether to save the best model during
             training.
-        store_best_metric: name of the metric to use for best model
-            selection.
         mode: "max" or "min".
+        window: if set to integer number "x", retain_metric will be
+            monitored in a window of size x. Best model will be chosen
+            according to best mean window result of all windows in
+            retain_metric.
+        info; prints in combination with window mode information about
+            current best window quantities.
     """
 
     def __init__(
@@ -278,11 +284,16 @@ class EarlyStopping(Callback):
     Arguments
         patience: number of iterations without improvement after which
             to stop
-        retain_metric: the metric which you want to monitor
+        retain_metric: the metric which will be monitored
         mode: {min or max}; defines if you want to maximise or minimise
             your metric
         ignore_before: does not start the first window until this epoch.
             Can be useful when training spikes a lot in early epochs.
+        window: if set to integer number "x", quantity will be
+            monitored in a window of size x. Training will be stopped when
+            mean quantity in a window has stopped improving.
+        info; prints in combination with window mode information about
+            current best window quantities.
     """
 
     def __init__(self, patience, retain_metric, mode, ignore_before=0, window=None, info=False):
