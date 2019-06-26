@@ -427,7 +427,9 @@ class Trainer:
         # add other metrics to the metrics_dict
         for i, (all_output, all_label) in enumerate(zip(all_outputs, all_labels)):
             # perform inference on the outputs
-            all_pred = predict(all_output,
+            all_pred, all_label = predict(
+                                all_output, 
+                                all_label,
                                 self.prediction_type,
                                 self.criterion,
                                 class_threshold=self.class_threshold
