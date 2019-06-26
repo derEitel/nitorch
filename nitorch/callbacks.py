@@ -2,6 +2,7 @@ import os
 from copy import deepcopy
 import numpy as np
 import math
+import copy
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
@@ -80,7 +81,10 @@ class ModelCheckpoint(Callback):
         self.current_window_best_epoch = -1
         self.current_window_save_idx = -1
         self.current_window_best_model_save_idx = 0
-        self.state_dict_storage = [0] * window
+        if window:
+            self.state_dict_storage = [0] * window
+        else:
+            self.state_dict_storage = [0]
         self.store_best = store_best
         self.retain_metric = retain_metric
         self.mode = mode
@@ -161,7 +165,7 @@ class ModelCheckpoint(Callback):
                         self.current_window_save_idx += 1
                         self.current_window_save_idx = divmod(self.current_window_save_idx, self.window)[1]
 
-                    # always update current window best
+                    # always update current window best result - it might be at some point overall best result
                     current_window_best_idx = self.get_cur_win_best_idx(window_val_metrics)
                     if current_window_best_idx == len(window_val_metrics) - 1 \
                             or len(window_val_metrics) == 1:  # case of improvement or initialisation
@@ -173,10 +177,10 @@ class ModelCheckpoint(Callback):
                     # check if mean has improved and copy values as best model result
                     if self.has_window_mean_improved(mean_window_res):
                         self.best_mean_res = mean_window_res
-                        self.best_window_start = 0 if epoch - self.window < 0 else epoch - self.window
+                        self.best_window_start = 0 if epoch - self.window + 1 < 0 else epoch - self.window + 1
                         # save current window best as overall best
                         self.best_res = self.current_window_best_res
-                        self.best_model = self.state_dict_storage[self.current_window_best_model_save_idx]
+                        self.best_model = copy.deepcopy(self.state_dict_storage[self.current_window_best_model_save_idx])
                         if self.info:
                             print("Found a window with better validation metric mean:")
                             print("\t metric mean: {}".format(mean_window_res))
@@ -268,7 +272,7 @@ class ModelCheckpoint(Callback):
 
 
 class EarlyStopping(Callback):
-    """ 
+    """
     Stop training when a monitored quantity has stopped improving.
 
     Arguments
@@ -281,7 +285,7 @@ class EarlyStopping(Callback):
             Can be useful when training spikes a lot in early epochs.
     """
 
-    def __init__(self, patience, retain_metric, mode, ignore_before=0):
+    def __init__(self, patience, retain_metric, mode, ignore_before=0, window=None, info=False):
         super().__init__()
         self.patience = patience
         self.retain_metric = retain_metric
@@ -290,6 +294,48 @@ class EarlyStopping(Callback):
         self.best_res = -1
         # set to first iteration which is interesting
         self.best_epoch = self.ignore_before
+        # window mod
+        self.best_mean_res = -1
+        self.best_window_start = -1
+        self.current_window_best_res = -1
+        self.current_window_best_epoch = -1
+        self.current_window_save_idx = -1
+        self.current_window_best_model_save_idx = 0
+        if window:
+            self.state_dict_storage = [0] * window
+        else:
+            self.state_dict_storage = [0]
+        self.mode = mode
+        self.window = window
+        self.info = info
+
+    def first_val_better(self, v1, v2):
+        if self.mode == "max":
+            return v1 >= v2
+        elif self.mode == "min":
+            return v1 <= v2
+        else:
+            raise NotImplementedError("Only modes 'min' and 'max' available")
+
+    def get_cur_win_best_idx(self, val_metr):
+        if self.mode == "max":
+            return val_metr.index(max(val_metr))
+        elif self.mode == "min":
+            return val_metr.index(min(val_metr))
+        else:
+            raise NotImplementedError("Only modes 'min' and 'max' available")
+
+    def has_window_mean_improved(self, mean_window_res):
+        if self.mode == "max":
+            return mean_window_res >= self.best_mean_res
+        elif self.mode == "min":
+            # check if still standard value
+            if self.best_mean_res == -1:
+                return True
+            else:
+                return mean_window_res <= self.best_mean_res
+        else:
+            raise NotImplementedError("Only modes 'min' and 'max' available")
 
     def __call__(self, trainer, epoch):
         if epoch >= self.ignore_before:
@@ -298,19 +344,92 @@ class EarlyStopping(Callback):
                     current_res = trainer.val_metrics[self.retain_metric][-1]
                 else:
                     current_res = trainer.val_metrics[self.retain_metric.__name__][-1]
-                if self.has_improved(current_res):
-                    self.best_res = current_res
-                    self.best_epoch = epoch
-                    self.best_res = current_res
-                    trainer.best_metric = current_res
-                    trainer.best_model = trainer.model
+                if self.window is None:
+                    if self.has_improved(current_res):
+                        self.best_epoch = epoch
+                        self.best_res = current_res
+                        trainer.best_metric = current_res
+                        trainer.best_model = trainer.model
+                else:  # window mod
+                    # get validation metrics in certain window
+                    try:
+                        if isinstance(self.retain_metric, str):
+                            start = len(trainer.val_metrics[self.retain_metric]) - self.window
+                            start = 0 if start < 0 else start
+
+                            window_val_metrics = trainer.val_metrics[self.retain_metric][start:]
+                        else:
+                            start = len(trainer.val_metrics[self.retain_metric.__name__]) - self.window
+                            start = 0 if start < 0 else start
+                            window_val_metrics = trainer.val_metrics[self.retain_metric.__name__][start:]
+                    except KeyError:
+                        print(
+                            "Couldn't find {} in validation metrics. Using \
+                            loss instead.".format(
+                                self.retain_metric
+                            )
+                        )
+                        start = len(trainer.val_metrics[self.retain_metric]) - self.window
+                        start = 0 if start < 0 else start
+                        window_val_metrics = trainer.val_metrics["loss"][start:]
+
+                    # build mean
+                    mean_window_res = np.mean(window_val_metrics)
+
+                    # only safe when improvement to previous epoch detected
+                    # only a value BETTER than before can be the minimum/maximum of a
+                    # window with better mean than a previously detected window
+                    if len(window_val_metrics) == 1 \
+                            or self.first_val_better(window_val_metrics[-1], window_val_metrics[-2]) \
+                            or self.current_window_save_idx == -1:
+                        if self.current_window_save_idx == -1:
+                            self.current_window_save_idx = 0
+                        self.state_dict_storage[self.current_window_save_idx] = deepcopy(trainer.model.state_dict())
+                        # increase save idx and take modulo
+                        self.current_window_save_idx += 1
+                        self.current_window_save_idx = divmod(self.current_window_save_idx, self.window)[1]
+                    else:  # only increase current_window_save_idx (for modulo index calculation to work)
+                        self.current_window_save_idx += 1
+                        self.current_window_save_idx = divmod(self.current_window_save_idx, self.window)[1]
+
+                    # always update current window best result - it might be at some point overall best result
+                    current_window_best_idx = self.get_cur_win_best_idx(window_val_metrics)
+                    if current_window_best_idx == len(window_val_metrics) - 1 \
+                            or len(window_val_metrics) == 1:  # case of improvement or initialisation
+                        # overwrite model_state saved so far
+                        self.current_window_best_model_save_idx = self.current_window_save_idx
+                        self.current_window_best_epoch = epoch
+                        self.current_window_best_res = window_val_metrics[-1]
+
+                    # check if mean has improved and copy values as best model result
+                    if self.has_window_mean_improved(mean_window_res):
+                        self.best_mean_res = mean_window_res
+                        self.best_window_start = 0 if epoch - self.window + 1 < 0 else epoch - self.window + 1
+                        # save current window best as overall best
+                        self.best_res = self.current_window_best_res
+                        self.best_model = copy.deepcopy(self.state_dict_storage[self.current_window_best_model_save_idx])
+                        self.best_epoch = self.current_window_best_epoch
+                        trainer.best_metric = self.current_window_best_res
+                        trainer.best_model = trainer.model
+                        if self.info:
+                            print("Found a window with better validation metric mean:")
+                            print("\t metric mean: {}".format(mean_window_res))
+                            print("\t epoch start: {}".format(self.best_window_start))
+                            print("\t best result: {}".format(self.best_res))
 
             else:
                 # end training run
                 trainer.stop_training = True
-                print("Early stopping at epoch {}.\nBest model was at epoch {} with val metric score = {}".format(
-                    epoch, self.best_epoch, self.best_res)
-                )
+                if self.window is None:
+                    print("Early stopping at epoch {}.\nBest model was at epoch {} with val metric score = {}".format(
+                        epoch, self.best_epoch, self.best_res)
+                    )
+                else:
+                    print("Early stopping with window mode at epoch {}.\n"
+                          "Best results were achieved at epoch {} with val metric score = {}.\n"
+                          "Best window of size {} achieved a mean result of {} and started at epoch {}.".format(
+                        epoch, self.best_epoch, self.best_res, self.window, self.best_mean_res, self.best_window_start)
+                    )
 
     def has_improved(self, res):
         if self.mode == "max":
@@ -333,7 +452,7 @@ class EarlyStopping(Callback):
         self.reset()
 
 
-# Functions which can be used in custom-callbacks for visualizing 3D-features during training 
+# Functions which can be used in custom-callbacks for visualizing 3D-features during training
 # (using the argument 'training_time_callback' in nitorch's Trainer class )
 def visualize_feature_maps(features, return_fig=False):
     if features.is_cuda:
@@ -346,7 +465,7 @@ def visualize_feature_maps(features, return_fig=False):
     fig = plt.figure(figsize=fig_size)
 
     for i, f in enumerate(features, 1):
-        # normalize to range [0, 1] first as the values can be very small            
+        # normalize to range [0, 1] first as the values can be very small
         if (f.max() - f.min()) != 0:
             f = (f - f.min()) / (f.max() - f.min())
 
@@ -355,7 +474,7 @@ def visualize_feature_maps(features, return_fig=False):
             if len(vals):
                 # calculate the index where the mean value would lie
                 mean_idx = np.average(idxs, axis=1, weights=vals)
-                # calculate the angel ratios for each non-zero val            
+                # calculate the angel ratios for each non-zero val
                 angles = (mean_idx.reshape(-1, 1) - idxs)
                 angles = angles / (np.max(abs(angles), axis=1).reshape(-1, 1))
             else:  # if all values in f are zero, set dummy angle
@@ -383,7 +502,7 @@ class CAE_VisualizeTraining(Callback):
     training_time_callback that prints the model dimensions,
     visualizes CAE encoder outputs, original image and reconstructed image
     during training.
-    
+
     NOTE : The forward() function of the CAE model using this callback
     must return a (decoder_output, encoder_output) tuple.
     """
