@@ -406,7 +406,7 @@ class EarlyStopping(Callback):
                     # always update current window best result - it might be at some point overall best result
                     current_window_best_idx = self.get_cur_win_best_idx(window_val_metrics)
                     if current_window_best_idx == len(window_val_metrics) - 1 \
-                            or len(window_val_metrics) == 1:  # case of improvement or initialisation
+                            or self.current_window_best_res == -1:  # case of improvement or initialisation
                         # overwrite model_state saved so far
                         self.current_window_best_model_save_idx = self.current_window_save_idx
                         self.current_window_best_epoch = epoch
