@@ -40,15 +40,12 @@ def auc_score(y_true, y_pred):
 
 
 def classif_accuracy(labels, preds):
-    if isinstance(labels, list):  # multihead accuracy
-        return [classif_accuracy(each_labels, each_preds) for each_labels, each_preds in zip(labels, preds)]
-    else:
-        correct = (labels.int() == preds.int()).sum()
-        return (correct.float()/len(labels)).item()
+    # care should be taken that both predictions and labels are class numbers and not one-hot vectors
+    correct = labels.int().eq(preds.int()).sum()
+    return (correct.float()/(len(labels))).item()
 
 
 def regression_accuracy(labels, preds):
-    if isinstance(labels, list):  # multihead accuracy
-        return [regression_accuracy(each_labels, each_preds) for each_labels, each_preds in zip(labels, preds)]
-    else:
-        return (1.-F.l1_loss(preds, target=labels)).item()
+    # TODO: currently, accuracy scores are sensible only if label value ranges within [0,1], 
+    # convert this func to a class and let user set the range of possible values
+    return (1. - F.l1_loss(preds.float(), target=labels)).item()

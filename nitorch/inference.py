@@ -48,9 +48,9 @@ def multi_classif_inference(
         criterion,
         **kwargs
 ):
-    all_preds = torch.argmax(all_outputs.data, 1)    
+    all_preds = torch.argmax(all_outputs.data, 1)   
     # convert the labels from one-hot vectors to class variables for metric calculations
-    if isinstance(criterion, nn.BCELoss):
+    if isinstance(criterion, (nn.BCELoss, nn.BCEWithLogitsLoss)):
         all_labels = torch.argmax(all_labels.data, 1)
-    # TODO : Test other loss types like NLL and BCEWithLogitsLoss
+    # TODO : Test other loss types like NLL
     return all_preds, all_labels
