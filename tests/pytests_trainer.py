@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     print("Starting tests ...")
     if(torch.cuda.is_available()):
-        device = torch.device('cuda')
+        device = torch.device('cpu')
         print("Running on GPU ...")
     else:
         device = torch.device('cpu')

@@ -22,6 +22,7 @@ class Trainer:
             training_time_callback=None,
             device=torch.device("cuda"),
             prediction_type="binary",
+            multitask=False,
             **kwargs
     ):
         """ Main class for training.
@@ -31,6 +32,9 @@ class Trainer:
             optimizer: optimization function.
             scheduler: schedules the optimizer.
             metrics: list of metrics to report. Default is None.
+                     when multitask training = True,
+                     metrics can be a list of lists such that len(metrics) =  number of tasks. If not,
+                     metrics are calculated only for the first task.
             callbacks: list of callbacks to execute at the end of training epochs. Default is None.
             training_time_callback: a user-defined callback that executes the model.forward()
                 and returns the output to the trainer.
@@ -52,9 +56,19 @@ class Trainer:
         self.criterion = criterion
         self.optimizer = optimizer
         self.scheduler = scheduler
-        self.metrics = metrics
+        self.multitask = multitask
+        if self.multitask:            
+            self.metrics = metrics 
+            self.prediction_type = prediction_type 
+            self.criterions = criterion.loss_function
+        else:   
+            self.metrics = [metrics]
+            self.prediction_type = [prediction_type]
+            self.criterions = [criterion]
+            
         self.callbacks = callbacks
         self.training_time_callback = training_time_callback
+        
         if isinstance(device, int):
             self.device = torch.device("cuda:" + str(device))
         elif isinstance(device, torch.device):
@@ -68,7 +82,6 @@ class Trainer:
             self.class_threshold = None
         self.stop_training = False
         self.start_time = None
-        self.prediction_type = prediction_type #TODO : for multi-head tasks allow a list of prediction_types to be provided
         self.val_metrics = {"loss": []}
         self.train_metrics = {"loss": []}
         self.best_metric = None
@@ -142,12 +155,14 @@ class Trainer:
                         except TypeError:
                             raise TypeError
                     
-                    # in case of multi-input or output create a list
+                    # in case of multi-task training create a list
                     if isinstance(inputs, list):
                         inputs = [inp.to(self.device) for inp in inputs]
                     else:
                         inputs = inputs.to(self.device)
                     if isinstance(labels, list):
+                        assert self.multitask, "'multitask' is set to False during init \
+but training with multiple labels"
                         labels = [label.to(self.device) for label in labels]
                     else:
                         labels = labels.to(self.device)
@@ -412,7 +427,16 @@ class Trainer:
             
         if isinstance(all_outputs[0], list):
             all_outputs = [torch.cat(out).float() for out in zip(*all_outputs)]
-            all_labels = [torch.cat(lbl).float() for lbl in zip(*all_labels)]                   
+            all_labels = [torch.cat(lbl).float() for lbl in zip(*all_labels)]
+            if not all([isinstance(metrics_per_task, list) for metrics_per_task in self.metrics]):
+                print("WARNING: You are doing multi-task training. You should provide metrics for each \
+sub-task as a list of lists but a single value is provided. No metrics will be calculated for secondary tasks")
+                self.metrics = [self.metrics] + [[] for _ in range(len(all_outputs))]
+            if not isinstance(self.prediction_type, list):
+                print("WARNING: In multi-task training, you should provide prediction_type\
+ for each sub-task as a list but a single value is provided. Assuming the secondary tasks have\
+ the same prediction_type '{}'!".format(self.prediction_type))
+                self.prediction_type = [self.prediction_type for _ in range(len(all_outputs))]
         else:
             all_outputs = [torch.cat(all_outputs).float()]
             all_labels = [torch.cat(all_labels).float()]
@@ -421,29 +445,30 @@ class Trainer:
         loss = np.mean(running_loss)
         metrics_dict["loss"].append(loss)
         # print the loss for val and eval phases
-        if phase != "train":
+        if phase  in ["val","eval"]:
             print("{} loss: {:.5f}".format(phase, loss))
             
-        # add other metrics to the metrics_dict
-        for i, (all_output, all_label) in enumerate(zip(all_outputs, all_labels)):
+        # calculate other metrics and add to the metrics_dict for all tasks
+        for task_idx in range(len(all_outputs)):
             # perform inference on the outputs
             all_pred, all_label = predict(
-                                all_output, 
-                                all_label,
-                                self.prediction_type,
-                                self.criterion,
+                                all_outputs[task_idx], 
+                                all_labels[task_idx],
+                                self.prediction_type[task_idx],
+                                self.criterions[task_idx],
                                 class_threshold=self.class_threshold
                                 )
             # If it is a multi-head training then append prefix            
-            if i==0:
+            if task_idx==0:
                 metric_prefix = "" 
             else:
-                metric_prefix = "task{} ".format(i+1)
+                metric_prefix = "task{} ".format(task_idx+1)
                 
             # report metrics
-            for metric in self.metrics:
-                metric_name = metric_prefix + metric.__name__ 
+            for metric in self.metrics[task_idx]:
                 result = metric(all_label, all_pred)
+                
+                metric_name = metric_prefix + metric.__name__ 
                 if isinstance(result, float):
                     print("{} {}: {:.2f} %".format(
                         phase, metric_name, result * 100))
@@ -456,27 +481,27 @@ class Trainer:
                 else:                    
                     metrics_dict[metric_name] = [result]
                 
-                # plot confusion graph if it is a binary classification
-                if phase == "eval" and self.prediction_type == "binary":      
-                    cm = confusion_matrix(all_label, all_pred)
-                    plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
+            # plot confusion graph if it is a binary classification
+            if phase == "eval" and self.prediction_type[task_idx] == "binary":      
+                cm = confusion_matrix(all_label, all_pred)
+                plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
 
-                    # Visualize the confusion matrix
-                    classes = ["control", "patient"]
-                    tick_marks = np.arange(len(classes))
-                    plt.xticks(tick_marks, classes, rotation=45)
-                    plt.yticks(tick_marks, classes)
+                # Visualize the confusion matrix
+                classes = ["control", "patient"]
+                tick_marks = np.arange(len(classes))
+                plt.xticks(tick_marks, classes, rotation=45)
+                plt.yticks(tick_marks, classes)
 
-                    fmt = "d"
-                    thresh = cm.max() / 2.
-                    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-                        plt.text(
-                            j,
-                            i,
-                            format(cm[i, j], fmt),
-                            horizontalalignment="center",
-                            color="white" if cm[i, j] > thresh else "black",
-                        )
-                    plt.title("Confusion Matrix")
-                    plt.ylabel("True label")
-                    plt.xlabel("Predicted label")
+                fmt = "d"
+                thresh = cm.max() / 2.
+                for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+                    plt.text(
+                        j,
+                        i,
+                        format(cm[i, j], fmt),
+                        horizontalalignment="center",
+                        color="white" if cm[i, j] > thresh else "black",
+                    )
+                plt.title("Confusion Matrix")
+                plt.ylabel("True label")
+                plt.xlabel("Predicted label")
