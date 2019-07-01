@@ -10,3 +10,4 @@ install:
 script:
   - python tests/pytests_trainer.py
   - python tests/pytests_transforms.py
+  - python tests/pytests_multihead.py
