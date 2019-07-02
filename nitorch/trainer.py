@@ -300,35 +300,24 @@ but training with multiple labels"
                 )
 
     def visualize_training(self, report, metrics=None, save_fig_path=""):
-        # TODO plot metrics for all tasks in a multi-task training 
-        # Plot loss first
-        plt.figure()
-        plt.plot(report["train_metrics"]["loss"])
-        plt.plot(report["val_metrics"]["loss"])
-        plt.title("Loss during training")
-        plt.legend(["Train", "Val"])
-        if save_fig_path:
-            plt.savefig(save_fig_path)
-        plt.show()
-        if metrics is None:
-            metrics = self.metrics
-        for metric in metrics:
-            plt.figure()
-            plt.plot(report["train_metrics"][metric.__name__])
-            plt.plot(report["val_metrics"][metric.__name__])
-            plt.legend(["Train", "Val"])
-            plt.title(metric.__name__)
-            if save_fig_path:
-                plt.savefig(save_fig_path + "_" + metric.__name__)
-                plt.close()
-            else:
-                plt.show()
+        for metric_name in report["train_metrics"].keys():
+            # if metrics is not specified, plot everything, otherwise only plot the given metrics
+            if metrics is None or metric_name.split(" ")[-1] in metrics:
+                plt.figure()
+                plt.plot(report["train_metrics"][metric_name])
+                plt.plot(report["val_metrics"][metric_name])
+                plt.legend(["Train", "Val"])
+                plt.title(metric_name)
+                if save_fig_path:
+                    plt.savefig(save_fig_path + "_" + metric_name.replace(" ", "_"))
+                    plt.close()
+                else:
+                    plt.show()
 
     def evaluate_model(
             self,
             val_loader,
             additional_gpu=None,
-            metrics=[],
             inputs_key="image",
             labels_key="label",
             write_to_dir=''
@@ -340,7 +329,6 @@ but training with multiple labels"
             val_loader : data loader of the validation set
             additional_gpu : GPU number if evaluation should be done on
                 separate GPU
-            metrics: list of
             write_to_dir: the outputs of the evaluation are written to files path provided
         """
 
