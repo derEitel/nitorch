@@ -318,6 +318,7 @@ but training with multiple labels"
             self,
             val_loader,
             additional_gpu=None,
+            metrics=[],
             inputs_key="image",
             labels_key="label",
             write_to_dir=''
@@ -371,6 +372,13 @@ but training with multiple labels"
             # calculate the loss criterion metric
             results = {"loss": []}
                 
+            # if new metrics are provided, update self.metrics
+            if metrics:
+                if self.multitask:            
+                    self.metrics = metrics 
+                else:
+                    self.metrics = [metrics]
+                    
             # calculate metrics
             self._estimate_and_report_metrics(
                 all_outputs, all_labels, running_loss, 
