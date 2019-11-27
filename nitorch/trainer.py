@@ -91,6 +91,9 @@ class Trainer:
             self,
             train_loader,
             val_loader,
+            branch_type='global',
+            region=None,
+            nmm_mask_path=None,
             inputs_key="image",
             labels_key="label",
             num_epochs=25,
@@ -167,6 +170,26 @@ but training with multiple labels"
                     else:
                         labels = labels.to(self.device)
 
+                    if branch_type == 'local':
+                        nmm_mask = get_mask(nmm_mask_path)
+                        region_mask = extract_region_mask(nmm_mask, region)
+                        inputs = self.extract_region(inputs, region_mask)                            
+                        if epoch == 0 and i == 0:
+                            img_cropped = inputs.cpu()
+                            plt.imshow(img_cropped[0][0][:,:,70], cmap='gray')
+                            plt.contour(region_mask[:,:,70], colors='yellow')
+                            plt.show()
+
+                    if branch_type == 'multiple':
+                        nmm_mask = get_mask(nmm_mask_path)
+                        region_mask = extract_multiple_regions_mask(nmm_mask, region)
+                        inputs = self.extract_region(inputs, region_mask)                            
+                        if epoch == 0 and i == 0:
+                            img_cropped = inputs.cpu()
+                            plt.imshow(img_cropped[0][0][:,:,30], cmap='gray')
+                            plt.contour(region_mask[:,:,30], colors='yellow')
+                            plt.show()
+
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
 
@@ -237,6 +260,18 @@ but training with multiple labels"
                                 labels = [label.to(self.device) for label in labels]
                             else:
                                 labels = labels.to(self.device)
+                        if branch_type == 'local':
+                            nmm_mask = get_mask(nmm_mask_path)
+                            region_mask = extract_region_mask(nmm_mask, region)
+                            inputs = self.extract_region(inputs, region_mask)  
+
+                        if branch_type == 'multiple':
+                            nmm_mask = get_mask(nmm_mask_path)
+                            region_mask = extract_multiple_regions_mask(nmm_mask, region)
+                            inputs = self.extract_region(inputs, region_mask)  
+
+
+
 
                             # forward pass only
                             if self.training_time_callback is not None:
@@ -317,6 +352,11 @@ but training with multiple labels"
     def evaluate_model(
             self,
             val_loader,
+            branch_type='global',
+            local_coords=None,
+            local_size=None,
+            region=None,
+            nmm_mask_path=None,
             additional_gpu=None,
             metrics=[],
             inputs_key="image",
@@ -356,6 +396,18 @@ but training with multiple labels"
                     labels = [label.to(self.device) for label in labels]
                 else:
                     labels = labels.to(self.device)
+
+                if branch_type == 'local':
+                    nmm_mask = get_mask(nmm_mask_path)
+                    region_mask = extract_region_mask(nmm_mask, region)
+                    inputs = self.extract_region(inputs, region_mask) 
+
+                if branch_type == 'multiple':
+                    nmm_mask = get_mask(nmm_mask_path)
+                    region_mask = extract_multiple_regions_mask(nmm_mask, region)
+                    inputs = self.extract_region(inputs, region_mask)     
+
+
                     
                 if self.training_time_callback:
                     outputs = self.training_time_callback(
@@ -501,3 +553,23 @@ sub-task as a list of lists but a single value is provided. No metrics will be c
                 plt.title("Confusion Matrix")
                 plt.ylabel("True label")
                 plt.xlabel("Predicted label")
+
+   def extract_region(self, x, region_mask):
+        region_mask=torch.from_numpy(region_mask).to(self.device)
+
+        B, C, H, W, D = x.shape
+
+        patch = []
+        for i in range(B):
+            im = x[i].unsqueeze(dim=0)
+            #T = im.shape[-1]
+
+            im = im*region_mask.float()
+            # and finally extract
+            patch.append(im)
+        patch = torch.cat(patch)
+
+
+        return patch
+
+
