@@ -1,0 +1,7 @@
+{
+    "License": "Refer to Data Use Agreement at www.oasis-brains.org",
+    "DatasetDOI": "https://central.xnat.org/data/archive/projects/OASIS3/subjects/CENTRAL_S05152/experiments/CENTRAL_E09379",
+    "Name": "OASIS3",
+    "HowToAcknowledge": "Refer to documentation at www.oasis-brains.org",
+    "BidsVersion": "1.0.1"
+}
