@@ -130,6 +130,7 @@ def get_biobank(
     transforms=default_transforms,
     random_state=None,
     balance=False,
+    grouped=True,
     **kwargs,
 ):
     """Load a pre-defined databunch object for the UKBiobank data.
@@ -154,6 +155,7 @@ def get_biobank(
         num_samples=num_samples,
         z_factor=z_factor,
         transforms=transforms,
+        grouped=grouped,
         **kwargs,
     )
     db.build_dataloaders(bs=bs)

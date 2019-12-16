@@ -1,0 +1,11 @@
+{
+    "EchoTime": 4,
+    "RepetitionTime": 9.7,
+    "MagneticFieldStrength": 1.5,
+    "FlipAngle": 10,
+    "AcquisitionTime": "",
+    "ManufacturersModelName": "Vision",
+    "Manufacturer": "Siemens",
+    "ConversionSoftware": "dcm2nii",
+    "ConversionSoftwareVersion": "2013.06.12"
+}

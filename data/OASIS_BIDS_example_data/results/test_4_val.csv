@@ -1,0 +1,5 @@
+	path	labels_simplified	subjectID
+3	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30001/ses-d3132/anat/sub-OAS30001_ses-d3132_T1w.nii.gz	healthy	OAS30001
+2	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30001/ses-d2430/anat/sub-OAS30001_ses-d2430_T1w.nii.gz	healthy	OAS30001
+0	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30001/ses-d0129/anat/sub-OAS30001_ses-d0129_run-01_T1w.nii.gz	healthy	OAS30001
+1	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30001/ses-d0757/anat/sub-OAS30001_ses-d0757_run-01_T1w.nii.gz	healthy	OAS30001
