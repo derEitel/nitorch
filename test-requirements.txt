@@ -8,3 +8,4 @@ nilearn
 h5py
 tabulate
 tqdm
+torchvision
