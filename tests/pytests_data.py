@@ -302,4 +302,3 @@ if __name__ == "__main__":
 
     print("Test 4 'altering the databunch': - TEST PASSED")
     print("Test 4a 'loading databunch from csv': - TEST PASSED")
-    sys.exit()
