@@ -11,7 +11,7 @@ from torch.utils.data import Dataset, random_split, DataLoader, ConcatDataset
 
 from scipy import stats
 
-NITORCH_DIR = "/home/jpa/PycharmProjects/DML/nitroch_development/nitorch" # os.getcwd()
+NITORCH_DIR = os.getcwd()
 sys.path.insert(0, NITORCH_DIR)
 # nitorch
 from nitorch.trainer import Trainer
