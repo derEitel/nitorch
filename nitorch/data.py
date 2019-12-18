@@ -458,6 +458,7 @@ class MRIDataset(Dataset):
 
     """
 
+    # Todo: develop mutitask data (storing more than one label)
     def __init__(
             self,
             filenames: list,

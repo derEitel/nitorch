@@ -251,6 +251,7 @@ but training with multiple labels"
                                 except TypeError:
                                     raise TypeError("Data not in correct \
                                      sequence format.")
+
                             # in case of multi-input or output create a list
                             if isinstance(inputs, list):
                                 inputs = [inp.to(self.device) for inp in inputs]
@@ -260,6 +261,7 @@ but training with multiple labels"
                                 labels = [label.to(self.device) for label in labels]
                             else:
                                 labels = labels.to(self.device)
+
                         if branch_type == 'local':
                             nmm_mask = get_mask(nmm_mask_path)
                             region_mask = extract_region_mask(nmm_mask, region)
@@ -270,23 +272,23 @@ but training with multiple labels"
                             region_mask = extract_multiple_regions_mask(nmm_mask, region)
                             inputs = self.extract_region(inputs, region_mask)
 
-                            # forward pass only
-                            if self.training_time_callback is not None:
-                                outputs = self.training_time_callback(
-                                    inputs,
-                                    labels,
-                                    1,  # dummy value
-                                    1  # dummy value
-                                )
-                            else:
-                                outputs = self.model(inputs)
+                        # forward pass only
+                        if self.training_time_callback is not None:
+                            outputs = self.training_time_callback(
+                                inputs,
+                                labels,
+                                1,  # dummy value
+                                1  # dummy value
+                            )
+                        else:
+                            outputs = self.model(inputs)
 
-                            loss = self.criterion(outputs, labels)
+                        loss = self.criterion(outputs, labels)
 
-                            running_loss_val.append(loss.item())
-                            # store the outputs and labels for computing metrics later
-                            all_outputs.append(outputs)
-                            all_labels.append(labels)
+                        running_loss_val.append(loss.item())
+                        # store the outputs and labels for computing metrics later
+                        all_outputs.append(outputs)
+                        all_labels.append(labels)
 
                     # report validation metrics
                     self._estimate_and_report_metrics(

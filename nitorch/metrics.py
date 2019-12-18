@@ -42,7 +42,7 @@ def auc_score(y_true, y_pred):
 def classif_accuracy(labels, preds):
     # care should be taken that both predictions and labels are class numbers and not one-hot vectors
     correct = labels.int().eq(preds.int()).sum()
-    return (correct.float()/(len(labels))).item()
+    return (correct.float() / (len(labels))).item()
 
 
 def regression_accuracy(labels, preds):

@@ -4,3 +4,4 @@ pandas
 sklearn
 scipy
 nibabel
+h5py
