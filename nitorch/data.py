@@ -2649,7 +2649,7 @@ class DataBunch:
             stats = [
                 ["Train"] + self._get_stats(self.df_trn, self.prediction_type, self.label_col, self.ptid_col,
                                             self.classes),
-                ["Test"] + self._get_stats(self.df_val, self.prediction_type, self.label_col, self.ptid_col,
+                ["Val"] + self._get_stats(self.df_val, self.prediction_type, self.label_col, self.ptid_col,
                                            self.classes),
                 ["Hold"] + self._get_stats(self.df_ho, self.prediction_type, self.label_col, self.ptid_col,
                                            self.classes),
@@ -2659,7 +2659,7 @@ class DataBunch:
             stats = [
                 ["Train"] + self._get_stats(self.df_trn, self.prediction_type, self.label_col, self.ptid_col,
                                             self.classes),
-                ["Test"] + self._get_stats(self.df_val, self.prediction_type, self.label_col, self.ptid_col,
+                ["Val"] + self._get_stats(self.df_val, self.prediction_type, self.label_col, self.ptid_col,
                                            self.classes),
                 ["Total"] + self._get_stats(self.df, self.prediction_type, self.label_col, self.ptid_col, self.classes),
             ]

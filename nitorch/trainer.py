@@ -57,18 +57,18 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.multitask = multitask
-        if self.multitask:            
-            self.metrics = metrics 
-            self.prediction_type = prediction_type 
+        if self.multitask:
+            self.metrics = metrics
+            self.prediction_type = prediction_type
             self.criterions = criterion.loss_function
-        else:   
+        else:
             self.metrics = [metrics]
             self.prediction_type = [prediction_type]
             self.criterions = [criterion]
-            
+
         self.callbacks = callbacks
         self.training_time_callback = training_time_callback
-        
+
         if isinstance(device, int):
             self.device = torch.device("cuda:" + str(device))
         elif isinstance(device, torch.device):
@@ -146,7 +146,7 @@ class Trainer:
 
                 if self.scheduler:
                     self.scheduler.step(epoch)
-    
+
                 for i, data in enumerate(train_loader):
                     try:
                         inputs, labels = data[inputs_key], data[labels_key]
@@ -157,7 +157,7 @@ class Trainer:
                             inputs, labels = data[0], data[1]
                         except TypeError:
                             raise TypeError
-                    
+
                     # in case of multi-task training create a list
                     if isinstance(inputs, list):
                         inputs = [inp.to(self.device) for inp in inputs]
@@ -173,21 +173,21 @@ but training with multiple labels"
                     if branch_type == 'local':
                         nmm_mask = get_mask(nmm_mask_path)
                         region_mask = extract_region_mask(nmm_mask, region)
-                        inputs = self.extract_region(inputs, region_mask)                            
+                        inputs = self.extract_region(inputs, region_mask)
                         if epoch == 0 and i == 0:
                             img_cropped = inputs.cpu()
-                            plt.imshow(img_cropped[0][0][:,:,70], cmap='gray')
-                            plt.contour(region_mask[:,:,70], colors='yellow')
+                            plt.imshow(img_cropped[0][0][:, :, 70], cmap='gray')
+                            plt.contour(region_mask[:, :, 70], colors='yellow')
                             plt.show()
 
                     if branch_type == 'multiple':
                         nmm_mask = get_mask(nmm_mask_path)
                         region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                        inputs = self.extract_region(inputs, region_mask)                            
+                        inputs = self.extract_region(inputs, region_mask)
                         if epoch == 0 and i == 0:
                             img_cropped = inputs.cpu()
-                            plt.imshow(img_cropped[0][0][:,:,30], cmap='gray')
-                            plt.contour(region_mask[:,:,30], colors='yellow')
+                            plt.imshow(img_cropped[0][0][:, :, 30], cmap='gray')
+                            plt.contour(region_mask[:, :, 30], colors='yellow')
                             plt.show()
 
                     # zero the parameter gradients
@@ -203,34 +203,34 @@ but training with multiple labels"
                     loss = self.criterion(outputs, labels)
                     loss.backward()
                     self.optimizer.step()
-                    
+
                     # update loss
                     running_loss.append(loss.item())
                     # print loss every 'show_train_steps' mini-batches
-                    if(i % show_train_steps == 0):
-                        if(i != 0):
+                    if (i % show_train_steps == 0):
+                        if (i != 0):
                             print(
                                 "[%d, %5d] loss: %.5f"
                                 % (epoch, i, np.mean(running_loss))
                             )
-                            
+
                         # store the outputs and labels for computing metrics later     
                         all_outputs.append(outputs)
                         all_labels.append(labels)
                         # allows visualization of the gradient flow through the model during training
-                        if(store_grads):
+                        if (store_grads):
                             plot_grad_flow(self.model.named_parameters())
-                            
+
                 # <end-of-training-cycle-loop>
                 # at the end of an epoch, calculate metrics, report them and
                 # store them in respective report dicts
                 self._estimate_and_report_metrics(
-                    all_outputs, all_labels, running_loss, 
-                    metrics_dict=self.train_metrics, 
+                    all_outputs, all_labels, running_loss,
+                    metrics_dict=self.train_metrics,
                     phase="train"
                 )
                 del all_outputs, all_labels, running_loss
-                
+
                 # validate every x iterations
                 if epoch % show_validation_epochs == 0:
                     running_loss_val = []
@@ -263,15 +263,12 @@ but training with multiple labels"
                         if branch_type == 'local':
                             nmm_mask = get_mask(nmm_mask_path)
                             region_mask = extract_region_mask(nmm_mask, region)
-                            inputs = self.extract_region(inputs, region_mask)  
+                            inputs = self.extract_region(inputs, region_mask)
 
                         if branch_type == 'multiple':
                             nmm_mask = get_mask(nmm_mask_path)
                             region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                            inputs = self.extract_region(inputs, region_mask)  
-
-
-
+                            inputs = self.extract_region(inputs, region_mask)
 
                             # forward pass only
                             if self.training_time_callback is not None:
@@ -293,12 +290,12 @@ but training with multiple labels"
 
                     # report validation metrics
                     self._estimate_and_report_metrics(
-                        all_outputs, all_labels, running_loss_val, 
-                        metrics_dict=self.val_metrics, 
+                        all_outputs, all_labels, running_loss_val,
+                        metrics_dict=self.val_metrics,
                         phase="val"
                     )
                     del all_outputs, all_labels, running_loss_val
-                    
+
             # <end-of-epoch-loop>
             for callback in self.callbacks:
                 callback(self, epoch=epoch)
@@ -379,7 +376,7 @@ but training with multiple labels"
             device = additional_gpu
         else:
             device = self.device
-            
+
         running_loss = []
         all_outputs = []
         all_labels = []
@@ -400,49 +397,47 @@ but training with multiple labels"
                 if branch_type == 'local':
                     nmm_mask = get_mask(nmm_mask_path)
                     region_mask = extract_region_mask(nmm_mask, region)
-                    inputs = self.extract_region(inputs, region_mask) 
+                    inputs = self.extract_region(inputs, region_mask)
 
                 if branch_type == 'multiple':
                     nmm_mask = get_mask(nmm_mask_path)
                     region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                    inputs = self.extract_region(inputs, region_mask)     
+                    inputs = self.extract_region(inputs, region_mask)
 
-
-                    
                 if self.training_time_callback:
                     outputs = self.training_time_callback(
                         inputs, labels, 1, 1)
                 else:
                     outputs = self.model(inputs)
-                    
+
                 loss = self.criterion(outputs, labels)
-                
+
                 running_loss.append(loss.item())
                 all_outputs.append(outputs)
                 all_labels.append(labels)
-                
+
             # calculate the loss criterion metric
             results = {"loss": []}
-                
+
             # if new metrics are provided, update self.metrics
             if metrics:
-                if self.multitask:            
-                    self.metrics = metrics 
+                if self.multitask:
+                    self.metrics = metrics
                 else:
                     self.metrics = [metrics]
-                    
+
             # calculate metrics
             self._estimate_and_report_metrics(
-                all_outputs, all_labels, running_loss, 
-                metrics_dict=results, 
+                all_outputs, all_labels, running_loss,
+                metrics_dict=results,
                 phase="eval"
             )
 
         if write_to_dir:
-            results = {k:v[0] for k,v in results.items()}
+            results = {k: v[0] for k, v in results.items()}
             with open(write_to_dir + "results.json", "w") as f:
                 json.dump(results, f)
-            
+
             # compute confusion matrix if it is a binary classification task
             if self.prediction_type == 'binary':
                 plt.savefig(write_to_dir + "confusion_matrix.png")
@@ -453,7 +448,6 @@ but training with multiple labels"
 
         self.model.train()
 
-        
     def _estimate_and_report_metrics(
             self,
             all_outputs,
@@ -466,13 +460,13 @@ but training with multiple labels"
         at the end of an epoch
         (a) calculate metrics
         (b) store results in respective report dicts
-        (c) report metrics """                        
+        (c) report metrics """
         # report execution time, only in training phase
         if phase == "train":
             time_elapsed = int(time.time() - self.start_time)
             print("Time elapsed: {}h:{}m:{}s".format(
                 time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60))
-            
+
         if isinstance(all_outputs[0], list):
             all_outputs = [torch.cat(out).float() for out in zip(*all_outputs)]
             all_labels = [torch.cat(lbl).float() for lbl in zip(*all_labels)]
@@ -493,30 +487,30 @@ sub-task as a list of lists but a single value is provided. No metrics will be c
         loss = np.mean(running_loss)
         metrics_dict["loss"].append(loss)
         # print the loss for val and eval phases
-        if phase  in ["val","eval"]:
+        if phase in ["val", "eval"]:
             print("{} loss: {:.5f}".format(phase, loss))
-            
+
         # calculate other metrics and add to the metrics_dict for all tasks
         for task_idx in range(len(all_outputs)):
             # perform inference on the outputs
             all_pred, all_label = predict(
-                                all_outputs[task_idx], 
-                                all_labels[task_idx],
-                                self.prediction_type[task_idx],
-                                self.criterions[task_idx],
-                                class_threshold=self.class_threshold
-                                )
+                all_outputs[task_idx],
+                all_labels[task_idx],
+                self.prediction_type[task_idx],
+                self.criterions[task_idx],
+                class_threshold=self.class_threshold
+            )
             # If it is a multi-head training then append prefix            
-            if task_idx==0:
-                metric_prefix = "" 
+            if task_idx == 0:
+                metric_prefix = ""
             else:
-                metric_prefix = "task{} ".format(task_idx+1)
-                
+                metric_prefix = "task{} ".format(task_idx + 1)
+
             # report metrics
             for metric in self.metrics[task_idx]:
                 result = metric(all_label, all_pred)
-                
-                metric_name = metric_prefix + metric.__name__ 
+
+                metric_name = metric_prefix + metric.__name__
                 if isinstance(result, float):
                     print("{} {}: {:.2f} %".format(
                         phase, metric_name, result * 100))
@@ -526,11 +520,11 @@ sub-task as a list of lists but a single value is provided. No metrics will be c
                 # store results in the report dict
                 if metric_name in metrics_dict:
                     metrics_dict[metric_name].append(result)
-                else:                    
+                else:
                     metrics_dict[metric_name] = [result]
-                
+
             # plot confusion graph if it is a binary classification
-            if phase == "eval" and self.prediction_type[task_idx] == "binary":      
+            if phase == "eval" and self.prediction_type[task_idx] == "binary":
                 cm = confusion_matrix(all_label, all_pred)
                 plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
 
@@ -554,22 +548,19 @@ sub-task as a list of lists but a single value is provided. No metrics will be c
                 plt.ylabel("True label")
                 plt.xlabel("Predicted label")
 
-   def extract_region(self, x, region_mask):
-        region_mask=torch.from_numpy(region_mask).to(self.device)
+    def extract_region(self, x, region_mask):
+        region_mask = torch.from_numpy(region_mask).to(self.device)
 
         B, C, H, W, D = x.shape
 
         patch = []
         for i in range(B):
             im = x[i].unsqueeze(dim=0)
-            #T = im.shape[-1]
+            # T = im.shape[-1]
 
-            im = im*region_mask.float()
+            im = im * region_mask.float()
             # and finally extract
             patch.append(im)
         patch = torch.cat(patch)
 
-
         return patch
-
-

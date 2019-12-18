@@ -4,7 +4,7 @@ import torch
 import shutil
 
 # set nitorch path
-NITORCH_DIR = '/home/jpa/PycharmProjects/DML/nitroch_development/nitorch'
+NITORCH_DIR = os.getcwd()
 # load functions from nitorch
 sys.path.insert(0, os.path.join(NITORCH_DIR))
 from nitorch.data import *
