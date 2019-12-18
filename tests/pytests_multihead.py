@@ -1,10 +1,6 @@
 import os
 import sys
-import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy import stats
-# from mpl_toolkits.mplot3d import Axes3D
 
 # pytorch
 import torch
@@ -13,7 +9,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, random_split, DataLoader, ConcatDataset
 
-NITORCH_DIR = os.getcwd()
+from scipy import stats
+
+NITORCH_DIR = "/home/jpa/PycharmProjects/DML/nitroch_development/nitorch" # os.getcwd()
 sys.path.insert(0, NITORCH_DIR)
 # nitorch
 from nitorch.trainer import Trainer
