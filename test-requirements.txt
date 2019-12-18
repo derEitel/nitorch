@@ -5,3 +5,5 @@ sklearn
 scipy
 nibabel
 h5py
+tabulate
+tqdm
