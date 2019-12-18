@@ -1154,7 +1154,7 @@ class DataBunch:
                 self._changes["z_factor"] = p
         self._z_factor = None if value == 0 else value
         # apply changes to other attributes
-        if self. init:
+        if self.init:
             self.mask = self.mask_path
 
     @property
@@ -2381,13 +2381,15 @@ class DataBunch:
                                        use_samples=self.use_sample,
                                        num_workers=nw)
 
-    def normalize(self, use_samples: int = None):
+    def normalize(self, use_samples: int = None, show_progress: bool = False):
         """Normalizes the dataset with mean and std calculated on the training set.
 
         Parameters
         ----------
         use_samples : int
             Number of samples included in the normalization process. Default: None (all)
+        show_progress : int
+            If set, shows the progress of the normalization process. Default: False
 
         """
 
@@ -2406,9 +2408,7 @@ class DataBunch:
         print(
             "Calculating mean and std for normalization based on {} train samples:".format(use_samples)
         )
-        self.train_ds.fit_normalization(
-            num_sample=use_samples, show_progress=True
-        )
+        self.train_ds.fit_normalization(num_sample=use_samples, show_progress=show_progress)
         # set calculated mean and std
         self.mean, self.std = self.train_ds.mean, self.train_ds.std
         self.train_ds.transform = None
@@ -2425,6 +2425,7 @@ class DataBunch:
             normalize: bool = False,
             use_samples: int = None,
             num_workers: int = None,
+            show_progress: bool = False
     ):
         """Build DataLoaders.
 
@@ -2441,6 +2442,8 @@ class DataBunch:
             Number of samples included in the normalization process. Default: None (all)
         num_workers
             Number of workers. Default: None (1)
+        show_progress : bool
+            If set, shows the progress of the normalization process. Default: False
 
         """
         print("Building dataloaders")
@@ -2453,7 +2456,7 @@ class DataBunch:
                     "Already normalized -- using attributes `mean` and `std`."
                 )
             else:
-                self.normalize(use_samples=self.use_sample)
+                self.normalize(use_samples=self.use_sample, show_progress=show_progress)
 
         else:
             logger.warning(
@@ -2651,7 +2654,7 @@ class DataBunch:
                 ["Train"] + self._get_stats(self.df_trn, self.prediction_type, self.label_col, self.ptid_col,
                                             self.classes),
                 ["Val"] + self._get_stats(self.df_val, self.prediction_type, self.label_col, self.ptid_col,
-                                           self.classes),
+                                          self.classes),
                 ["Hold"] + self._get_stats(self.df_ho, self.prediction_type, self.label_col, self.ptid_col,
                                            self.classes),
                 ["Total"] + self._get_stats(self.df, self.prediction_type, self.label_col, self.ptid_col, self.classes),
@@ -2661,7 +2664,7 @@ class DataBunch:
                 ["Train"] + self._get_stats(self.df_trn, self.prediction_type, self.label_col, self.ptid_col,
                                             self.classes),
                 ["Val"] + self._get_stats(self.df_val, self.prediction_type, self.label_col, self.ptid_col,
-                                           self.classes),
+                                          self.classes),
                 ["Total"] + self._get_stats(self.df, self.prediction_type, self.label_col, self.ptid_col, self.classes),
             ]
         print(tabulate(stats, headers=headers))
