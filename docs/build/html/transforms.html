@@ -1,0 +1,669 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>transforms module &#8212; nitorch  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-transforms">
+<span id="transforms-module"></span><h1>transforms module<a class="headerlink" href="#module-transforms" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="transforms.AxialFlip">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">AxialFlip</code><span class="sig-paren">(</span><em class="sig-param">prob=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.AxialFlip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Flip" title="transforms.Flip"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Flip</span></code></a></p>
+<p>Flip image along the axial axis (z-axis).</p>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prob</strong> (<em>float</em>) – The probability the flip happens. Default: 0.5</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.AxialFlip.prob">
+<code class="sig-name descname">prob</code><a class="headerlink" href="#transforms.AxialFlip.prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>The probability the flip happens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.AxialRotate">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">AxialRotate</code><span class="sig-paren">(</span><em class="sig-param">deg=(-3</em>, <em class="sig-param">3)</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.AxialRotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Rotate" title="transforms.Rotate"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Rotate</span></code></a></p>
+<p>Rotate image’s axial axis (z-axis).</p>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+<dl class="attribute">
+<dt id="transforms.AxialRotate.deg">
+<code class="sig-name descname">deg</code><a class="headerlink" href="#transforms.AxialRotate.deg" title="Permalink to this definition">¶</a></dt>
+<dd><p>min and max rotation angles in degrees. Randomly rotates
+within that range. Can be scalar, list or tuple. In case of
+scalar it rotates between -abs(deg) and abs(deg). Default: (-3, 3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.AxialTranslate">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">AxialTranslate</code><span class="sig-paren">(</span><em class="sig-param">dist=(-3</em>, <em class="sig-param">3)</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.AxialTranslate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Translate" title="transforms.Translate"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Translate</span></code></a></p>
+<p>Translate image along the axial axis (z-axis).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dist</strong> (<em>tuple</em>) – The distance in each direction. z-axis fixed. Default: (-3,3)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.CenterCrop">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">CenterCrop</code><span class="sig-paren">(</span><em class="sig-param">size</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.CenterCrop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Crops the given 3D numpy.ndarray Image at the center.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>size</strong> (<em>sequence/int</em>) – Desired output size of the crop. If size is an int instead of sequence like (h, w, d),
+a cube crop (size, size, size) is made.</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.CenterCrop.size">
+<code class="sig-name descname">size</code><a class="headerlink" href="#transforms.CenterCrop.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Desired output size of the crop. If size is an int instead of sequence like (h, w, d),
+a cube crop (size, size, size) is made.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>sequence/int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.CoronalFlip">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">CoronalFlip</code><span class="sig-paren">(</span><em class="sig-param">prob=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.CoronalFlip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Flip" title="transforms.Flip"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Flip</span></code></a></p>
+<p>Flip image along the coronal axis (y-axis).</p>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prob</strong> (<em>float</em>) – The probability the flip happens. Default: 0.5</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.CoronalFlip.prob">
+<code class="sig-name descname">prob</code><a class="headerlink" href="#transforms.CoronalFlip.prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>The probability the flip happens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.CoronalRotate">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">CoronalRotate</code><span class="sig-paren">(</span><em class="sig-param">deg=(-3</em>, <em class="sig-param">3)</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.CoronalRotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Rotate" title="transforms.Rotate"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Rotate</span></code></a></p>
+<p>Rotate image’s coronal axis (y-axis).</p>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+<dl class="attribute">
+<dt id="transforms.CoronalRotate.deg">
+<code class="sig-name descname">deg</code><a class="headerlink" href="#transforms.CoronalRotate.deg" title="Permalink to this definition">¶</a></dt>
+<dd><p>min and max rotation angles in degrees. Randomly rotates
+within that range. Can be scalar, list or tuple. In case of
+scalar it rotates between -abs(deg) and abs(deg). Default is (-3, 3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.CoronalTranslate">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">CoronalTranslate</code><span class="sig-paren">(</span><em class="sig-param">dist=(-3</em>, <em class="sig-param">3)</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.CoronalTranslate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Translate" title="transforms.Translate"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Translate</span></code></a></p>
+<p>Translate image along the coronal axis (y-axis).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dist</strong> (<em>tuple</em>) – The distance in each direction. y-axis fixed.  Default: (-3,3)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.Flip">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">Flip</code><span class="sig-paren">(</span><em class="sig-param">axis=0</em>, <em class="sig-param">prob=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.Flip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Flip the input along a given axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> – axis to flip over. Default: 0.</p></li>
+<li><p><strong>prob</strong> – probability to flip the image. Executes always when set to 1. Default: 0.5</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.Flip.axis">
+<code class="sig-name descname">axis</code><a class="headerlink" href="#transforms.Flip.axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>axis to flip over. Default is 0.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="transforms.Flip.prob">
+<code class="sig-name descname">prob</code><a class="headerlink" href="#transforms.Flip.prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>probability to flip the image. Executes always when set to 1. Default: 0.5</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.IntensityRescale">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">IntensityRescale</code><span class="sig-paren">(</span><em class="sig-param">masked=True</em>, <em class="sig-param">on_gpu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.IntensityRescale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Rescale image intensities between 0 and 1 for a single image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>masked</strong> (<em>bool</em>) – applies normalization only on non-zero voxels. Default: True.</p></li>
+<li><p><strong>on_gpu</strong> (<em>bool</em>) – speed up computation by using GPU. Requires torch.Tensor instead of np.array. Default: False.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.IntensityRescale.masked">
+<code class="sig-name descname">masked</code><a class="headerlink" href="#transforms.IntensityRescale.masked" title="Permalink to this definition">¶</a></dt>
+<dd><p>applies normalization only on non-zero voxels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="transforms.IntensityRescale.on_gpu">
+<code class="sig-name descname">on_gpu</code><a class="headerlink" href="#transforms.IntensityRescale.on_gpu" title="Permalink to this definition">¶</a></dt>
+<dd><p>speed up computation by using GPU. Requires torch.Tensor instead of np.array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="transforms.IntensityRescale.apply_transform">
+<code class="sig-name descname">apply_transform</code><span class="sig-paren">(</span><em class="sig-param">image</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.IntensityRescale.apply_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applys tranformation to input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>image</strong> (<em>torch.tensor/numpy.ndarray</em>) – The image to transform.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Transformed image.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.tensor/numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="transforms.IntensityRescale.zero_masked_transform">
+<code class="sig-name descname">zero_masked_transform</code><span class="sig-paren">(</span><em class="sig-param">image</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.IntensityRescale.zero_masked_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only apply transform where input is not zero.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>image</strong> – The image to transform.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Transformed image.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>image</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.Normalize">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">Normalize</code><span class="sig-paren">(</span><em class="sig-param">mean</em>, <em class="sig-param">std=1</em>, <em class="sig-param">masked=True</em>, <em class="sig-param">eps=1e-10</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.Normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Normalize tensor with first and second moments.</p>
+<p class="rubric">Notes</p>
+<p>By default will only normalize on non-zero voxels. Set
+masked = False if this is undesired.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mean</strong> (<em>float</em>) – Mean of the training data.</p></li>
+<li><p><strong>std</strong> (<em>float</em>) – Standard deviation of the training data. Default: 1</p></li>
+<li><p><strong>masked</strong> (<em>bool</em>) – Boolean switch. If True, non-zero voxels will not be normalized. Enable with value False. Default: True</p></li>
+<li><p><strong>eps</strong> (<em>float</em>) – Only set to scale std. Otherwise leave untouched. Default:  1e-10</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.Normalize.mean">
+<code class="sig-name descname">mean</code><a class="headerlink" href="#transforms.Normalize.mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean of the training data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="transforms.Normalize.std">
+<code class="sig-name descname">std</code><a class="headerlink" href="#transforms.Normalize.std" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard deviation of the training data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="transforms.Normalize.masked">
+<code class="sig-name descname">masked</code><a class="headerlink" href="#transforms.Normalize.masked" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean switch. If True, non-zero voxels will not be normalized. Enable with value False.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="transforms.Normalize.eps">
+<code class="sig-name descname">eps</code><a class="headerlink" href="#transforms.Normalize.eps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Only set to scale std. Otherwise leave untouched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="transforms.Normalize.apply_transform">
+<code class="sig-name descname">apply_transform</code><span class="sig-paren">(</span><em class="sig-param">image</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.Normalize.apply_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies normalization to the image by using object attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>image</strong> (<em>torch.tensor/numpy.ndarray</em>) – The image to normalize.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>image</strong> – Normalized image.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.tensor/numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="transforms.Normalize.denormalize">
+<code class="sig-name descname">denormalize</code><span class="sig-paren">(</span><em class="sig-param">image</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.Normalize.denormalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undo normalization procedure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>image</strong> (<em>torch.tensor/numpy.ndarray</em>) – The image to reverse normalization for.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>image</strong> – De-normalized image</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.tensor/numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="transforms.Normalize.zero_masked_transform">
+<code class="sig-name descname">zero_masked_transform</code><span class="sig-paren">(</span><em class="sig-param">image</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.Normalize.zero_masked_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply normalization transformation for non-zero voxels only.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>image</strong> (<em>torch.tensor/numpy.ndarray</em>) – The image to normalize.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>image</strong> – Normalized image.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.tensor/numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.Rotate">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">Rotate</code><span class="sig-paren">(</span><em class="sig-param">axis=0</em>, <em class="sig-param">deg=(-3</em>, <em class="sig-param">3)</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.Rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Rotate the input along a given axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>int</em>) – axis to rotate. Default is 0.</p></li>
+<li><p><strong>deg</strong> (<em>tuple</em>) – min and max rotation angles in degrees. Randomly rotates
+within that range. Can be scalar, list or tuple. In case of
+scalar it rotates between -abs(deg) and abs(deg). Default: (-3, 3).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.Rotate.axis">
+<code class="sig-name descname">axis</code><a class="headerlink" href="#transforms.Rotate.axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>axis to rotate. Default: 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="transforms.Rotate.deg">
+<code class="sig-name descname">deg</code><a class="headerlink" href="#transforms.Rotate.deg" title="Permalink to this definition">¶</a></dt>
+<dd><p>min and max rotation angles in degrees. Randomly rotates
+within that range. Can be scalar, list or tuple. In case of
+scalar it rotates between -abs(deg) and abs(deg). Default: (-3, 3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.SagittalFlip">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">SagittalFlip</code><span class="sig-paren">(</span><em class="sig-param">prob=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.SagittalFlip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Flip" title="transforms.Flip"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Flip</span></code></a></p>
+<p>Flip image along the sagittal axis (x-axis).</p>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prob</strong> (<em>float</em>) – The probability the flip happens. Default: 0.5</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.SagittalFlip.prob">
+<code class="sig-name descname">prob</code><a class="headerlink" href="#transforms.SagittalFlip.prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>The probability the flip happens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.SagittalRotate">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">SagittalRotate</code><span class="sig-paren">(</span><em class="sig-param">deg=(-3</em>, <em class="sig-param">3)</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.SagittalRotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Rotate" title="transforms.Rotate"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Rotate</span></code></a></p>
+<p>Rotate image’s sagittal axis (x-axis).</p>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+<dl class="attribute">
+<dt id="transforms.SagittalRotate.deg">
+<code class="sig-name descname">deg</code><a class="headerlink" href="#transforms.SagittalRotate.deg" title="Permalink to this definition">¶</a></dt>
+<dd><p>min and max rotation angles in degrees. Randomly rotates
+within that range. Can be scalar, list or tuple. In case of
+scalar it rotates between -abs(deg) and abs(deg). Default: (-3, 3).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.SagittalTranslate">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">SagittalTranslate</code><span class="sig-paren">(</span><em class="sig-param">dist=(-3</em>, <em class="sig-param">3)</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.SagittalTranslate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#transforms.Translate" title="transforms.Translate"><code class="xref py py-class docutils literal notranslate"><span class="pre">transforms.Translate</span></code></a></p>
+<p>Translate image along the sagittal axis (x-axis).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dist</strong> (<em>tuple</em>) – The distance in each direction. x-axis fixed. Default: (-3,3)</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Expects input shape (X, Y, Z).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.ToTensor">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">ToTensor</code><a class="headerlink" href="#transforms.ToTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Convert numpy.ndarrays to Tensors.</p>
+<p class="rubric">Notes</p>
+<p>Expands channel axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>image</strong> (<em>numpy.ndarray</em>) – numpy.ndarray of input with dimensions H x W x Z will be transformed
+to torch.tensor of dimensions  C x H x W x Z</p>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="transforms.ToTensor.image">
+<code class="sig-name descname">image</code><a class="headerlink" href="#transforms.ToTensor.image" title="Permalink to this definition">¶</a></dt>
+<dd><p>numpy.ndarray of input with dimensions H x W x Z will be transformed
+to torch.tensor of dimensions  C x H x W x Z</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="transforms.Translate">
+<em class="property">class </em><code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">Translate</code><span class="sig-paren">(</span><em class="sig-param">axis=0</em>, <em class="sig-param">dist=(-3</em>, <em class="sig-param">3)</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.Translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Translate the input along a given axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> – axis to rotate. Default is 0</p></li>
+<li><p><strong>dist</strong> – min and max translation distance in pixels. Randomly
+translates within that range. Can be scalar, list or tuple.
+In case of scalar it translates between -abs(dist) and
+abs(dist). Default: (-3, 3).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="transforms.normalization_factors">
+<code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">normalization_factors</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">train_idx</em>, <em class="sig-param">shape</em>, <em class="sig-param">mode='slice'</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.normalization_factors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes normalization factors for the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>numpy.ndarray</em>) – The image data</p></li>
+<li><p><strong>train_idx</strong> (<em>numpy.ndarray/list</em>) – Training indices.</p></li>
+<li><p><strong>shape</strong> – Shape of the image data. Expected to be 3 dimensional.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – Either “slice” or “voxel”. Defines the granularity of the normalization.
+Voxelwise normalization does not work well with linear registered data only. Default: “slice”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – Unknown mode selected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="transforms.normalize_float">
+<code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">normalize_float</code><span class="sig-paren">(</span><em class="sig-param">ndarr</em>, <em class="sig-param">min=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.normalize_float" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs min-max normalization on a <cite>numpy.ndarray</cite> matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ndarr</strong> (<em>numpy.ndarray</em>) – The numpy array to normalize</p></li>
+<li><p><strong>min</strong> (<em>int/float</em>) – Either <cite>-1</cite> or <cite>0</cite>. Default: -1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>norm</strong> – The min-max-normalization of the input matrix</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="transforms.normalize_float_torch">
+<code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">normalize_float_torch</code><span class="sig-paren">(</span><em class="sig-param">x_tensor</em>, <em class="sig-param">min=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#transforms.normalize_float_torch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs min-max normalization on a Pytorch tensor matrix.</p>
+<p class="rubric">Notes</p>
+<p>Can also deal with Pytorch dictionaries where the data matrix key is ‘image’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ndarr</strong> (<em>numpy.ndarray</em>) – The numpy array to normalize</p></li>
+<li><p><strong>min</strong> (<em>int/float</em>) – Either <cite>-1</cite> or <cite>0</cite>. Default: -1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>norm</strong> – The min-max-normalization of the input matrix</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">nitorch</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Fabian Eitel, Roshan Rane, Jan Philipp Albrecht.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/transforms.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>trainer module &#8212; nitorch  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-trainer">
+<span id="trainer-module"></span><h1>trainer module<a class="headerlink" href="#module-trainer" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="trainer.Trainer">
+<em class="property">class </em><code class="sig-prename descclassname">trainer.</code><code class="sig-name descname">Trainer</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">criterion</em>, <em class="sig-param">optimizer</em>, <em class="sig-param">scheduler=None</em>, <em class="sig-param">metrics=[]</em>, <em class="sig-param">callbacks=[]</em>, <em class="sig-param">training_time_callback=None</em>, <em class="sig-param">device=device(type='cuda')</em>, <em class="sig-param">prediction_type='binary'</em>, <em class="sig-param">multitask=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#trainer.Trainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for organizing the training process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – Neural network to train.</p></li>
+<li><p><strong>criterion</strong> – The loss function.</p></li>
+<li><p><strong>optimizer</strong> – optimizer function.</p></li>
+<li><p><strong>scheduler</strong> – schedules the optimizer. Default: None</p></li>
+<li><p><strong>metrics</strong> – list of metrics to report. Default: None.
+when multitask training = True,
+metrics can be a list of lists such that len(metrics) =  number of tasks.
+If not, metrics are calculated only for the first task.</p></li>
+<li><p><strong>callbacks</strong> – list of callbacks to execute at the end of training epochs. Default: None.</p></li>
+<li><p><strong>training_time_callback</strong> – a user-defined callback that executes the model.forward() and returns the output to the trainer.
+This can be used to perform debug during train time, Visualize features,
+call model.forward() with custom arguments, run multiple decoder networks etc. Default: None.</p></li>
+<li><p><strong>device</strong> (<em>int/torch.device</em>) – The device to use for training. Must be integer or a torch.device object.
+By default, GPU with current node is used. Default: torch.device(“cuda”)</p></li>
+<li><p><strong>prediction_type</strong> – accepts one of [“binary”, “classification”, “regression”, “reconstruction”, “variational”, “other”].
+Default: “binary”</p></li>
+<li><p><strong>multitask</strong> (<em>bool</em>) – Enables multitask training. Default: False</p></li>
+<li><p><strong>kwargs</strong> – Other parameters to store.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="trainer.Trainer.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#trainer.Trainer.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Neural network to train.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.criterion">
+<code class="sig-name descname">criterion</code><a class="headerlink" href="#trainer.Trainer.criterion" title="Permalink to this definition">¶</a></dt>
+<dd><p>The loss function.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.optimizer">
+<code class="sig-name descname">optimizer</code><a class="headerlink" href="#trainer.Trainer.optimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>optimizer function.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.scheduler">
+<code class="sig-name descname">scheduler</code><a class="headerlink" href="#trainer.Trainer.scheduler" title="Permalink to this definition">¶</a></dt>
+<dd><p>schedules the optimizer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.multitask">
+<code class="sig-name descname">multitask</code><a class="headerlink" href="#trainer.Trainer.multitask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enables multitask training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.metrics">
+<code class="sig-name descname">metrics</code><a class="headerlink" href="#trainer.Trainer.metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of metrics to report. Default is None.
+when multitask training = True,
+metrics can be a list of lists such that len(metrics) =  number of tasks.
+If not, metrics are calculated only for the first task.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.prediction_type">
+<code class="sig-name descname">prediction_type</code><a class="headerlink" href="#trainer.Trainer.prediction_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>accepts one of [“binary”, “classification”, “regression”, “reconstruction”, “variational”, “other”].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.callbacks">
+<code class="sig-name descname">callbacks</code><a class="headerlink" href="#trainer.Trainer.callbacks" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of callbacks to execute at the end of training epochs. Default is None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.training_time_callback">
+<code class="sig-name descname">training_time_callback</code><a class="headerlink" href="#trainer.Trainer.training_time_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>a user-defined callback that executes the model.forward() and returns the output to the trainer.
+This can be used to perform debug during train time, Visualize features,
+call model.forward() with custom arguments, run multiple decoder networks etc. Default is None.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.device">
+<code class="sig-name descname">device</code><a class="headerlink" href="#trainer.Trainer.device" title="Permalink to this definition">¶</a></dt>
+<dd><p>The device to use for training. Must be integer or a torch.device object.
+By default, GPU with current node is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int/torch.device</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.class_threshold">
+<code class="sig-name descname">class_threshold</code><a class="headerlink" href="#trainer.Trainer.class_threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Threshold on how to determine the class affiliation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.start_time">
+<code class="sig-name descname">start_time</code><a class="headerlink" href="#trainer.Trainer.start_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Time training started.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.val_metrics">
+<code class="sig-name descname">val_metrics</code><a class="headerlink" href="#trainer.Trainer.val_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists as many metrics as specified in ‘metrics’ for each validation epoch. Always has “loss” as entry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.train_metrics">
+<code class="sig-name descname">train_metrics</code><a class="headerlink" href="#trainer.Trainer.train_metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists as many metrics as specified in ‘metrics’ for each training epoch. Always has “loss” as entry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.best_metric">
+<code class="sig-name descname">best_metric</code><a class="headerlink" href="#trainer.Trainer.best_metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Best validation metric.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="trainer.Trainer.best_model">
+<code class="sig-name descname">best_model</code><a class="headerlink" href="#trainer.Trainer.best_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Best model (hyperparameter settings) when ‘best_metric’ is archieved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trainer.Trainer.train_model">
+<code class="sig-name descname">train_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trainer.Trainer.train_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main function to train a network for one epoch.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trainer.Trainer.finish_training">
+<code class="sig-name descname">finish_training</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trainer.Trainer.finish_training" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function which should always be run when training ends.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trainer.Trainer.visualize_training">
+<code class="sig-name descname">visualize_training</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trainer.Trainer.visualize_training" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to visualize training process</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="trainer.Trainer.evaluate_model">
+<code class="sig-name descname">evaluate_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#trainer.Trainer.evaluate_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to evaluate a model once it is trained</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">evaluate_model</code><span class="sig-paren">(</span><em class="sig-param">val_loader</em>, <em class="sig-param">branch_type='global'</em>, <em class="sig-param">local_coords=None</em>, <em class="sig-param">local_size=None</em>, <em class="sig-param">region=None</em>, <em class="sig-param">nmm_mask_path=None</em>, <em class="sig-param">additional_gpu=None</em>, <em class="sig-param">metrics=[]</em>, <em class="sig-param">inputs_key='image'</em>, <em class="sig-param">labels_key='label'</em>, <em class="sig-param">write_to_dir=''</em><span class="sig-paren">)</span></dt>
+<dd><p>Predict on the validation set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val_loader</strong> (<em>torch.utils.data.DataLoader</em>) – </p></li>
+<li><p><strong>branch_type</strong> (<em>str</em>) – Either ‘global’ or ‘local’.</p></li>
+<li><p><strong>local_coords</strong> – Todo: Add description</p></li>
+<li><p><strong>local_size</strong> – Todo: Add description</p></li>
+<li><p><strong>region</strong> – A region to focus training on. Default: None</p></li>
+<li><p><strong>nmm_mask_path</strong> – The mask used to extract regions. Default: None</p></li>
+<li><p><strong>additional_gpu</strong> – Lets you evaluate on a different GPU than training was performed on. Default: None</p></li>
+<li><p><strong>metrics</strong> – Metrics to assess. Default: []</p></li>
+<li><p><strong>labels_key</strong> (<em>inputs_key</em><em>,</em>) – The data returned by ‘val_loader’ can either be a dict of format
+data_loader[X_key] = inputs and data_loader[y_key] = labels
+or a list with data_loader[0] = inputs and data_loader[1] = labels.
+The default keys are “image” and “label”.</p></li>
+<li><p><strong>write_to_dir</strong> – The outputs of the evaluation are written to files path provided. Default: “”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">finish_training</code><span class="sig-paren">(</span><em class="sig-param">epoch</em><span class="sig-paren">)</span></dt>
+<dd><p>End the training cyle, return a model and finish callbacks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>epoch</strong> (<em>int</em>) – The current epoch.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>First entry is the trained model.
+Second entry is a dictionary containing:
+“train_metrics”: all train_metrics
+“val_metrics”: all val_metrics
+“best_model”: best_model
+“best_metric”: best_metric</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>AttributeError</strong> – the ‘final’ function for a Callback failed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">train_model</code><span class="sig-paren">(</span><em class="sig-param">train_loader</em>, <em class="sig-param">val_loader</em>, <em class="sig-param">branch_type='global'</em>, <em class="sig-param">region=None</em>, <em class="sig-param">nmm_mask_path=None</em>, <em class="sig-param">inputs_key='image'</em>, <em class="sig-param">labels_key='label'</em>, <em class="sig-param">num_epochs=25</em>, <em class="sig-param">show_train_steps=None</em>, <em class="sig-param">show_validation_epochs=1</em>, <em class="sig-param">store_grads=False</em><span class="sig-paren">)</span></dt>
+<dd><p>Main function to train a network for one epoch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_loader</strong> (<em>torch.utils.data.DataLoader</em>) – A pytorch Dataset iterator for training data.</p></li>
+<li><p><strong>val_loader</strong> (<em>torch.utils.data.DataLoader</em>) – A pytorch Dataset iterator for validation data.</p></li>
+<li><p><strong>branch_type</strong> – Either ‘global’ or ‘local’. Default: ‘global’</p></li>
+<li><p><strong>region</strong> – A region to focus training on. Default: None</p></li>
+<li><p><strong>nmm_mask_path</strong> – The mask used to extract regions. Default: None</p></li>
+<li><p><strong>labels_key</strong> (<em>inputs_key</em><em>,</em>) – The data returned by ‘train_loader’ and ‘val_loader’ can either be a dict of format
+data_loader[X_key] = inputs and data_loader[y_key] = labels
+or a list with data_loader[0] = inputs and data_loader[1] = labels.
+The default keys are “image” and “label”.</p></li>
+<li><p><strong>num_epochs</strong> – The maximum number of epochs. Default: 25</p></li>
+<li><p><strong>show_train_steps</strong> – The number of training steps to show. Default: None</p></li>
+<li><p><strong>show_validation_epochs</strong> – Specifies every ‘x’ validation epoch to show. If set to 1 all epochs are shown. Default: 1</p></li>
+<li><p><strong>store_grads</strong> – Allows visualization of the gradient flow through the model during training. Default: False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>First entry is the trained model, second entry is a dictionary containing information on training procedure.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#trainer.Trainer.finish_training" title="trainer.Trainer.finish_training"><code class="xref py py-meth docutils literal notranslate"><span class="pre">finish_training()</span></code></a></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>AssertionError</strong> – If ‘show_train_steps’ smaller 0 or greater than the length of the train loader.</p></li>
+<li><p><strong>TypeError</strong> – When data cannot be accessed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">visualize_training</code><span class="sig-paren">(</span><em class="sig-param">report</em>, <em class="sig-param">metrics=None</em>, <em class="sig-param">save_fig_path=''</em><span class="sig-paren">)</span></dt>
+<dd><p>A function to vizualize model training.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>report</strong> (<em>dict</em>) – must store key “train_metrics” and “val_metrics”.</p></li>
+<li><p><strong>metrics</strong> – Metrics to visualize. Default: None</p></li>
+<li><p><strong>save_fig_path</strong> (<em>str</em>) – A path to store figures in a pdf file. Default: “” (Do not plot to pdf)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">nitorch</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Fabian Eitel, Roshan Rane, Jan Philipp Albrecht.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/trainer.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

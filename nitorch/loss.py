@@ -8,7 +8,7 @@ class BCE_KL_loss(torch.nn.Module):
     Binary-cross entropy reconstruction + KL divergence losses summed
     over all elements and batch. 
     Mostly taken from pytorch examples: 
-        https://github.com/pytorch/examples/blob/master/vae/main.py
+    https://github.com/pytorch/examples/blob/master/vae/main.py
 
     Methods
     -------
@@ -53,7 +53,7 @@ class MSE_KL_loss(torch.nn.Module):
     Mean squared error reconstruction + KL divergence losses summed
     over all elements and batch. 
     Mostly taken from pytorch examples: 
-        https://github.com/pytorch/examples/blob/master/vae/main.py
+    https://github.com/pytorch/examples/blob/master/vae/main.py
 
     Methods
     -------

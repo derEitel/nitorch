@@ -63,7 +63,7 @@ class _CAE_3D(nn.Module):
         ]
         if any(self.is_nested_conv) and not all(self.is_nested_conv):
             raise TypeError(
-                " `conv_channels` can't be a mixture of both lists and ints."
+                " 'conv_channels' can't be a mixture of both lists and ints."
             )
         self.is_nested_conv = any(self.is_nested_conv)
 
@@ -143,7 +143,7 @@ class _CAE_3D(nn.Module):
         ValueError
             Length of parameter != length of layers
         TypeError
-            `parameter` not of type int/str/list/tuple
+            'parameter' not of type int/str/list/tuple
 
         """
         if isinstance(parameter, (int, str)):
@@ -304,7 +304,7 @@ class _CAE_3D(nn.Module):
         Raises
         ------
         TypeError
-            Invalid `pool_type` value.
+            Invalid 'pool_type' value.
         """
         if pool_type == "max":
             node = nn.MaxPool3d(
@@ -314,8 +314,8 @@ class _CAE_3D(nn.Module):
             node = nn.AvgPool3d(kernel_size, padding=padding, stride=stride)
         else:
             raise TypeError(
-                "Invalid value provided for `pool_type`.\
-                Allowed values are `max`, `avg`."
+                "Invalid value provided for 'pool_type'.\
+                Allowed values are 'max', 'avg'."
             )
 
         return node
@@ -343,7 +343,7 @@ class _CAE_3D(nn.Module):
         Raises
         ------
         TypeError
-            Invalid `pool_type` value.
+            Invalid 'pool_type' value.
 
         """
         if pool_type == "max":
@@ -352,8 +352,8 @@ class _CAE_3D(nn.Module):
             node = nn.MaxPool3d(kernel_size, padding=padding, stride=stride)  # todo: that seems to be wrong!
         else:
             raise TypeError(
-                "Invalid value provided for `pool_type`.\
-                Allowed values are `max`, `avg`."
+                "Invalid value provided for 'pool_type'.\
+                Allowed values are 'max', 'avg'."
             )
 
         return node
@@ -393,42 +393,36 @@ class CAE_3D(_CAE_3D):
         A list that defines the number of channels of each convolution layer.
         The length of the list defines the number of layers in the encoder.
         The decoder is automatically constructed as an exact reversal of the encoder architecture.
-
     activation_fn (optional)
         The non-linear activation function that will be appied after every layer
         of convolution / deconvolution.
-        Supported values {'ELU', 'HARDSHRINK', 'HARDTANH', 'LEAKYRELU', 'LOGSIGMOID', 'PRELU', 'RELU',
-        'RELU6', 'RRELU', 'SELU', 'SIGMOID', 'SOFTPLUS', 'SOFTSHRINK', 'TANH', 'TANHSHRINK', 'THRESHOLD'}
+        Supported values :'ELU', 'HARDSHRINK', 'HARDTANH', 'LEAKYRELU', 'LOGSIGMOID', 'PRELU', 'RELU',
+        'RELU6', 'RRELU', 'SELU', 'SIGMOID', 'SOFTPLUS', 'SOFTSHRINK', 'TANH', 'TANHSHRINK', 'THRESHOLD'
         By default nn.ReLu() is applied.
         Can either be a a single int (in which case the same activation is applied to all layers) or
-        a list of same length and shape as `conv_channels`.
-
+        a list of same length and shape as 'conv_channels'.
     conv_kernel (optional)
         The size of the 3D convolutional kernels to be used.
-        Can either be a list of same length as `conv_channels` or a single int. In the
-         former case each value in the list represents the kernel size of that particular
+        Can either be a list of same length as 'conv_channels' or a single int.
+        In the former case each value in the list represents the kernel size of that particular
         layer and in the latter case all the layers are built with the same kernel size as
         specified.
-
     conv_padding (optional)
         The amount of zero-paddings to be done along each dimension.
         Format same as conv_kernel.
-
     conv_stride (optional)
         The stride of the 3D convolutions.
         Format same as conv_kernel.
-
     deconv_out_padding (optional)
         The additional zero-paddings to be done to the output
         of ConvTranspose / Deconvolutions in the decoder network.
         By default does (stride-1) number of padding.
         Format same as conv_kernel.
-
     second_fc_decoder (optional)
         By default this is disabled.
         If a non-empty list of ints is provided then a secondary fully-connected decoder
         network is constructed as per the list.
-        Each value represents the number of cells in each layer. Just like `conv_channels`
+        Each value represents the number of cells in each layer. Just like 'conv_channels'
         the length of the list defines the number of layers.
         If enabled, the forward() method returns a list of 2 outputs, one from the Autoencoder's
         decoder and the other from this fully-connected decoder network.
@@ -620,44 +614,36 @@ class CAE_3D_with_pooling(_CAE_3D):
         inner list defines the number of convolutions per such layer and the value defines the number of
         channels for each of these convolutions.
         The decoder is constructed to be simply an exact reversal of the encoder architecture.
-
     activation_fn (optional)
         The non-linear activation function that will be appied after every layer
         of convolution / deconvolution. By default nn.ReLu() is applied.
-        Supported values {'ELU', 'HARDSHRINK', 'HARDTANH', 'LEAKYRELU', 'LOGSIGMOID', 'PRELU', 'RELU',
-        'RELU6', 'RRELU', 'SELU', 'SIGMOID', 'SOFTPLUS', 'SOFTSHRINK', 'TANH', 'TANHSHRINK', 'THRESHOLD'}
+        Supported values: 'ELU', 'HARDSHRINK', 'HARDTANH', 'LEAKYRELU', 'LOGSIGMOID', 'PRELU', 'RELU',
+        'RELU6', 'RRELU', 'SELU', 'SIGMOID', 'SOFTPLUS', 'SOFTSHRINK', 'TANH', 'TANHSHRINK', 'THRESHOLD'
         Can either be a a single int (in which case the same activation is applied to all layers) or
-        a list of same length and shape as `conv_channels`.
-
+        a list of same length and shape as 'conv_channels'.
     conv_kernel (optional)
         The size of the 3D convolutional kernels to be used.
-        Can either be a list of lists of same lengths as `conv_channels` or a single int. In the
-         former case each value in the list represents the kernel size of that particular
+        Can either be a list of lists of same lengths as 'conv_channels' or a single int.
+        In the former case each value in the list represents the kernel size of that particular
         layer and in the latter case all the layers are built with the same kernel size as
         specified.
-
     conv_padding (optional)
         The amount of zero-paddings to be done along each dimension.
         Format same as conv_kernel.
-
     conv_stride (optional)
         The stride of the 3D convolutions.
         Format same as conv_kernel.
-
     deconv_out_padding (optional)
         The additional zero-paddings to be done to the output
         of ConvTranspose / Deconvolutions in the decoder network.
         By default does (stride-1) number of padding.
         Format same as conv_kernel.
-
     pool_type (optional)
         The type of pooling to be used. Options are (1)"max"  (2)"avg"
-
     pool_kernel, pool_padding, pool_stride (optional)
         Can either be a single int or a list
         of respective pooling parameter values.
         The length of these list must be same as length of conv_channels i.e. the number of layers.
-
     second_fc_decoder (optional)
         By default this is disabled.
         If a non-empty list of ints is provided then a secondary decoder of a fully-connected network

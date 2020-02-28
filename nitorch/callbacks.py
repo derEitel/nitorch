@@ -45,7 +45,7 @@ class ModelCheckpoint(Callback):
     Saves model parameters after certain iterations or/and finds best parameters in all training steps.
     Optionally, saves parameters to disk.
 
-   Parameters
+    Parameters
     ----------
     path : str
         The path where to store results.

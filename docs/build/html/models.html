@@ -1,0 +1,593 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>models module &#8212; nitorch  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-models">
+<span id="models-module"></span><h1>models module<a class="headerlink" href="#module-models" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="models.CAE_3D">
+<em class="property">class </em><code class="sig-prename descclassname">models.</code><code class="sig-name descname">CAE_3D</code><span class="sig-paren">(</span><em class="sig-param">conv_channels</em>, <em class="sig-param">activation_fn='RELU'</em>, <em class="sig-param">conv_kernel=3</em>, <em class="sig-param">conv_padding=1</em>, <em class="sig-param">conv_stride=1</em>, <em class="sig-param">deconv_out_padding=None</em>, <em class="sig-param">second_fc_decoder=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#models.CAE_3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">models._CAE_3D</span></code></p>
+<p>3D Convolutional Autoencoder model with only convolution layers.</p>
+<p class="rubric">Notes</p>
+<p>Strided convolution can be used for undersampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conv_channels</strong> – A list that defines the number of channels of each convolution layer.
+The length of the list defines the number of layers in the encoder.
+The decoder is automatically constructed as an exact reversal of the encoder architecture.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> (<em>second_fc_decoder</em>) – The non-linear activation function that will be appied after every layer
+of convolution / deconvolution.
+Supported values :’ELU’, ‘HARDSHRINK’, ‘HARDTANH’, ‘LEAKYRELU’, ‘LOGSIGMOID’, ‘PRELU’, ‘RELU’,
+‘RELU6’, ‘RRELU’, ‘SELU’, ‘SIGMOID’, ‘SOFTPLUS’, ‘SOFTSHRINK’, ‘TANH’, ‘TANHSHRINK’, ‘THRESHOLD’
+By default nn.ReLu() is applied.
+Can either be a a single int (in which case the same activation is applied to all layers) or
+a list of same length and shape as ‘conv_channels’.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The size of the 3D convolutional kernels to be used.
+Can either be a list of same length as ‘conv_channels’ or a single int.
+In the former case each value in the list represents the kernel size of that particular
+layer and in the latter case all the layers are built with the same kernel size as
+specified.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The amount of zero-paddings to be done along each dimension.
+Format same as conv_kernel.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The stride of the 3D convolutions.
+Format same as conv_kernel.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The additional zero-paddings to be done to the output
+of ConvTranspose / Deconvolutions in the decoder network.
+By default does (stride-1) number of padding.
+Format same as conv_kernel.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – By default this is disabled.
+If a non-empty list of ints is provided then a secondary fully-connected decoder
+network is constructed as per the list.
+Each value represents the number of cells in each layer. Just like ‘conv_channels’
+the length of the list defines the number of layers.
+If enabled, the forward() method returns a list of 2 outputs, one from the Autoencoder’s
+decoder and the other from this fully-connected decoder network.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="models.CAE_3D.conv_kernel">
+<code class="sig-name descname">conv_kernel</code><a class="headerlink" href="#models.CAE_3D.conv_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.conv_padding">
+<code class="sig-name descname">conv_padding</code><a class="headerlink" href="#models.CAE_3D.conv_padding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.conv_stride">
+<code class="sig-name descname">conv_stride</code><a class="headerlink" href="#models.CAE_3D.conv_stride" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.deconv_out_padding">
+<code class="sig-name descname">deconv_out_padding</code><a class="headerlink" href="#models.CAE_3D.deconv_out_padding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.activation_fn">
+<code class="sig-name descname">activation_fn</code><a class="headerlink" href="#models.CAE_3D.activation_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.valid_activations">
+<code class="sig-name descname">valid_activations</code><a class="headerlink" href="#models.CAE_3D.valid_activations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.debug">
+<code class="sig-name descname">debug</code><a class="headerlink" href="#models.CAE_3D.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.return_encoder_out">
+<code class="sig-name descname">return_encoder_out</code><a class="headerlink" href="#models.CAE_3D.return_encoder_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.second_fc_decoder">
+<code class="sig-name descname">second_fc_decoder</code><a class="headerlink" href="#models.CAE_3D.second_fc_decoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.convs">
+<code class="sig-name descname">convs</code><a class="headerlink" href="#models.CAE_3D.convs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>nn.ModuleList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.deconvs">
+<code class="sig-name descname">deconvs</code><a class="headerlink" href="#models.CAE_3D.deconvs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>nn.ModuleList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D.fcs">
+<code class="sig-name descname">fcs</code><a class="headerlink" href="#models.CAE_3D.fcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>nn.ModuleList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.CAE_3D.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#models.CAE_3D.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward function of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – The data to model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The output of the modeling process.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.CAE_3D.set_debug">
+<code class="sig-name descname">set_debug</code><span class="sig-paren">(</span><em class="sig-param">bool_val</em><span class="sig-paren">)</span><a class="headerlink" href="#models.CAE_3D.set_debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the debug flag</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bool_val</strong> (<em>bool</em>) – Either False or True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.CAE_3D.set_return_encoder_out">
+<code class="sig-name descname">set_return_encoder_out</code><span class="sig-paren">(</span><em class="sig-param">bool_val</em><span class="sig-paren">)</span><a class="headerlink" href="#models.CAE_3D.set_return_encoder_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the return_encoder_out parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bool_val</strong> (<em>bool</em>) – Either False or True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="models.CAE_3D_with_pooling">
+<em class="property">class </em><code class="sig-prename descclassname">models.</code><code class="sig-name descname">CAE_3D_with_pooling</code><span class="sig-paren">(</span><em class="sig-param">conv_channels</em>, <em class="sig-param">activation_fn=&lt;class 'torch.nn.modules.activation.ReLU'&gt;</em>, <em class="sig-param">conv_kernel=3</em>, <em class="sig-param">conv_padding=1</em>, <em class="sig-param">conv_stride=1</em>, <em class="sig-param">pool_type='max'</em>, <em class="sig-param">pool_kernel=2</em>, <em class="sig-param">pool_padding=0</em>, <em class="sig-param">pool_stride=2</em>, <em class="sig-param">deconv_out_padding=None</em><span class="sig-paren">)</span><a class="headerlink" href="#models.CAE_3D_with_pooling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">models._CAE_3D</span></code></p>
+<p>3D Convolutional Autoencoder model with alternating Pooling layers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conv_channels</strong> – A nested list whose length defines the number of layers. Each layer
+can intern have multiple convolutions followed by a layer of Pooling. The lengths of the
+inner list defines the number of convolutions per such layer and the value defines the number of
+channels for each of these convolutions.
+The decoder is constructed to be simply an exact reversal of the encoder architecture.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> (<em>second_fc_decoder</em>) – The non-linear activation function that will be appied after every layer
+of convolution / deconvolution. By default nn.ReLu() is applied.
+Supported values: ‘ELU’, ‘HARDSHRINK’, ‘HARDTANH’, ‘LEAKYRELU’, ‘LOGSIGMOID’, ‘PRELU’, ‘RELU’,
+‘RELU6’, ‘RRELU’, ‘SELU’, ‘SIGMOID’, ‘SOFTPLUS’, ‘SOFTSHRINK’, ‘TANH’, ‘TANHSHRINK’, ‘THRESHOLD’
+Can either be a a single int (in which case the same activation is applied to all layers) or
+a list of same length and shape as ‘conv_channels’.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The size of the 3D convolutional kernels to be used.
+Can either be a list of lists of same lengths as ‘conv_channels’ or a single int.
+In the former case each value in the list represents the kernel size of that particular
+layer and in the latter case all the layers are built with the same kernel size as
+specified.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The amount of zero-paddings to be done along each dimension.
+Format same as conv_kernel.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The stride of the 3D convolutions.
+Format same as conv_kernel.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The additional zero-paddings to be done to the output
+of ConvTranspose / Deconvolutions in the decoder network.
+By default does (stride-1) number of padding.
+Format same as conv_kernel.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – The type of pooling to be used. Options are (1)”max”  (2)”avg”</p></li>
+<li><p><strong>pool_padding</strong><strong>, </strong><strong>pool_stride</strong><strong> (</strong><strong>optional</strong><strong>)</strong> (<em>pool_kernel</em><em>,</em>) – Can either be a single int or a list
+of respective pooling parameter values.
+The length of these list must be same as length of conv_channels i.e. the number of layers.</p></li>
+<li><p><strong>(</strong><strong>optional</strong><strong>)</strong> – By default this is disabled.
+If a non-empty list of ints is provided then a secondary decoder of a fully-connected network
+is constructed as per the list.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.is_nested_conv">
+<code class="sig-name descname">is_nested_conv</code><a class="headerlink" href="#models.CAE_3D_with_pooling.is_nested_conv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.conv_kernel">
+<code class="sig-name descname">conv_kernel</code><a class="headerlink" href="#models.CAE_3D_with_pooling.conv_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.conv_padding">
+<code class="sig-name descname">conv_padding</code><a class="headerlink" href="#models.CAE_3D_with_pooling.conv_padding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.conv_stride">
+<code class="sig-name descname">conv_stride</code><a class="headerlink" href="#models.CAE_3D_with_pooling.conv_stride" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.pool_kernel">
+<code class="sig-name descname">pool_kernel</code><a class="headerlink" href="#models.CAE_3D_with_pooling.pool_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.pool_padding">
+<code class="sig-name descname">pool_padding</code><a class="headerlink" href="#models.CAE_3D_with_pooling.pool_padding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.pool_stride">
+<code class="sig-name descname">pool_stride</code><a class="headerlink" href="#models.CAE_3D_with_pooling.pool_stride" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.activation_fn">
+<code class="sig-name descname">activation_fn</code><a class="headerlink" href="#models.CAE_3D_with_pooling.activation_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.valid_activations">
+<code class="sig-name descname">valid_activations</code><a class="headerlink" href="#models.CAE_3D_with_pooling.valid_activations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.deconv_channels">
+<code class="sig-name descname">deconv_channels</code><a class="headerlink" href="#models.CAE_3D_with_pooling.deconv_channels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.deconv_kernel">
+<code class="sig-name descname">deconv_kernel</code><a class="headerlink" href="#models.CAE_3D_with_pooling.deconv_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.deconv_padding">
+<code class="sig-name descname">deconv_padding</code><a class="headerlink" href="#models.CAE_3D_with_pooling.deconv_padding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.deconv_stride">
+<code class="sig-name descname">deconv_stride</code><a class="headerlink" href="#models.CAE_3D_with_pooling.deconv_stride" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.debug">
+<code class="sig-name descname">debug</code><a class="headerlink" href="#models.CAE_3D_with_pooling.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.return_encoder_out">
+<code class="sig-name descname">return_encoder_out</code><a class="headerlink" href="#models.CAE_3D_with_pooling.return_encoder_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.deconv_out_padding">
+<code class="sig-name descname">deconv_out_padding</code><a class="headerlink" href="#models.CAE_3D_with_pooling.deconv_out_padding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">deconv_out_padding</code></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.convs">
+<code class="sig-name descname">convs</code><a class="headerlink" href="#models.CAE_3D_with_pooling.convs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>nn.ModuleList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.pools">
+<code class="sig-name descname">pools</code><a class="headerlink" href="#models.CAE_3D_with_pooling.pools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>nn.ModuleList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.deconvs">
+<code class="sig-name descname">deconvs</code><a class="headerlink" href="#models.CAE_3D_with_pooling.deconvs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>nn.ModuleList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.CAE_3D_with_pooling.unpools">
+<code class="sig-name descname">unpools</code><a class="headerlink" href="#models.CAE_3D_with_pooling.unpools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>nn.ModuleList</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">pools</code></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">unpools</code></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.CAE_3D_with_pooling.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#models.CAE_3D_with_pooling.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward function of the model.</p>
+<p class="rubric">Notes</p>
+<p>return_encoder_out : If enabled returns a list with 2 values,
+first one is the Autoencoder’s output and the other the intermediary output of the encoder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – The data to model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The output of the modeling process.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.CAE_3D_with_pooling.set_debug">
+<code class="sig-name descname">set_debug</code><span class="sig-paren">(</span><em class="sig-param">bool_val</em><span class="sig-paren">)</span><a class="headerlink" href="#models.CAE_3D_with_pooling.set_debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets debug flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bool_val</strong> (<em>bool</em>) – Either True or False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.CAE_3D_with_pooling.set_return_encoder_out">
+<code class="sig-name descname">set_return_encoder_out</code><span class="sig-paren">(</span><em class="sig-param">bool_val</em><span class="sig-paren">)</span><a class="headerlink" href="#models.CAE_3D_with_pooling.set_return_encoder_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the return_encoder_out parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bool_val</strong> (<em>bool</em>) – Either False or True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="models.MLP">
+<em class="property">class </em><code class="sig-prename descclassname">models.</code><code class="sig-name descname">MLP</code><span class="sig-paren">(</span><em class="sig-param">layers=[]</em>, <em class="sig-param">output_activation=&lt;class 'torch.nn.modules.activation.LogSoftmax'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#models.MLP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Constructs fully-connected deep neural networks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layers</strong> – Each value represents the number of neurons in each layer. The length of the list defines the number of layers.</p></li>
+<li><p><strong>output_activation</strong> – Default: nn.LogSoftmax</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="models.MLP.layers">
+<code class="sig-name descname">layers</code><a class="headerlink" href="#models.MLP.layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.MLP.debug">
+<code class="sig-name descname">debug</code><a class="headerlink" href="#models.MLP.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="models.MLP.fcs">
+<code class="sig-name descname">fcs</code><a class="headerlink" href="#models.MLP.fcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Todo: explanation mission</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.MLP.add_linear_with_Relu">
+<code class="sig-name descname">add_linear_with_Relu</code><span class="sig-paren">(</span><em class="sig-param">layer</em><span class="sig-paren">)</span><a class="headerlink" href="#models.MLP.add_linear_with_Relu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a linear layer with Relu to the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>layer</strong> – A new layer.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The new layer.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>nn.Sequential</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.MLP.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#models.MLP.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward function of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – The data to model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The output of the modeling process.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>x</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.MLP.set_debug">
+<code class="sig-name descname">set_debug</code><span class="sig-paren">(</span><em class="sig-param">bool_val</em><span class="sig-paren">)</span><a class="headerlink" href="#models.MLP.set_debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets debug flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bool_val</strong> (<em>bool</em>) – Either True or False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">nitorch</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Fabian Eitel, Roshan Rane, Jan Philipp Albrecht.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/models.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

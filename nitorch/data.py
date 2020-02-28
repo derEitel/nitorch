@@ -281,7 +281,7 @@ class H5pyDataset(Dataset):
     transform
         Transformation to the data. See nitorch.transforms for example classes. Default: None
     mask
-        Mask applicable to the data. Should have same size as `X`. Default: None
+        Mask applicable to the data. Should have same size as 'X'. Default: None
     z_factor : float
         Zooming factor. Value between 0 and 1. Default: None
     dtype
@@ -297,7 +297,7 @@ class H5pyDataset(Dataset):
     transform
         Transformation to the data. See nitorch.transforms for example classes.
     mask
-        Mask applicable to the data. Should have same size as `X`.
+        Mask applicable to the data. Should have same size as 'X'.
     z_factor : float
         Zooming factor. Value between 0 and 1.
     dtype
@@ -310,7 +310,7 @@ class H5pyDataset(Dataset):
     Methods
     -------
     fit_normalization(num_sample=None, show_progress=False)
-        Sets normalization parameters `mean` and `std`.
+        Sets normalization parameters 'mean' and 'std'.
 
     """
 
@@ -441,13 +441,13 @@ class MRIDataset(Dataset):
     z_factor: float
         Zooming factor applicable to the image.
     num_inputs : int
-        Value always set to `1`. Necessary for sampling.
+        Value always set to '1'. Necessary for sampling.
     num_targets : int
-        Value always set to `1`. Necessary for sampling.
+        Value always set to '1'. Necessary for sampling.
     mean : float
-        Default 0, should be set via  `fit_normalization` method.
+        Default 0, should be set via  'fit_normalization' method.
     std : float
-        Default 1, should be set via  `fit_normalization` method.
+        Default 1, should be set via  'fit_normalization' method.
     shape
         Shape of the data.
     label_counts: dict
@@ -460,7 +460,7 @@ class MRIDataset(Dataset):
     get_image_shape()
         Returns the shape of the image(s).
     fit_normalization(num_sample=None, show_progress=False)
-        Sets normalization parameters `mean` and `std`.
+        Sets normalization parameters 'mean' and 'std'.
     get_raw_image(idx: int)
         Gets the unrpocessed image at certain index.
 
@@ -689,10 +689,10 @@ class DataBunch:
         Path where intermediary data will be stored (eg. cache).
     table : str
         CSV file path *relative* to source_dir containing samples.
-        The tables *must* contain `file_col`, `label_col` and `ptid_col` columns.
+        The tables *must* contain 'file_col', 'label_col' and 'ptid_col' columns.
     image_dir : str
         Image directory *relative* to source_dir, where the .nii files are.
-        Set empty string ("") if `image dir` equals `source_dir`. Default: None
+        Set empty string ("") if 'image dir' equals 'source_dir'. Default: None
     mask : str
         Path to binary brain mask in .nii format. This will be resized with z_factor. Default: None
     transforms
@@ -712,7 +712,7 @@ class DataBunch:
     num_samples : int
         Total number of samples available for sampling groups (e.g. test, validation, hold-out). Large datasets can
         therefore be reduced in size. Defaults value (None) uses all available images. (e.g. if dataset has
-        14.000 datapoints, and `num_samples`=1000, dataset will be randomly reduced to 1000 samples.)
+        14.000 datapoints, and 'num_samples'=1000, dataset will be randomly reduced to 1000 samples.)
         Default: None
     num_training_samples : int
         Reduces the number of training samples, but do not reduce size of the whole dataset
@@ -721,31 +721,31 @@ class DataBunch:
     z_factor : float
         Zoom factor applied to each image. Default: 0.5
     hold_out_size : float
-        Sets the relative size of the hold_out set. Use `num_samples` to reduce dataset, otherwise `hold_out_size`
+        Sets the relative size of the hold_out set. Use 'num_samples' to reduce dataset, otherwise 'hold_out_size'
         is relative to the total number of available datapoints. Default: None
     val_size : float
-        Sets the relative size of the validation set. Use `num_samples` to reduce dataset, otherwise `val_size`
+        Sets the relative size of the validation set. Use 'num_samples' to reduce dataset, otherwise 'val_size'
         is relative to the total number of available datapoints. Default: 0.1
     grouped : bool
         Boolean switch for enforcing grouping according to subjectID. Necessary if subjects have more than one
         scan available. Default: False
     cache_filename: str
-        Filename specifying a prefix of all stored files. File-extensions in `cache_filename` will be discarded.
+        Filename specifying a prefix of all stored files. File-extensions in 'cache_filename' will be discarded.
         If not specified "databunch" will be used as default value. Default: None
     force_to_shape : list
-        List, specifying for each dimension of the data the size. (e.g. `force_to_shape`=[80,80,80] will force images
+        List, specifying for each dimension of the data the size. (e.g. 'force_to_shape'=[80,80,80] will force images
         to have the shape of (80,80,80).)
         Default: None
     file_col : str
-        Column name in `table` identifying the path to the .nii file of the sample. Default: "file_path"
+        Column name in 'table' identifying the path to the .nii file of the sample. Default: "file_path"
     label_col : str
-        Column name in `table` identifying the path to the label of the sample. Default: "DX"
+        Column name in 'table' identifying the path to the label of the sample. Default: "DX"
     ptid_col : str
-        Column name in `table` identifying the path to the patient ID of the sample. Default: "PTID"
+        Column name in 'table' identifying the path to the patient ID of the sample. Default: "PTID"
     random_state : int
         Random state to enforce reproducibility for train/test splitting. Default: 42
     separator : str
-        Separator used to load `table` and to eventually store csv splits. Default: ","
+        Separator used to load 'table' and to eventually store csv splits. Default: ","
     kwargs
         Arbitrarily many Pairs of (key, value) which will stored in the object.
 
@@ -757,10 +757,10 @@ class DataBunch:
         Path where intermediary data will be stored (eg. cache).
     table : str
         CSV file path *relative* to source_dir containing samples.
-        The tables *must* contain `file_col`, `label_col` and `ptid_col` columns.
+        The tables *must* contain 'file_col', 'label_col' and 'ptid_col' columns.
     image_dir : str
         Image directory *relative* to source_dir, where the .nii files are.
-        Set empty string ("") if `image dir` equals `source_dir`.
+        Set empty string ("") if 'image dir' equals 'source_dir'.
     _mask : str
         Path to binary brain mask in .nii format. This will be resized with z_factor.
     _transforms
@@ -779,37 +779,37 @@ class DataBunch:
     _num_samples : int
         Total number of samples available for sampling groups (e.g. test, validation, hold-out). Large datasets can
         therefore be reduced in size. Defaults value (None) uses all available images. (e.g. if dataset has
-        14.000 datapoints, and `num_samples`=1000, dataset will be randomly reduced to 1000 samples.)
+        14.000 datapoints, and 'num_samples'=1000, dataset will be randomly reduced to 1000 samples.)
     _num_training_samples : int
         Reduces the number of training samples, but do not reduce size of the whole dataset
         (e.g. validation and hold-out remain large). Usually used for debugging or intensive grid searching.
     _z_factor : float
         Zoom factor applied to each image.
     _hold_out_size : float
-        Sets the relative size of the hold_out set. Use `num_samples` to reduce dataset, otherwise `hold_out_size`
+        Sets the relative size of the hold_out set. Use 'num_samples' to reduce dataset, otherwise 'hold_out_size'
         is relative to the total number of available datapoints.
     _val_size : float
-        Sets the relative size of the validation set. Use `num_samples` to reduce dataset, otherwise `val_size`
+        Sets the relative size of the validation set. Use 'num_samples' to reduce dataset, otherwise 'val_size'
         is relative to the total number of available datapoints.
     _grouped : bool
         Boolean switch for enforcing grouping according to subjectID. Necessary if subjects have more than one
         scan available.
     _cache_filename: str
-        Filename specifying a prefix of all stored files. File-extensions in `cache_filename` will be discarded.
+        Filename specifying a prefix of all stored files. File-extensions in 'cache_filename' will be discarded.
         If not specified "databunch" will be used as default value
     _force_to_shape : list
-        List, specifying for each dimension of the data the size. (e.g. `force_to_shape`=[80,80,80] will force images
+        List, specifying for each dimension of the data the size. (e.g. 'force_to_shape'=[80,80,80] will force images
         to have the shape of (80,80,80).)
     _file_col : str
-        Column name in `table` identifying the path to the .nii file of the sample.
+        Column name in 'table' identifying the path to the .nii file of the sample.
     _label_col : str
-        Column name in `table` identifying the path to the label of the sample.
+        Column name in 'table' identifying the path to the label of the sample.
     _ptid_col : str
-        Column name in `table` identifying the path to the patient ID of the sample.
+        Column name in 'table' identifying the path to the patient ID of the sample.
     random_state : int
         Random state to enforce reproducibility for train/test splitting.
     separator : str
-        Separator used to load `table` and to eventually store csv splits.
+        Separator used to load 'table' and to eventually store csv splits.
     kwargs
         Arbitrarily many Pairs of (key, value) which will stored in the object.
     DEFAULT_FILE : str
@@ -838,7 +838,7 @@ class DataBunch:
         DataFrame resulting in preprocessing of the csv from the source folder.
     df : pd.DataFrame
         Task specific dataframe. This dataframe is used for group assignemnt. Depending on attributes from the
-        initialization process this is a subsample from `df_orig` or balanced etc.
+        initialization process this is a subsample from 'df_orig' or balanced etc.
     df_trn : pd.DataFrame
         Task specific dataframe containing all training samples.
     df_val : pd.DataFrame
@@ -855,7 +855,7 @@ class DataBunch:
         Dataset in either MRIDataset or H5pyDataset format. Contains all the hold-out samples.
         Data accassable via indexing.
     classes : list
-        List of available classes in Task specific dataframe (`df`). Only set in a classification task.
+        List of available classes in Task specific dataframe ('df'). Only set in a classification task.
     label2id : dict
         Dictionary translating between class label and internal integer ID. Only set in a classification task.
     id2label : dict
@@ -870,16 +870,16 @@ class DataBunch:
     Methods
     ----------
     from_csv(folder: str, source_dir: str, load_filename: str = None, kwargs)
-        Initialization via csv. The CSVs with `load_filename` as prefix available in `folder` are taken.
-        CSV containing train subject *MUST* be available under `folder` (e.g. if  `load_filename`="test",
+        Initialization via csv. The CSVs with 'load_filename' as prefix available in 'folder' are taken.
+        CSV containing train subject *MUST* be available under 'folder' (e.g. if  'load_filename'="test",
         csv called "test_train.csv", "test_val.csv", "test_hold.csv" will be used for initialization.)
         All other arguments are similar to usual initialization process.
     from_disk(load_path: str, save_path: str, cache_filename: str, load_h5py: bool = False)
         Initialization via cached object. When specified, data is additionally loaded from disk in H5pyDataset format.
     apply_changes()
-        Applies all changes made to that object after initialization or the last call of `apply_changes()`.
+        Applies all changes made to that object after initialization or the last call of 'apply_changes()'.
     reset_changes()
-        Resets all changes made to that object after the last call of `apply_changes()` or initialization.
+        Resets all changes made to that object after the last call of 'apply_changes()' or initialization.
     drop_h5py()
         Switches back to MRIDataset after loading an H5pyDataset.
     reshuffle_datasets()
@@ -887,19 +887,19 @@ class DataBunch:
     build_dataloaders(bs: int = 8, normalize: bool = False, use_samples: int = None, num_workers: int = None)
         Organises Datasets (either MRIDataset or H5pyDataset) in batch sizes, applying normalization first.
     save_df(filename: str = None, separator: str = ",")
-        Saves dataframes (train, val, hold) on the disk using the prefix provided under `filename`.
+        Saves dataframes (train, val, hold) on the disk using the prefix provided under 'filename'.
     save_h5py(filename: str = None)
-        Saves all MRIDatasets to disk in h5py format, using the prefix provided under `filename`.
+        Saves all MRIDatasets to disk in h5py format, using the prefix provided under 'filename'.
     load_h5py_ds(filename: str = None)
-        Loads all available H5pyDataset from the disk, using the prefix provided under `filename`.
+        Loads all available H5pyDataset from the disk, using the prefix provided under 'filename'.
     print_stats()
         Prints the basic statistics of the groups.
     show_sample(cmap="gray")
         Shows a random sample after zooming.
     load(filename: str = None)
-        Updates the objects dict using cached file. Using the prefix provided under `filename`.
+        Updates the objects dict using cached file. Using the prefix provided under 'filename'.
     save(filename: str = None)
-        Saves the object to disk using the prefix provided under `filename`.
+        Saves the object to disk using the prefix provided under 'filename'.
 
     """
     DEFAULT_FILE = "file_path"
@@ -1575,7 +1575,7 @@ class DataBunch:
             else:
                 raise RuntimeError(
                     "If {} column is not in {},"
-                    "please pass a valid `get_file_path` function and an `image_dir`.".format(file_col, table)
+                    "please pass a valid 'get_file_path' function and an 'image_dir'.".format(file_col, table)
                 )
 
         # relative paths in column self.FILE! Extend column in csv
@@ -1680,24 +1680,24 @@ class DataBunch:
                  **kwargs):
         """" Initializes the object using splits in csv-files.
 
-        Uses CSVs available in `folder` to initialize databunch object. Uses "X_train.csv", "X_val.csv", "X_hold.csv"
-        for initialization.  At least "X_train.csv" *MUST* be available under `folder`. Prefix "X" can be set
-        with parameter `load_filename`. A source_dir containing the images and specified in `image_dir` and a csv table
+        Uses CSVs available in 'folder' to initialize databunch object. Uses "X_train.csv", "X_val.csv", "X_hold.csv"
+        for initialization.  At least "X_train.csv" *MUST* be available under 'folder'. Prefix "X" can be set
+        with parameter 'load_filename'. A source_dir containing the images and specified in 'image_dir' and a csv table
         describing the whole dataset *MUST* be specified too. Moreover, a path *MUST* be set where to store intermediate
         files and results.
 
         Notes
         -----
-            CSVs available in `folder` are *NOT* checked for correct format. Can lead to unexpected errors!
+            CSVs available in 'folder' are *NOT* checked for correct format. Can lead to unexpected errors!
 
 
         Parameters
         ----------
         folder : str
             Path where to find "X_train.csv", "X_val.csv", "X_hold.csv". At least "X_train.csv" necessary for successful
-            initialization process.  Prefix "X" can be set with parameter `load_filename`.
+            initialization process.  Prefix "X" can be set with parameter 'load_filename'.
         load_filename : str
-            Sets the name - prefix for the CSV files. (e.g. if `load_filename` = "test", initialization routine will
+            Sets the name - prefix for the CSV files. (e.g. if 'load_filename' = "test", initialization routine will
             look for "test_train.csv", "test_val.csv", "test_hold.csv" files).
             Default: None, corresponding to "databunch"
         source_dir : str
@@ -1706,10 +1706,10 @@ class DataBunch:
             Path where intermediary data will be stored (eg. cache).
         table : str
             CSV file path *relative* to source_dir containing samples.
-            The tables *must* contain `file_col`, `label_col` and `ptid_col` columns.
+            The tables *must* contain 'file_col', 'label_col' and 'ptid_col' columns.
         image_dir : str
             Image directory *relative* to source_dir, where the .nii files are.
-            Set empty string ("") if `image dir` equals `source_dir`. Default: None
+            Set empty string ("") if 'image dir' equals 'source_dir'. Default: None
         mask : str
             Path to binary brain mask in .nii format. This will be resized with z_factor. Default: None
         transforms
@@ -1729,7 +1729,7 @@ class DataBunch:
         num_samples : int
             Total number of samples available for sampling groups (e.g. test, validation, hold-out). Large datasets can
             therefore be reduced in size. Defaults value (None) uses all available images. (e.g. if dataset has
-            14.000 datapoints, and `num_samples`=1000, dataset will be randomly reduced to 1000 samples.)
+            14.000 datapoints, and 'num_samples'=1000, dataset will be randomly reduced to 1000 samples.)
             Default: None (all)
         num_training_samples : int
             Reduces the number of training samples, but do not reduce size of the whole dataset
@@ -1738,30 +1738,30 @@ class DataBunch:
         z_factor : float
             Zoom factor applied to each image. Default: None
         hold_out_size : float
-            Sets the relative size of the hold_out set. Use `num_samples` to reduce dataset, otherwise `hold_out_size`
+            Sets the relative size of the hold_out set. Use 'num_samples' to reduce dataset, otherwise 'hold_out_size'
             is relative to the total number of available datapoints. Default: None
         val_size : float
-            Sets the relative size of the validation set. Use `num_samples` to reduce dataset, otherwise `val_size`
+            Sets the relative size of the validation set. Use 'num_samples' to reduce dataset, otherwise 'val_size'
             is relative to the total number of available datapoints. Default: 0.1
         grouped : bool
             Boolean switch for enforcing grouping according to subjectID. Necessary if subjects have more than one
             scan available. Default: False
         cache_filename: str
-            Filename specifying a prefix of all stored files. File-extensions in `cache_filename` will be discarded.
+            Filename specifying a prefix of all stored files. File-extensions in 'cache_filename' will be discarded.
             If not specified "databunch" will be used as default value.
         force_to_shape : list
-            List, specifying for each dimension of the data the size. (e.g. `force_to_shape`=[80,80,80] will
+            List, specifying for each dimension of the data the size. (e.g. 'force_to_shape'=[80,80,80] will
             force images to have the shape of (80,80,80).) Default: None
         file_col : str
-            Column name in `table` identifying the path to the .nii file of the sample. Default: "file_path"
+            Column name in 'table' identifying the path to the .nii file of the sample. Default: "file_path"
         label_col : str
-            Column name in `table` identifying the path to the label of the sample. Default: "DX"
+            Column name in 'table' identifying the path to the label of the sample. Default: "DX"
         ptid_col : str
-            Column name in `table` identifying the path to the patient ID of the sample. Default: "PTID"
+            Column name in 'table' identifying the path to the patient ID of the sample. Default: "PTID"
         random_state : int
             Random state to enforce reproducibility for train/test splitting. Default: 42
         separator : str
-            Separator used to load `table` and to eventually store csv splits. Default: ","
+            Separator used to load 'table' and to eventually store csv splits. Default: ","
         kwargs
             Arbitrarily many pairs of (key, value) which will stored in the object.
 
@@ -1881,8 +1881,8 @@ class DataBunch:
         load_filename : str
             The filename of the cached object. If not set, default CACHE_NAME will be used (e.g. "databunch")
         load_h5py : bool
-            Option to directly load h5py files. Must be available in `load_path`. Correspond to calling
-            function `load_h5py_ds()` after initialization.
+            Option to directly load h5py files. Must be available in 'load_path'. Correspond to calling
+            function 'load_h5py_ds()' after initialization.
             Default: False
 
         Returns
@@ -1985,7 +1985,7 @@ class DataBunch:
         return 1
 
     def reset_changes(self):
-        """Resets all changes made to the object after the last sucessful call of `apply_changes()`."""
+        """Resets all changes made to the object after the last sucessful call of 'apply_changes()'."""
         # reset
         for k, v in self._changes.items():
             self.__setattr__(k, v)
@@ -2391,7 +2391,7 @@ class DataBunch:
         """
 
         if not hasattr(self, "train_ds"):
-            raise RuntimeError("Attribute `train_ds` not found.")
+            raise RuntimeError("Attribute 'train_ds' not found.")
         print("Normalizing datasets")
 
         if use_samples is None:
@@ -2450,7 +2450,7 @@ class DataBunch:
         if normalize:
             if self.mean is not None:
                 print(
-                    "Already normalized -- using attributes `mean` and `std`."
+                    "Already normalized -- using attributes 'mean' and 'std'."
                 )
             else:
                 self.normalize(use_samples=self.use_sample, show_progress=show_progress)
@@ -2499,9 +2499,9 @@ class DataBunch:
         Parameters
         ----------
         filename : str
-            Prefix for the filename. (e.g. if `filename`="test", output files will be named "test_train.csv"
+            Prefix for the filename. (e.g. if 'filename'="test", output files will be named "test_train.csv"
             "test_val.csv", "test_hold.csv")
-            Default: `filename`= None = "databunch".
+            Default: 'filename'= None = "databunch".
         separator : str
             Separator used to create CSV files. Default: ","
 
@@ -2526,9 +2526,9 @@ class DataBunch:
         Parameters
         ----------
         filename : str
-            Prefix for the filename. (e.g. if `filename`="test", output files will be named "test_train.h5py"
+            Prefix for the filename. (e.g. if 'filename'="test", output files will be named "test_train.h5py"
             "test_val.h5py", "test_hold.h5py")
-            Default: `filename`= None = "databunch".
+            Default: 'filename'= None = "databunch".
 
         """
 
@@ -2572,9 +2572,9 @@ class DataBunch:
         Parameters
         ----------
         filename : str
-            Prefix for the filename. (e.g. if `filename`="test", function will look for files which are named
+            Prefix for the filename. (e.g. if 'filename'="test", function will look for files which are named
             "test_train.h5py","test_val.h5py", "test_hold.h5py")
-            Default `filename`= None = "databunch".
+            Default 'filename'= None = "databunch".
 
         """
 
@@ -2714,7 +2714,7 @@ class DataBunch:
 
         if self.train_ds is None:
             raise RuntimeError(
-                "`train_ds` not found, please call `build` method first."
+                "'train_ds' not found, please call 'build' method first."
             )
         img, lbl = self.train_ds[np.random.randint(0, len(self.train_ds))]
         if self.prediction_type == "c":
@@ -2728,14 +2728,14 @@ class DataBunch:
     def save(self, filename: str = None):
         """Cache the entire DataBunch object.
 
-        Caches the entire DataBunch object to `path`. Filename is set according to function arguments or default
+        Caches the entire DataBunch object to 'path'. Filename is set according to function arguments or default
         object attributes.
 
         Parameters
         ----------
         filename : str
-            Prefix for the filename. (e.g. if `filename`="test", output file will be named "test.pkl").
-            Default is `filename`= None = "databunch".
+            Prefix for the filename. (e.g. if 'filename'="test", output file will be named "test.pkl").
+            Default is 'filename'= None = "databunch".
 
         """
 
@@ -2748,14 +2748,14 @@ class DataBunch:
     def load(self, filename: str = None):
         """Loads a cached DataBunch object from disk.
 
-        Loads cached DataBunch object from `path`. Filename is set according to function arguments or default
+        Loads cached DataBunch object from 'path'. Filename is set according to function arguments or default
         object attributes.
 
         Parameters
         ----------
         filename : str
-            Prefix for the filename. (e.g. if `filename`="test", output file will be named "test.pkl").
-            Default is `filename`="databunch".
+            Prefix for the filename. (e.g. if 'filename'="test", output file will be named "test.pkl").
+            Default is 'filename'="databunch".
 
         """
 

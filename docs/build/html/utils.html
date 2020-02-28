@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>utils module &#8212; nitorch  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-utils">
+<span id="utils-module"></span><h1>utils module<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="utils.count_parameters">
+<code class="sig-prename descclassname">utils.</code><code class="sig-name descname">count_parameters</code><span class="sig-paren">(</span><em class="sig-param">model</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.count_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of adjustable parameters of the input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> – The model.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The number of adjustable parameters of <cite>model</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.dataset_length">
+<code class="sig-prename descclassname">utils.</code><code class="sig-name descname">dataset_length</code><span class="sig-paren">(</span><em class="sig-param">data_loader</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.dataset_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the full length of the dataset from the DataLoader alone.</p>
+<p>Calling len(data_loader) only shows the number of mini-batches.
+Requires data to be located at.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data_loader</strong> (<em>torch.utils.data.DataLoader</em>) – The data_loader for the data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The total length of the <cite>data_loader</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>KeyError</strong> – If each entry in the <cite>data_loader</cite> is a dictionary, key for the label is expected to be ‘label’.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.is_bad_grad">
+<code class="sig-prename descclassname">utils.</code><code class="sig-name descname">is_bad_grad</code><span class="sig-paren">(</span><em class="sig-param">grad_output</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.is_bad_grad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if gradient is too big</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>grad_output</strong> – The gradient you got back during back-propagation.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if gradient is bad, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.plot_grad_flow">
+<code class="sig-prename descclassname">utils.</code><code class="sig-name descname">plot_grad_flow</code><span class="sig-paren">(</span><em class="sig-param">named_parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.plot_grad_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the gradients flowing through different layers in the net during training.</p>
+<p>Can be used for checking for possible gradient vanishing / exploding problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>named_parameters</strong> (<em>list</em>) – A list of tuples. First entry is the name, second the value.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Plug this function in Trainer class after loss.backwards() as
+“plot_grad_flow(self.model.named_parameters())” to visualize the gradient flow</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">nitorch</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Fabian Eitel, Roshan Rane, Jan Philipp Albrecht.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/utils.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

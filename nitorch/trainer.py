@@ -9,7 +9,7 @@ from nitorch.inference import predict
 from nitorch.utils import *
 import json
 
-# Todo: better documentation for `branch_type` option
+# Todo: better documentation for 'branch_type' option
 
 
 class Trainer:
@@ -80,13 +80,13 @@ class Trainer:
     start_time
         Time training started.
     val_metrics : dict
-        Lists as many metrics as specified in `metrics` for each validation epoch. Always has "loss" as entry.
+        Lists as many metrics as specified in 'metrics' for each validation epoch. Always has "loss" as entry.
     train_metrics : dict
-        Lists as many metrics as specified in `metrics` for each training epoch. Always has "loss" as entry.
+        Lists as many metrics as specified in 'metrics' for each training epoch. Always has "loss" as entry.
     best_metric
         Best validation metric.
     best_model
-        Best model (hyperparameter settings) when `best_metric` is archieved.
+        Best model (hyperparameter settings) when 'best_metric' is archieved.
 
     Methods
     -------
@@ -120,7 +120,7 @@ class Trainer:
         ------
         ValueError
             Wrong device selected.
-            `model` in wrong format.
+            'model' in wrong format.
 
         """
         if not isinstance(model, nn.Module):
@@ -189,7 +189,7 @@ class Trainer:
         nmm_mask_path
             The mask used to extract regions. Default: None
         inputs_key, labels_key
-            The data returned by `train_loader` and `val_loader` can either be a dict of format
+            The data returned by 'train_loader' and 'val_loader' can either be a dict of format
             data_loader[X_key] = inputs and data_loader[y_key] = labels
             or a list with data_loader[0] = inputs and data_loader[1] = labels.
             The default keys are "image" and "label".
@@ -198,7 +198,7 @@ class Trainer:
         show_train_steps
             The number of training steps to show. Default: None
         show_validation_epochs
-            Specifies every `x` validation epoch to show. If set to 1 all epochs are shown. Default: 1
+            Specifies every 'x' validation epoch to show. If set to 1 all epochs are shown. Default: 1
         store_grads
             Allows visualization of the gradient flow through the model during training. Default: False.
 
@@ -214,7 +214,7 @@ class Trainer:
         Raises
         ------
         AssertionError
-            If `show_train_steps` smaller 0 or greater than the length of the train loader.
+            If 'show_train_steps' smaller 0 or greater than the length of the train loader.
         TypeError
             When data cannot be accessed.
 
@@ -422,15 +422,15 @@ class Trainer:
         tuple
             First entry is the trained model.
             Second entry is a dictionary containing:
-                "train_metrics": all train_metrics
-                "val_metrics": all val_metrics
-                "best_model": best_model
-                "best_metric": best_metric
+            "train_metrics": all train_metrics
+            "val_metrics": all val_metrics
+            "best_model": best_model
+            "best_metric": best_metric
 
         Raises
         ------
         AttributeError
-            the `final` function for a Callback failed.
+            the 'final' function for a Callback failed.
 
         """
         time_elapsed = int(time.time() - self.start_time)
@@ -519,7 +519,7 @@ class Trainer:
         metrics
             Metrics to assess. Default: []
         inputs_key, labels_key
-            The data returned by `val_loader` can either be a dict of format
+            The data returned by 'val_loader' can either be a dict of format
             data_loader[X_key] = inputs and data_loader[y_key] = labels
             or a list with data_loader[0] = inputs and data_loader[1] = labels.
             The default keys are "image" and "label".

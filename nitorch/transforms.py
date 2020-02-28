@@ -307,13 +307,12 @@ class Normalize(object):
 class IntensityRescale:
     """Rescale image intensities between 0 and 1 for a single image.
 
-     Parameters
+    Parameters
     ----------
     masked : bool
         applies normalization only on non-zero voxels. Default: True.
     on_gpu : bool
         speed up computation by using GPU. Requires torch.Tensor instead of np.array. Default: False.
-
 
     Attributes
     ----------

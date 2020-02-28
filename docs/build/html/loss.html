@@ -1,0 +1,241 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>loss module &#8212; nitorch  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-loss">
+<span id="loss-module"></span><h1>loss module<a class="headerlink" href="#module-loss" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="loss.BCE_KL_loss">
+<em class="property">class </em><code class="sig-prename descclassname">loss.</code><code class="sig-name descname">BCE_KL_loss</code><a class="headerlink" href="#loss.BCE_KL_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Reconstruction loss for variational auto-encoders.</p>
+<p>Binary-cross entropy reconstruction + KL divergence losses summed
+over all elements and batch.
+Mostly taken from pytorch examples:
+<a class="reference external" href="https://github.com/pytorch/examples/blob/master/vae/main.py">https://github.com/pytorch/examples/blob/master/vae/main.py</a></p>
+<dl class="method">
+<dt id="loss.BCE_KL_loss.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">outputs</em>, <em class="sig-param">target</em><span class="sig-paren">)</span><a class="headerlink" href="#loss.BCE_KL_loss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward function of the module.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">outputs</em>, <em class="sig-param">target</em><span class="sig-paren">)</span></dt>
+<dd><p>Forward function of the module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> – List of the form [reconstruction, mean, logvariance].</p></li>
+<li><p><strong>target</strong> – ground truth.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The BCE + KLD loss.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="loss.MSE_KL_loss">
+<em class="property">class </em><code class="sig-prename descclassname">loss.</code><code class="sig-name descname">MSE_KL_loss</code><a class="headerlink" href="#loss.MSE_KL_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Reconstruction loss for variational auto-encoders.</p>
+<p>Mean squared error reconstruction + KL divergence losses summed
+over all elements and batch.
+Mostly taken from pytorch examples:
+<a class="reference external" href="https://github.com/pytorch/examples/blob/master/vae/main.py">https://github.com/pytorch/examples/blob/master/vae/main.py</a></p>
+<dl class="method">
+<dt id="loss.MSE_KL_loss.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">outputs</em>, <em class="sig-param">target</em><span class="sig-paren">)</span><a class="headerlink" href="#loss.MSE_KL_loss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward function of the module.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">outputs</em>, <em class="sig-param">target</em><span class="sig-paren">)</span></dt>
+<dd><p>Forward function of the module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> – List of the form [reconstruction, mean, logvariance].</p></li>
+<li><p><strong>target</strong> – ground truth.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The MSE + KLD loss.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="loss.Multihead_loss">
+<em class="property">class </em><code class="sig-prename descclassname">loss.</code><code class="sig-name descname">Multihead_loss</code><span class="sig-paren">(</span><em class="sig-param">loss_function, weights=[1]</em><span class="sig-paren">)</span><a class="headerlink" href="#loss.Multihead_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Compute the loss on multiple outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loss_function</strong> (<em>list</em>) – List of loss functions with either len(loss_function) = len(targets) or len(loss_function) = 1.</p></li>
+<li><p><strong>weights</strong> (<em>list</em>) – List of weights for each loss. Default = [1].</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="loss.Multihead_loss.loss_function">
+<code class="sig-name descname">loss_function</code><a class="headerlink" href="#loss.Multihead_loss.loss_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of loss functions with either len(loss_function) = len(targets) or len(loss_function) = 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="loss.Multihead_loss.weights">
+<code class="sig-name descname">weights</code><a class="headerlink" href="#loss.Multihead_loss.weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of weights for each loss. Default = [1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="loss.Multihead_loss.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">outputs</em>, <em class="sig-param">target</em><span class="sig-paren">)</span><a class="headerlink" href="#loss.Multihead_loss.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward function of the module.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param">outputs</em>, <em class="sig-param">target</em><span class="sig-paren">)</span></dt>
+<dd><p>Forward function of the module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>outputs</strong> (<em>list</em>) – List of network outputs.</p></li>
+<li><p><strong>target</strong> (<em>list</em>) – List of targets where len(outputs) = len(target).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>total_loss</strong> – The total loss.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – Length of outputs not equal to length of <cite>target</cite>
+    length of attribute <cite>loss_function</cite> not equal to <cite>target</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">nitorch</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Fabian Eitel, Roshan Rane, Jan Philipp Albrecht.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/loss.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
