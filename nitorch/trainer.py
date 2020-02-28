@@ -9,8 +9,97 @@ from nitorch.inference import predict
 from nitorch.utils import *
 import json
 
+# Todo: better documentation for `branch_type` option
+
 
 class Trainer:
+    """Class for organizing the training process.
+
+    Parameters
+    ----------
+    model
+        Neural network to train.
+    criterion
+        The loss function.
+    optimizer
+        optimizer function.
+    scheduler
+        schedules the optimizer. Default: None
+    metrics
+        list of metrics to report. Default: None.
+        when multitask training = True,
+        metrics can be a list of lists such that len(metrics) =  number of tasks.
+        If not, metrics are calculated only for the first task.
+    callbacks
+        list of callbacks to execute at the end of training epochs. Default: None.
+    training_time_callback
+        a user-defined callback that executes the model.forward() and returns the output to the trainer.
+        This can be used to perform debug during train time, Visualize features,
+        call model.forward() with custom arguments, run multiple decoder networks etc. Default: None.
+    device : int/torch.device
+        The device to use for training. Must be integer or a torch.device object.
+        By default, GPU with current node is used. Default: torch.device("cuda")
+    prediction_type
+        accepts one of ["binary", "classification", "regression", "reconstruction", "variational", "other"].
+        Default: "binary"
+    multitask : bool
+        Enables multitask training. Default: False
+    kwargs
+        Other parameters to store.
+
+    Attributes
+    ----------
+    model
+        Neural network to train.
+    criterion
+        The loss function.
+    optimizer
+        optimizer function.
+    scheduler
+        schedules the optimizer.
+    multitask : bool
+        Enables multitask training.
+    metrics
+        list of metrics to report. Default is None.
+        when multitask training = True,
+        metrics can be a list of lists such that len(metrics) =  number of tasks.
+        If not, metrics are calculated only for the first task.
+    prediction_type
+        accepts one of ["binary", "classification", "regression", "reconstruction", "variational", "other"].
+    callbacks
+        list of callbacks to execute at the end of training epochs. Default is None.
+    training_time_callback
+        a user-defined callback that executes the model.forward() and returns the output to the trainer.
+        This can be used to perform debug during train time, Visualize features,
+        call model.forward() with custom arguments, run multiple decoder networks etc. Default is None.
+    device : int/torch.device
+        The device to use for training. Must be integer or a torch.device object.
+        By default, GPU with current node is used.
+    class_threshold
+        Threshold on how to determine the class affiliation.
+    start_time
+        Time training started.
+    val_metrics : dict
+        Lists as many metrics as specified in `metrics` for each validation epoch. Always has "loss" as entry.
+    train_metrics : dict
+        Lists as many metrics as specified in `metrics` for each training epoch. Always has "loss" as entry.
+    best_metric
+        Best validation metric.
+    best_model
+        Best model (hyperparameter settings) when `best_metric` is archieved.
+
+    Methods
+    -------
+    train_model()
+        Main function to train a network for one epoch.
+    finish_training()
+        Function which should always be run when training ends.
+    visualize_training()
+        Function to visualize training process
+    evaluate_model()
+        Function to evaluate a model once it is trained
+
+    """
     def __init__(
             self,
             model,
@@ -25,30 +114,14 @@ class Trainer:
             multitask=False,
             **kwargs
     ):
-        """ Main class for training.
-        # Arguments
-            model: neural network to train.
-            criterion: loss function.
-            optimizer: optimization function.
-            scheduler: schedules the optimizer.
-            metrics: list of metrics to report. Default is None.
-                     when multitask training = True,
-                     metrics can be a list of lists such that len(metrics) =  number of tasks. If not,
-                     metrics are calculated only for the first task.
-            callbacks: list of callbacks to execute at the end of training epochs. Default is None.
-            training_time_callback: a user-defined callback that executes the model.forward()
-                and returns the output to the trainer.
-                This can be used to perform debug during train time, Visualize features,
-                call model.forward() with custom arguments, run multiple decoder networks etc.
-                Default is None.
-            class_threshold: classification threshold for binary
-                classification. Default is 0.5.
-            prediction_type: accepts one of ["binary", "classification",
-                "regression", "reconstruction", "variational", "other"].
-                This is used to determine output type.
-            device: The device to use for training. Must be integer or
-                    a torch.device object. By default, GPU with current
-                    node is used.
+        """Initialization routine.
+
+        Raises
+        ------
+        ValueError
+            Wrong device selected.
+            `model` in wrong format.
+
         """
         if not isinstance(model, nn.Module):
             raise ValueError("Expects model type to be torch.nn.Module")
@@ -60,11 +133,11 @@ class Trainer:
         if self.multitask:
             self.metrics = metrics
             self.prediction_type = prediction_type
-            self.criterions = criterion.loss_function
+            self._criterions = criterion.loss_function
         else:
             self.metrics = [metrics]
             self.prediction_type = [prediction_type]
-            self.criterions = [criterion]
+            self._criterions = [criterion]
 
         self.callbacks = callbacks
         self.training_time_callback = training_time_callback
@@ -80,7 +153,7 @@ class Trainer:
             self.class_threshold = kwargs["class_threshold"]
         else:
             self.class_threshold = None
-        self.stop_training = False
+        self._stop_training = False
         self.start_time = None
         self.val_metrics = {"loss": []}
         self.train_metrics = {"loss": []}
@@ -101,16 +174,50 @@ class Trainer:
             show_validation_epochs=1,
             store_grads=False
     ):
-        """ Main function to train a network for one epoch.
-        Args:
-            train_loader: a pytorch Dataset iterator for training data
-            val_loader: a pytorch Dataset iterator for validation data
-            inputs_key, labels_key: The data returned by `train_loader` and `val_loader`can
-                            either be a dict of format data_loader[X_key] = inputs and
-                            data_loader[y_key] = labels or a list with data_loader[0] = inputs
-                            and data_loader[1] = labels. The default keys are "image" and "label".
-            store_grads (optional): allows visualization of the gradient flow through the model during training.
-            After calling this method, do plt.show() to see the gradient flow diagram.
+        """Main function to train a network for one epoch.
+
+        Parameters
+        ----------
+        train_loader : torch.utils.data.DataLoader
+            A pytorch Dataset iterator for training data.
+        val_loader : torch.utils.data.DataLoader
+            A pytorch Dataset iterator for validation data.
+        branch_type
+            Either 'global' or 'local'. Default: 'global'
+        region
+            A region to focus training on. Default: None
+        nmm_mask_path
+            The mask used to extract regions. Default: None
+        inputs_key, labels_key
+            The data returned by `train_loader` and `val_loader` can either be a dict of format
+            data_loader[X_key] = inputs and data_loader[y_key] = labels
+            or a list with data_loader[0] = inputs and data_loader[1] = labels.
+            The default keys are "image" and "label".
+        num_epochs
+            The maximum number of epochs. Default: 25
+        show_train_steps
+            The number of training steps to show. Default: None
+        show_validation_epochs
+            Specifies every `x` validation epoch to show. If set to 1 all epochs are shown. Default: 1
+        store_grads
+            Allows visualization of the gradient flow through the model during training. Default: False.
+
+        Returns
+        -------
+        tuple
+            First entry is the trained model, second entry is a dictionary containing information on training procedure.
+
+        See Also
+        --------
+        finish_training(epoch)
+
+        Raises
+        ------
+        AssertionError
+            If `show_train_steps` smaller 0 or greater than the length of the train loader.
+        TypeError
+            When data cannot be accessed.
+
         """
         n = len(train_loader)
         n_val = len(val_loader)
@@ -118,10 +225,11 @@ class Trainer:
         if not show_train_steps:
             show_train_steps = n // 4 if ((n // 4) > 1) else 1
 
-        assert (show_train_steps > 0) and (show_train_steps <= n), "\
-'show_train_steps' value-{} is out of range. Must be >0 and <={} i.e. len(train_loader)".format(show_train_steps, n)
-        assert (show_validation_epochs < num_epochs) or (num_epochs == 1), "\
-'show_validation_epochs' value should be less than 'num_epochs'"
+        assert (show_train_steps > 0) and (show_train_steps <= n), \
+            "'show_train_steps' value-{} is out of range. " \
+            "Must be >0 and <={} i.e. len(train_loader)".format(show_train_steps, n)
+        assert (show_validation_epochs < num_epochs) or (num_epochs == 1), \
+            "'show_validation_epochs' value should be less than 'num_epochs'"
 
         # reset metric dicts
         self.val_metrics = {"loss": []}
@@ -133,7 +241,7 @@ class Trainer:
 
         for epoch in range(num_epochs):
             # if early stopping is on, check if stop signal is switched on
-            if self.stop_training:
+            if self._stop_training:
                 return self.finish_training(epoch)
             else:
                 # train mode
@@ -164,8 +272,8 @@ class Trainer:
                     else:
                         inputs = inputs.to(self.device)
                     if isinstance(labels, list):
-                        assert self.multitask, "'multitask' is set to False during init \
-but training with multiple labels"
+                        assert self.multitask, "'multitask' is set to False during init " \
+                                               "but training with multiple labels"
                         labels = [label.to(self.device) for label in labels]
                     else:
                         labels = labels.to(self.device)
@@ -173,7 +281,7 @@ but training with multiple labels"
                     if branch_type == 'local':
                         nmm_mask = get_mask(nmm_mask_path)
                         region_mask = extract_region_mask(nmm_mask, region)
-                        inputs = self.extract_region(inputs, region_mask)
+                        inputs = self._extract_region(inputs, region_mask)
                         if epoch == 0 and i == 0:
                             img_cropped = inputs.cpu()
                             plt.imshow(img_cropped[0][0][:, :, 70], cmap='gray')
@@ -183,7 +291,7 @@ but training with multiple labels"
                     if branch_type == 'multiple':
                         nmm_mask = get_mask(nmm_mask_path)
                         region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                        inputs = self.extract_region(inputs, region_mask)
+                        inputs = self._extract_region(inputs, region_mask)
                         if epoch == 0 and i == 0:
                             img_cropped = inputs.cpu()
                             plt.imshow(img_cropped[0][0][:, :, 30], cmap='gray')
@@ -207,18 +315,15 @@ but training with multiple labels"
                     # update loss
                     running_loss.append(loss.item())
                     # print loss every 'show_train_steps' mini-batches
-                    if (i % show_train_steps == 0):
-                        if (i != 0):
-                            print(
-                                "[%d, %5d] loss: %.5f"
-                                % (epoch, i, np.mean(running_loss))
-                            )
+                    if i % show_train_steps == 0:
+                        if i != 0:
+                            print("[%d, %5d] loss: %.5f" % (epoch, i, np.mean(running_loss)))
 
                         # store the outputs and labels for computing metrics later     
                         all_outputs.append(outputs)
                         all_labels.append(labels)
                         # allows visualization of the gradient flow through the model during training
-                        if (store_grads):
+                        if store_grads:
                             plot_grad_flow(self.model.named_parameters())
 
                 # <end-of-training-cycle-loop>
@@ -265,12 +370,12 @@ but training with multiple labels"
                         if branch_type == 'local':
                             nmm_mask = get_mask(nmm_mask_path)
                             region_mask = extract_region_mask(nmm_mask, region)
-                            inputs = self.extract_region(inputs, region_mask)
+                            inputs = self._extract_region(inputs, region_mask)
 
                         if branch_type == 'multiple':
                             nmm_mask = get_mask(nmm_mask_path)
                             region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                            inputs = self.extract_region(inputs, region_mask)
+                            inputs = self._extract_region(inputs, region_mask)
 
                         # forward pass only
                         if self.training_time_callback is not None:
@@ -305,8 +410,28 @@ but training with multiple labels"
         return self.finish_training(epoch)
 
     def finish_training(self, epoch):
-        """
-        End the training cyle, return a model and finish callbacks.
+        """End the training cyle, return a model and finish callbacks.
+
+        Parameters
+        ----------
+        epoch : int
+            The current epoch.
+
+        Returns
+        -------
+        tuple
+            First entry is the trained model.
+            Second entry is a dictionary containing:
+                "train_metrics": all train_metrics
+                "val_metrics": all val_metrics
+                "best_model": best_model
+                "best_metric": best_metric
+
+        Raises
+        ------
+        AttributeError
+            the `final` function for a Callback failed.
+
         """
         time_elapsed = int(time.time() - self.start_time)
         print("Total time elapsed: {}h:{}m:{}s".format(
@@ -334,6 +459,18 @@ but training with multiple labels"
                 )
 
     def visualize_training(self, report, metrics=None, save_fig_path=""):
+        """A function to vizualize model training.
+
+        Parameters
+        ----------
+        report : dict
+            must store key "train_metrics" and "val_metrics".
+        metrics
+            Metrics to visualize. Default: None
+        save_fig_path : str
+            A path to store figures in a pdf file. Default: "" (Do not plot to pdf)
+
+        """
         for metric_name in report["train_metrics"].keys():
             # if metrics is not specified, plot everything, otherwise only plot the given metrics
             if metrics is None or metric_name.split(" ")[-1] in metrics:
@@ -362,18 +499,37 @@ but training with multiple labels"
             labels_key="label",
             write_to_dir=''
     ):
-        # predict on the validation set
-        """
-        Predict on the validation set.
-        # Arguments
-            val_loader : data loader of the validation set
-            additional_gpu : GPU number if evaluation should be done on
-                separate GPU
-            write_to_dir: the outputs of the evaluation are written to files path provided
-        """
+        """Predict on the validation set.
 
+        Parameters
+        ----------
+        val_loader : torch.utils.data.DataLoader
+        branch_type : str
+            Either 'global' or 'local'.
+        local_coords
+            Todo: Add description
+        local_size
+            Todo: Add description
+        region
+            A region to focus training on. Default: None
+        nmm_mask_path
+            The mask used to extract regions. Default: None
+        additional_gpu
+            Lets you evaluate on a different GPU than training was performed on. Default: None
+        metrics
+            Metrics to assess. Default: []
+        inputs_key, labels_key
+            The data returned by `val_loader` can either be a dict of format
+            data_loader[X_key] = inputs and data_loader[y_key] = labels
+            or a list with data_loader[0] = inputs and data_loader[1] = labels.
+            The default keys are "image" and "label".
+        write_to_dir
+            The outputs of the evaluation are written to files path provided. Default: ""
+
+        """
         self.model.eval()
 
+        # Todo: device is not used. It is still used self.device!
         if additional_gpu is not None:
             device = additional_gpu
         else:
@@ -399,12 +555,12 @@ but training with multiple labels"
                 if branch_type == 'local':
                     nmm_mask = get_mask(nmm_mask_path)
                     region_mask = extract_region_mask(nmm_mask, region)
-                    inputs = self.extract_region(inputs, region_mask)
+                    inputs = self._extract_region(inputs, region_mask)
 
                 if branch_type == 'multiple':
                     nmm_mask = get_mask(nmm_mask_path)
                     region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                    inputs = self.extract_region(inputs, region_mask)
+                    inputs = self._extract_region(inputs, region_mask)
 
                 if self.training_time_callback:
                     outputs = self.training_time_callback(
@@ -458,11 +614,16 @@ but training with multiple labels"
             metrics_dict,
             phase
     ):
+        """ Function executed at the end of an epoch.
+
+        Notes
+        -----
+            (a) calculate metrics
+            (b) store results in respective report dicts
+            (c) report metrics
+
         """
-        at the end of an epoch
-        (a) calculate metrics
-        (b) store results in respective report dicts
-        (c) report metrics """
+
         # report execution time, only in training phase
         if phase == "train":
             time_elapsed = int(time.time() - self.start_time)
@@ -473,13 +634,14 @@ but training with multiple labels"
             all_outputs = [torch.cat(out).float() for out in zip(*all_outputs)]
             all_labels = [torch.cat(lbl).float() for lbl in zip(*all_labels)]
             if not all([isinstance(metrics_per_task, list) for metrics_per_task in self.metrics]):
-                print("WARNING: You are doing multi-task training. You should provide metrics for each \
-sub-task as a list of lists but a single value is provided. No metrics will be calculated for secondary tasks")
+                print("WARNING: You are doing multi-task training. You should provide metrics for each "
+                      "sub-task as a list of lists but a single value is provided."
+                      " No metrics will be calculated for secondary tasks")
                 self.metrics = [self.metrics] + [[] for _ in range(len(all_outputs))]
             if not isinstance(self.prediction_type, list):
-                print("WARNING: In multi-task training, you should provide prediction_type\
- for each sub-task as a list but a single value is provided. Assuming the secondary tasks have\
- the same prediction_type '{}'!".format(self.prediction_type))
+                print("WARNING: In multi-task training, you should provide prediction_type "
+                      " for each sub-task as a list but a single value is provided. Assuming the secondary tasks have"
+                      " the same prediction_type '{}'!".format(self.prediction_type))
                 self.prediction_type = [self.prediction_type for _ in range(len(all_outputs))]
         else:
             all_outputs = [torch.cat(all_outputs).float()]
@@ -499,7 +661,7 @@ sub-task as a list of lists but a single value is provided. No metrics will be c
                 all_outputs[task_idx],
                 all_labels[task_idx],
                 self.prediction_type[task_idx],
-                self.criterions[task_idx],
+                self._criterions[task_idx],
                 class_threshold=self.class_threshold
             )
             # If it is a multi-head training then append prefix            
@@ -550,7 +712,8 @@ sub-task as a list of lists but a single value is provided. No metrics will be c
                 plt.ylabel("True label")
                 plt.xlabel("Predicted label")
 
-    def extract_region(self, x, region_mask):
+    def _extract_region(self, x, region_mask):
+
         region_mask = torch.from_numpy(region_mask).to(self.device)
 
         B, C, H, W, D = x.shape

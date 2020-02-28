@@ -37,7 +37,7 @@ def balanced_subsample(y, size=None):
     y
         Labels to balance over.
     size
-        size each label should have. e.g. 0.2 means 20% off all samples.
+        size each label should have. e.g. 0.2 means 20% off all samples. Default: None
 
     Returns
     -------
@@ -95,6 +95,11 @@ def load_nifti(
     np.ndarray
         3D numpy.ndarray with axis order (saggital x coronal x axial)
 
+    Raises
+    ------
+    TypeError
+        If z_factor is not float.
+
     """
 
     img = nib.load(file_path)
@@ -150,6 +155,11 @@ def _force_to_shape(img_nii_X, shape, rtol=1e-8, copy=True, info=False):
     -------
     numpy.ndarray
         3D numpy.ndarray with axis order (saggital x coronal x axial)
+
+    Raises
+    ------
+    AssertionError
+        shape in any dimension larger than the shape of the data.
 
     """
     data = img_nii_X.get_data()
@@ -298,16 +308,14 @@ class H5pyDataset(Dataset):
         The standard deviation of the dataset.
 
     Methods
-    ----------
+    -------
     fit_normalization(num_sample=None, show_progress=False)
         Sets normalization parameters `mean` and `std`.
 
     """
 
     def __init__(self, X, y, transform=None, mask=None, z_factor=None, dtype=np.float32):
-        """Sets data and label, transformation, mask, zooming and data-type.
-
-        """
+        """Sets data and label, transformation, mask, zooming and data-type."""
         self.X = np.copy(X)
         self.y = np.copy(y)
         self.transform = transform
@@ -468,9 +476,7 @@ class MRIDataset(Dataset):
             transform=None,
             force_to_shape=None,
     ):
-        """Specifies the dataset.
-
-        """
+        """Specifies the dataset."""
         self.filenames = filenames
         self.labels = torch.FloatTensor(labels)
         self.label_counts = dict(zip(*np.unique(labels, return_counts=True)))
@@ -542,7 +548,7 @@ class MRIDataset(Dataset):
         # struct_arr = (struct_arr - struct_arr.mean()) / (struct_arr.std() + 1e-10)
         # prevent 0 division by adding small factor
 
-        # todo: check why nromalizing only when transform is not None. why can't happen both?
+        # todo: check why normalizing only when transform is not None. why can't happen both?
         if self.transform is not None:
             struct_arr = self.transform(struct_arr)
         else:
@@ -665,7 +671,7 @@ def get_image_filepath(df_row, source_dir=""):
 
 
 class DataBunch:
-    """Organizes an collection of MRI images in a handy way.
+    """Organizes a collection of MRI images in a handy way.
 
     Without knowledge on data storage, this class organizes MRI images by only needing a single csv file.
     It builds training, validation and hold out datasets upon initialization which can be used for training
@@ -1546,9 +1552,7 @@ class DataBunch:
                        separator: str,
                        image_dir: str = None,
                        get_file_path: callable = None):
-        """ Prepares the dataframe. Checks for valid image dirs and labels.
-
-        """
+        """ Prepares the dataframe. Checks for valid image dirs and labels."""
         # read dataset and extract label information
         df = pd.read_csv(os.path.join(source_dir, table), index_col=None, sep=separator)
         print("Found {} images in {}".format(len(df), table))
@@ -1886,7 +1890,6 @@ class DataBunch:
         DataBunch
             The initialized Databunch object.
 
-
         """
         # init
         load_filename = cls.CACHE_NAME if load_filename is None or load_filename == "" \
@@ -1982,9 +1985,7 @@ class DataBunch:
         return 1
 
     def reset_changes(self):
-        """Resets all changes made to the object after the last sucessful call of `apply_changes()`.
-
-        """
+        """Resets all changes made to the object after the last sucessful call of `apply_changes()`."""
         # reset
         for k, v in self._changes.items():
             self.__setattr__(k, v)
@@ -2125,9 +2126,7 @@ class DataBunch:
                         grouped: bool = False,
                         reshuffle: bool = False
                         ):
-        """Splits all data based on arguments.
-
-        """
+        """Splits all data based on arguments."""
         # initialize
         df_trn, df_val, df_ho = None, None, None
 
@@ -2227,9 +2226,7 @@ class DataBunch:
             prediction_type: str = "c",
             reshuffle: bool = False
     ):
-        """Builds the datasets.
-
-        """
+        """Builds the datasets."""
 
         train_ds, val_ds, ho_ds = None, None, None
 
@@ -2625,9 +2622,7 @@ class DataBunch:
                       .format(os.path.splitext(file)[0]))
 
     def print_stats(self):
-        """Print statistics about the patients and images.
-
-        """
+        """Print statistics about the patients and images."""
         headers = []
         headers.append("IMAGES")
         if self.prediction_type == "r":
@@ -2779,7 +2774,7 @@ class DataBunch:
          Returns
          -------
          str
-            THe filename.
+            The filename.
 
         """
 
@@ -2854,9 +2849,9 @@ def show_brain(
         img_arr = img
     else:
         raise TypeError(
-            "Invalid type provided for 'img'- {}. \
-Either provide a 3-dimensional numpy.ndarray of a MRI image or path to \
-the image file stored as a nifTI format.".format(
+            "Invalid type provided for 'img'- {}. "
+            "Either provide a 3-dimensional numpy.ndarray of a MRI image or path to "
+            "the image file stored as a nifTI format.".format(
                 type(img)
             )
         )

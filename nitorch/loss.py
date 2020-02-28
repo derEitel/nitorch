@@ -3,22 +3,38 @@ import torch.nn.functional as F
 
 
 class BCE_KL_loss(torch.nn.Module):
-    """ 
-    Reconstruction loss for variational auto-encoders.
+    """Reconstruction loss for variational auto-encoders.
+
     Binary-cross entropy reconstruction + KL divergence losses summed
     over all elements and batch. 
     Mostly taken from pytorch examples: 
         https://github.com/pytorch/examples/blob/master/vae/main.py
 
-    Arguments:
-        outputs: List of the form [reconstruction, mean, logvariance].
-        x: ground-truth.
-    """
+    Methods
+    -------
+    forward(outputs, target)
+        Forward function of the module.
 
+    """
     def __init__(self):
         super(BCE_KL_loss, self).__init__()
 
     def forward(self, outputs, target):
+        """Forward function of the module.
+
+        Parameters
+        ----------
+        outputs :
+            List of the form [reconstruction, mean, logvariance].
+        target
+            ground truth.
+        Returns
+        -------
+        torch.tensor
+            The BCE + KLD loss.
+
+        """
+
         recon_x, mu, logvar = outputs
         BCE = F.binary_cross_entropy(recon_x, target, size_average=False)
 
@@ -32,22 +48,38 @@ class BCE_KL_loss(torch.nn.Module):
 
 
 class MSE_KL_loss(torch.nn.Module):
-    """ 
-    Reconstruction loss for variational auto-encoders.
+    """Reconstruction loss for variational auto-encoders.
+
     Mean squared error reconstruction + KL divergence losses summed
     over all elements and batch. 
     Mostly taken from pytorch examples: 
         https://github.com/pytorch/examples/blob/master/vae/main.py
 
-    Arguments:
-        outputs: List of the form [reconstruction, mean, logvariance].
-        x: ground-truth.
+    Methods
+    -------
+    forward(outputs, target)
+        Forward function of the module.
+
     """
 
     def __init__(self):
         super(MSE_KL_loss, self).__init__()
 
     def forward(self, outputs, target):
+        """Forward function of the module.
+
+        Parameters
+        ----------
+        outputs :
+            List of the form [reconstruction, mean, logvariance].
+        target
+            ground truth.
+        Returns
+        -------
+        torch.tensor
+            The MSE + KLD loss.
+
+        """
         recon_x, mu, logvar = outputs
         MSE = F.mse_loss(recon_x, target, size_average=False)
 
@@ -61,25 +93,59 @@ class MSE_KL_loss(torch.nn.Module):
 
 
 class Multihead_loss(torch.nn.Module):
-    """
-    Compute the loss on multiple outputs.
+    """Compute the loss on multiple outputs.
 
-    Arguments:
-        outputs: List of network outputs.
-        target: List of targets where len(outputs) = len(target).
-        loss_function: List of loss functions with either
-            len(loss_function) = len(targets) or len(loss_function) = 1.
-        weights: List of weights for each loss. Default = [1]
+    Parameters
+    ----------
+    loss_function : list
+        List of loss functions with either len(loss_function) = len(targets) or len(loss_function) = 1.
+    weights : list
+        List of weights for each loss. Default = [1].
+
+    Attributes
+    ----------
+    loss_function : list
+        List of loss functions with either len(loss_function) = len(targets) or len(loss_function) = 1.
+    weights : list
+        List of weights for each loss. Default = [1].
+
+    Methods
+    -------
+    forward(outputs, target)
+        Forward function of the module.
+
     """
 
     def __init__(self, loss_function, weights=[1]):
+        """Initialization routine."""
         super(Multihead_loss, self).__init__()
-
         self.loss_function = loss_function
         self.weights = weights
 
     def forward(self, outputs, target):
-        assert len(outputs) == len(target), "len(outputs)={} and len(target)={}".format(len(outputs),len(target))
+        """Forward function of the module.
+
+        Parameters
+        ----------
+        outputs : list
+            List of network outputs.
+        target : list
+            List of targets where len(outputs) = len(target).
+
+        Returns
+        -------
+        total_loss : torch.tensor
+            The total loss.
+
+        Raises
+        ------
+        AssertionError
+            Length of outputs not equal to length of `target`
+            length of attribute `loss_function` not equal to `target`
+
+        """
+
+        assert len(outputs) == len(target), "len(outputs)={} and len(target)={}".format(len(outputs), len(target))
         assert (
             len(self.loss_function) == len(target)
             or len(self.loss_function) == 1

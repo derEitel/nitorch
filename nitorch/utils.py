@@ -5,10 +5,26 @@ import numpy as np
 
 
 def dataset_length(data_loader):
-    """
-    Return the full length of the dataset from the DataLoader alone.
+    """Return the full length of the dataset from the DataLoader alone.
+
     Calling len(data_loader) only shows the number of mini-batches.
-    Requires data to be located at 
+    Requires data to be located at.
+
+    Parameters
+    ----------
+    data_loader : torch.utils.data.DataLoader
+        The data_loader for the data.
+
+    Returns
+    -------
+    int
+        The total length of the `data_loader`.
+
+    Raises
+    ------
+    KeyError
+        If each entry in the `data_loader` is a dictionary, key for the label is expected to be 'label'.
+
     """
     sample = next(iter(data_loader))
     batch_size = None
@@ -32,15 +48,39 @@ def dataset_length(data_loader):
 
 
 def count_parameters(model):
+    """Returns the number of adjustable parameters of the input.
+
+    Parameters
+    ----------
+    model
+        The model.
+
+    Returns
+    -------
+    int
+        The number of adjustable parameters of `model`.
+
+    """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 def plot_grad_flow(named_parameters):
     """Plots the gradients flowing through different layers in the net during training.
+
     Can be used for checking for possible gradient vanishing / exploding problems.
-    
-    Usage: Plug this function in Trainer class after loss.backwards() as 
-    "plot_grad_flow(self.model.named_parameters())" to visualize the gradient flow"""
+
+    Parameters
+    ----------
+    named_parameters : list
+        A list of tuples. First entry is the name, second the value.
+
+    Notes
+    -----
+        Plug this function in Trainer class after loss.backwards() as
+        "plot_grad_flow(self.model.named_parameters())" to visualize the gradient flow
+
+
+    """
     ave_grads = []
     max_grads = []
     layers = []
@@ -65,5 +105,18 @@ def plot_grad_flow(named_parameters):
     
 
 def is_bad_grad(grad_output):
+    """Checks if gradient is too big
+
+    Parameters
+    ----------
+    grad_output
+        The gradient you got back during back-propagation.
+
+    Returns
+    -------
+    bool
+        True if gradient is bad, False otherwise.
+
+    """
     grad_output = grad_output.data
     return grad_output.ne(grad_output).any() or grad_output.gt(1e6).any()

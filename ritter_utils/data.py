@@ -2,6 +2,7 @@
 from nitorch.data import *
 from nitorch.transforms import *
 
+# todo: Update this as paths probably changed!
 
 default_transforms = Compose(
     [ToTensor(), IntensityRescale(masked=False, on_gpu=True)]
