@@ -25,7 +25,7 @@ class Trainer:
         optimizer function.
     scheduler
         schedules the optimizer. Default: None
-    metrics
+    metrics : list
         list of metrics to report. Default: None.
         when multitask training = True,
         metrics can be a list of lists such that len(metrics) =  number of tasks.
@@ -39,7 +39,7 @@ class Trainer:
     device : int/torch.device
         The device to use for training. Must be integer or a torch.device object.
         By default, GPU with current node is used. Default: torch.device("cuda")
-    prediction_type
+    prediction_type : str
         accepts one of ["binary", "classification", "regression", "reconstruction", "variational", "other"].
         Default: "binary"
     multitask : bool
@@ -474,6 +474,7 @@ class Trainer:
         for metric_name in report["train_metrics"].keys():
             # if metrics is not specified, plot everything, otherwise only plot the given metrics
             if metrics is None or metric_name.split(" ")[-1] in metrics:
+                # todo: add x and y label description or use seaborn!
                 plt.figure()
                 plt.plot(report["train_metrics"][metric_name])
                 plt.plot(report["val_metrics"][metric_name])
@@ -504,6 +505,7 @@ class Trainer:
         Parameters
         ----------
         val_loader : torch.utils.data.DataLoader
+            The data which should be used for model evaluation.
         branch_type : str
             Either 'global' or 'local'.
         local_coords
@@ -541,7 +543,15 @@ class Trainer:
 
         with torch.no_grad():
             for i, data in enumerate(val_loader):
-                inputs, labels = data[inputs_key], data[labels_key]
+                try:
+                    inputs, labels = data[inputs_key], data[labels_key]
+                except TypeError:
+                    # if data does not come in dictionary, assume
+                    # that data is ordered like [input, label]
+                    try:
+                        inputs, labels = data[0], data[1]
+                    except TypeError:
+                        raise TypeError("Data not in correct sequence format.")
                 # in case of multi-input or output create a list
                 if isinstance(inputs, list):
                     inputs = [inp.to(self.device) for inp in inputs]
@@ -590,6 +600,10 @@ class Trainer:
                 metrics_dict=results,
                 phase="eval"
             )
+
+        # todo: that will not work because there is no plot to show.
+        #  _estimate_and_report_metrics() creates a plot but does not return anything.
+        # Suggestion: export functionality to _estimate_and_report_metrics where the figure is created
 
         if write_to_dir:
             results = {k: v[0] for k, v in results.items()}
@@ -689,6 +703,7 @@ class Trainer:
 
             # plot confusion graph if it is a binary classification
             if phase == "eval" and self.prediction_type[task_idx] == "binary":
+                # todo: add x and y label description or use seaborn!
                 cm = confusion_matrix(all_label, all_pred)
                 plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
 
@@ -711,6 +726,7 @@ class Trainer:
                 plt.title("Confusion Matrix")
                 plt.ylabel("True label")
                 plt.xlabel("Predicted label")
+                plt.show()
 
     def _extract_region(self, x, region_mask):
 

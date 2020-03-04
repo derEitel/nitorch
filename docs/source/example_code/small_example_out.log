@@ -1,0 +1,102 @@
+Found 20 images in OASIS_example.csv
+Found 3 labels: ['healthy', 'clinical dementia', 'unknown']
+Dropped 1 samples that were not in ['clinical dementia', 'healthy']
+Final dataframe contains 19 samples from 6 patients
+Building datasets
+Scan-wise stratified train/test splitting with val_size = 0.1
+A patient having scans at multiple time points might appear in the val and train split!
+         IMAGES    clinical dementia    healthy    PATIENTS    clinical dementia    healthy
+-----  --------  -------------------  ---------  ----------  -------------------  ---------
+Train        17                    9          8           6                    3          3
+Val           2                    1          1           2                    1          1
+Total        19                   10          9           6                    3          3
+Data shape: (35, 51, 51)
+NOTE: data have been downsized by a factor of 0.2
+DataBunch initialized at ../data/OASIS_BIDS_example_data/results
+Building dataloaders
+No. training/test samples: 8.5
+Dataset not normalized, performance might be significantly hurt!
+label=clinical dementia
+[0,     2] loss: 0.84335
+[0,     4] loss: 0.76980
+[0,     6] loss: 0.95071
+[0,     8] loss: 0.76692
+Time elapsed: 0h:0m:7s
+train binary_balanced_accuracy: 50.00 %
+val loss: 1.28704
+val binary_balanced_accuracy: 50.00 %
+[1,     2] loss: 1.11777
+[1,     4] loss: 0.90237
+[1,     6] loss: 0.86487
+[1,     8] loss: 0.80806
+Time elapsed: 0h:0m:17s
+train binary_balanced_accuracy: 60.00 %
+val loss: 1.02584
+val binary_balanced_accuracy: 50.00 %
+[2,     2] loss: 0.81401
+[2,     4] loss: 0.85946
+[2,     6] loss: 0.79937
+[2,     8] loss: 0.82474
+Time elapsed: 0h:0m:28s
+train binary_balanced_accuracy: 47.50 %
+val loss: 0.57556
+val binary_balanced_accuracy: 50.00 %
+[3,     2] loss: 0.62246
+[3,     4] loss: 0.61600
+[3,     6] loss: 0.60460
+[3,     8] loss: 0.59020
+Time elapsed: 0h:0m:38s
+train binary_balanced_accuracy: 75.00 %
+val loss: 0.80410
+val binary_balanced_accuracy: 50.00 %
+[4,     2] loss: 0.75554
+[4,     4] loss: 0.61666
+[4,     6] loss: 0.53448
+[4,     8] loss: 0.57154
+Time elapsed: 0h:0m:48s
+train binary_balanced_accuracy: 58.33 %
+val loss: 0.97156
+val binary_balanced_accuracy: 50.00 %
+[5,     2] loss: 1.08375
+[5,     4] loss: 0.80387
+[5,     6] loss: 0.68879
+[5,     8] loss: 0.68390
+Time elapsed: 0h:0m:58s
+train binary_balanced_accuracy: 55.00 %
+val loss: 0.76843
+val binary_balanced_accuracy: 50.00 %
+[6,     2] loss: 0.37092
+[6,     4] loss: 0.42336
+[6,     6] loss: 0.40216
+[6,     8] loss: 0.37170
+Time elapsed: 0h:1m:8s
+train binary_balanced_accuracy: 77.50 %
+val loss: 0.60067
+val binary_balanced_accuracy: 50.00 %
+[7,     2] loss: 0.75128
+[7,     4] loss: 0.58992
+[7,     6] loss: 0.58823
+[7,     8] loss: 0.53519
+Time elapsed: 0h:1m:18s
+train binary_balanced_accuracy: 75.00 %
+val loss: 0.52003
+val binary_balanced_accuracy: 50.00 %
+[8,     2] loss: 0.23744
+[8,     4] loss: 0.39957
+[8,     6] loss: 0.38014
+[8,     8] loss: 0.40209
+Time elapsed: 0h:1m:29s
+train binary_balanced_accuracy: 87.50 %
+val loss: 0.36000
+val binary_balanced_accuracy: 100.00 %
+[9,     2] loss: 0.32260
+[9,     4] loss: 0.39109
+[9,     6] loss: 0.39596
+[9,     8] loss: 0.37484
+Time elapsed: 0h:1m:39s
+train binary_balanced_accuracy: 80.00 %
+val loss: 0.59600
+val binary_balanced_accuracy: 50.00 %
+Total time elapsed: 0h:1m:41s
+eval loss: 0.59600
+eval binary_balanced_accuracy: 50.00 %

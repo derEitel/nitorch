@@ -7,14 +7,11 @@ Welcome to nitorch's documentation!
 ===================================
 
 .. toctree::
+   :caption: Quicklinks
    :maxdepth: 2
-   :caption: Contents:
 
+   tutorials
+   nitorchAPI
+   about
+   indices
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
