@@ -162,12 +162,12 @@ class Trainer:
 
 
     def arrange_data(
+            self,
             data,
             inputs_key,
             labels_key
     ):
-        """
-        Extracts the inputs and labels from the data loader and moves them to the 
+        """Extracts the inputs and labels from the data loader and moves them to the 
         analysis device. In case of multiple inputs or multiple outputs uses a list.
 
         In case the DataLoader does not output a named dictionary, the features
@@ -211,7 +211,7 @@ class Trainer:
             labels = [label.to(self.device) for label in labels]
         else:
             labels = labels.to(self.device)
-    return inputs, labels
+        return inputs, labels
 
     def train_model(
             self,
