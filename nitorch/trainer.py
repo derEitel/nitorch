@@ -160,6 +160,59 @@ class Trainer:
         self.best_metric = None
         self.best_model = None
 
+
+    def arrange_data(
+            data,
+            inputs_key,
+            labels_key
+    ):
+        """
+        Extracts the inputs and labels from the data loader and moves them to the 
+        analysis device. In case of multiple inputs or multiple outputs uses a list.
+
+        In case the DataLoader does not output a named dictionary, the features
+        are expected at index 0 and labels and index 1.
+
+        Attributes
+        ----------
+        data : torch.utils.data.DataLoader
+            DataLoader for the current set e.g. train, val, test.
+        inputs_key : str
+            In case the DataLoader outputs a named pair use this key for the 
+            features.
+        labels_key : str
+            In case the DataLoader outputs a named pair use this key for the 
+            labels.
+
+        Returns:
+        -------
+        inputs
+            torch.Tensor of all features or list of torch.Tensors
+        labels
+            torch.Tensor of all labels or list of torch.Tensors
+        """
+        try:
+            inputs, labels = data[inputs_key], data[labels_key]
+        except TypeError:
+            # if data does not come in dictionary, assume
+            # that data is ordered like [input, label]
+            try:
+                inputs, labels = data[0], data[1]
+            except TypeError:
+                raise TypeError("Data not in correct \
+                 sequence format.")
+
+        # in case of multi-input or output create a list
+        if isinstance(inputs, list):
+            inputs = [inp.to(self.device) for inp in inputs]
+        else:
+            inputs = inputs.to(self.device)
+        if isinstance(labels, list):
+            labels = [label.to(self.device) for label in labels]
+        else:
+            labels = labels.to(self.device)
+    return inputs, labels
+
     def train_model(
             self,
             train_loader,
@@ -256,27 +309,7 @@ class Trainer:
                     self.scheduler.step(epoch)
 
                 for i, data in enumerate(train_loader):
-                    try:
-                        inputs, labels = data[inputs_key], data[labels_key]
-                    except TypeError:
-                        # if data does not come in dictionary, assume
-                        # that data is ordered like [input, label]
-                        try:
-                            inputs, labels = data[0], data[1]
-                        except TypeError:
-                            raise TypeError
-
-                    # in case of multi-task training create a list
-                    if isinstance(inputs, list):
-                        inputs = [inp.to(self.device) for inp in inputs]
-                    else:
-                        inputs = inputs.to(self.device)
-                    if isinstance(labels, list):
-                        assert self.multitask, "'multitask' is set to False during init " \
-                                               "but training with multiple labels"
-                        labels = [label.to(self.device) for label in labels]
-                    else:
-                        labels = labels.to(self.device)
+                    inputs, labels = arrange_data(data, inputs_key, labels_key)
 
                     if branch_type == 'local':
                         nmm_mask = get_mask(nmm_mask_path)
@@ -346,54 +379,35 @@ class Trainer:
 
                     with torch.no_grad():
                         for i, data in enumerate(val_loader):
-                            try:
-                                inputs, labels = data[inputs_key], data[labels_key]
-                            except TypeError:
-                                # if data does not come in dictionary, assume
-                                # that data is ordered like [input, label]
-                                try:
-                                    inputs, labels = data[0], data[1]
-                                except TypeError:
-                                    raise TypeError("Data not in correct \
-                                     sequence format.")
+                            inputs, labels = arrange_data(data, inputs_key, labels_key)
 
-                            # in case of multi-input or output create a list
-                            if isinstance(inputs, list):
-                                inputs = [inp.to(self.device) for inp in inputs]
+                            if branch_type == 'local':
+                                nmm_mask = get_mask(nmm_mask_path)
+                                region_mask = extract_region_mask(nmm_mask, region)
+                                inputs = self._extract_region(inputs, region_mask)
+
+                            if branch_type == 'multiple':
+                                nmm_mask = get_mask(nmm_mask_path)
+                                region_mask = extract_multiple_regions_mask(nmm_mask, region)
+                                inputs = self._extract_region(inputs, region_mask)
+
+                            # forward pass only
+                            if self.training_time_callback is not None:
+                                outputs = self.training_time_callback(
+                                    inputs,
+                                    labels,
+                                    1,  # dummy value
+                                    1  # dummy value
+                                )
                             else:
-                                inputs = inputs.to(self.device)
-                            if isinstance(labels, list):
-                                labels = [label.to(self.device) for label in labels]
-                            else:
-                                labels = labels.to(self.device)
+                                outputs = self.model(inputs)
 
-                        if branch_type == 'local':
-                            nmm_mask = get_mask(nmm_mask_path)
-                            region_mask = extract_region_mask(nmm_mask, region)
-                            inputs = self._extract_region(inputs, region_mask)
+                            loss = self.criterion(outputs, labels)
 
-                        if branch_type == 'multiple':
-                            nmm_mask = get_mask(nmm_mask_path)
-                            region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                            inputs = self._extract_region(inputs, region_mask)
-
-                        # forward pass only
-                        if self.training_time_callback is not None:
-                            outputs = self.training_time_callback(
-                                inputs,
-                                labels,
-                                1,  # dummy value
-                                1  # dummy value
-                            )
-                        else:
-                            outputs = self.model(inputs)
-
-                        loss = self.criterion(outputs, labels)
-
-                        running_loss_val.append(loss.item())
-                        # store the outputs and labels for computing metrics later
-                        all_outputs.append(outputs)
-                        all_labels.append(labels)
+                            running_loss_val.append(loss.item())
+                            # store the outputs and labels for computing metrics later
+                            all_outputs.append(outputs)
+                            all_labels.append(labels)
 
                     # report validation metrics
                     self._estimate_and_report_metrics(
@@ -543,24 +557,7 @@ class Trainer:
 
         with torch.no_grad():
             for i, data in enumerate(val_loader):
-                try:
-                    inputs, labels = data[inputs_key], data[labels_key]
-                except TypeError:
-                    # if data does not come in dictionary, assume
-                    # that data is ordered like [input, label]
-                    try:
-                        inputs, labels = data[0], data[1]
-                    except TypeError:
-                        raise TypeError("Data not in correct sequence format.")
-                # in case of multi-input or output create a list
-                if isinstance(inputs, list):
-                    inputs = [inp.to(self.device) for inp in inputs]
-                else:
-                    inputs = inputs.to(self.device)
-                if isinstance(labels, list):
-                    labels = [label.to(self.device) for label in labels]
-                else:
-                    labels = labels.to(self.device)
+                inputs, labels = arrange_data(data, inputs_key, labels_key)
 
                 if branch_type == 'local':
                     nmm_mask = get_mask(nmm_mask_path)
