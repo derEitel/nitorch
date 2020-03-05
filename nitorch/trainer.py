@@ -9,8 +9,6 @@ from nitorch.inference import predict
 from nitorch.utils import *
 import json
 
-# Todo: better documentation for 'branch_type' option
-
 
 class Trainer:
     """Class for organizing the training process.
@@ -217,7 +215,6 @@ class Trainer:
             self,
             train_loader,
             val_loader,
-            branch_type='global',
             region=None,
             nmm_mask_path=None,
             inputs_key="image",
@@ -235,8 +232,6 @@ class Trainer:
             A pytorch Dataset iterator for training data.
         val_loader : torch.utils.data.DataLoader
             A pytorch Dataset iterator for validation data.
-        branch_type
-            Either 'global' or 'local'. Default: 'global'
         region
             A region to focus training on. Default: None
         nmm_mask_path
@@ -311,26 +306,6 @@ class Trainer:
                 for i, data in enumerate(train_loader):
                     inputs, labels = arrange_data(data, inputs_key, labels_key)
 
-                    if branch_type == 'local':
-                        nmm_mask = get_mask(nmm_mask_path)
-                        region_mask = extract_region_mask(nmm_mask, region)
-                        inputs = self._extract_region(inputs, region_mask)
-                        if epoch == 0 and i == 0:
-                            img_cropped = inputs.cpu()
-                            plt.imshow(img_cropped[0][0][:, :, 70], cmap='gray')
-                            plt.contour(region_mask[:, :, 70], colors='yellow')
-                            plt.show()
-
-                    if branch_type == 'multiple':
-                        nmm_mask = get_mask(nmm_mask_path)
-                        region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                        inputs = self._extract_region(inputs, region_mask)
-                        if epoch == 0 and i == 0:
-                            img_cropped = inputs.cpu()
-                            plt.imshow(img_cropped[0][0][:, :, 30], cmap='gray')
-                            plt.contour(region_mask[:, :, 30], colors='yellow')
-                            plt.show()
-
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
 
@@ -380,16 +355,6 @@ class Trainer:
                     with torch.no_grad():
                         for i, data in enumerate(val_loader):
                             inputs, labels = arrange_data(data, inputs_key, labels_key)
-
-                            if branch_type == 'local':
-                                nmm_mask = get_mask(nmm_mask_path)
-                                region_mask = extract_region_mask(nmm_mask, region)
-                                inputs = self._extract_region(inputs, region_mask)
-
-                            if branch_type == 'multiple':
-                                nmm_mask = get_mask(nmm_mask_path)
-                                region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                                inputs = self._extract_region(inputs, region_mask)
 
                             # forward pass only
                             if self.training_time_callback is not None:
@@ -503,7 +468,6 @@ class Trainer:
     def evaluate_model(
             self,
             val_loader,
-            branch_type='global',
             local_coords=None,
             local_size=None,
             region=None,
@@ -520,8 +484,6 @@ class Trainer:
         ----------
         val_loader : torch.utils.data.DataLoader
             The data which should be used for model evaluation.
-        branch_type : str
-            Either 'global' or 'local'.
         local_coords
             Todo: Add description
         local_size
@@ -558,16 +520,6 @@ class Trainer:
         with torch.no_grad():
             for i, data in enumerate(val_loader):
                 inputs, labels = arrange_data(data, inputs_key, labels_key)
-
-                if branch_type == 'local':
-                    nmm_mask = get_mask(nmm_mask_path)
-                    region_mask = extract_region_mask(nmm_mask, region)
-                    inputs = self._extract_region(inputs, region_mask)
-
-                if branch_type == 'multiple':
-                    nmm_mask = get_mask(nmm_mask_path)
-                    region_mask = extract_multiple_regions_mask(nmm_mask, region)
-                    inputs = self._extract_region(inputs, region_mask)
 
                 if self.training_time_callback:
                     outputs = self.training_time_callback(
