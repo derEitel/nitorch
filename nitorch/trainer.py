@@ -297,7 +297,7 @@ class Trainer:
                     self.scheduler.step(epoch)
 
                 for i, data in enumerate(train_loader):
-                    inputs, labels = arrange_data(data, inputs_key, labels_key)
+                    inputs, labels = self.arrange_data(data, inputs_key, labels_key)
 
                     # zero the parameter gradients
                     self.optimizer.zero_grad()
@@ -347,7 +347,7 @@ class Trainer:
 
                     with torch.no_grad():
                         for i, data in enumerate(val_loader):
-                            inputs, labels = arrange_data(data, inputs_key, labels_key)
+                            inputs, labels = self.arrange_data(data, inputs_key, labels_key)
 
                             # forward pass only
                             if self.training_time_callback is not None:
@@ -500,7 +500,7 @@ class Trainer:
 
         with torch.no_grad():
             for i, data in enumerate(val_loader):
-                inputs, labels = arrange_data(data, inputs_key, labels_key)
+                inputs, labels = self.arrange_data(data, inputs_key, labels_key)
 
                 if self.training_time_callback:
                     outputs = self.training_time_callback(
