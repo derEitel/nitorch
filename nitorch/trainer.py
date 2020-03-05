@@ -158,7 +158,6 @@ class Trainer:
         self.best_metric = None
         self.best_model = None
 
-
     def arrange_data(
             self,
             data,
@@ -182,7 +181,7 @@ class Trainer:
             In case the DataLoader outputs a named pair use this key for the 
             labels.
 
-        Returns:
+        Returns
         -------
         inputs
             torch.Tensor of all features or list of torch.Tensors
@@ -215,8 +214,6 @@ class Trainer:
             self,
             train_loader,
             val_loader,
-            region=None,
-            nmm_mask_path=None,
             inputs_key="image",
             labels_key="label",
             num_epochs=25,
@@ -232,10 +229,6 @@ class Trainer:
             A pytorch Dataset iterator for training data.
         val_loader : torch.utils.data.DataLoader
             A pytorch Dataset iterator for validation data.
-        region
-            A region to focus training on. Default: None
-        nmm_mask_path
-            The mask used to extract regions. Default: None
         inputs_key, labels_key
             The data returned by 'train_loader' and 'val_loader' can either be a dict of format
             data_loader[X_key] = inputs and data_loader[y_key] = labels
@@ -468,10 +461,6 @@ class Trainer:
     def evaluate_model(
             self,
             val_loader,
-            local_coords=None,
-            local_size=None,
-            region=None,
-            nmm_mask_path=None,
             additional_gpu=None,
             metrics=[],
             inputs_key="image",
@@ -484,14 +473,6 @@ class Trainer:
         ----------
         val_loader : torch.utils.data.DataLoader
             The data which should be used for model evaluation.
-        local_coords
-            Todo: Add description
-        local_size
-            Todo: Add description
-        region
-            A region to focus training on. Default: None
-        nmm_mask_path
-            The mask used to extract regions. Default: None
         additional_gpu
             Lets you evaluate on a different GPU than training was performed on. Default: None
         metrics

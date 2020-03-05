@@ -14,4 +14,5 @@ Welcome to nitorch's documentation!
    nitorchAPI
    about
    indices
+   contribute
 
