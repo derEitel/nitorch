@@ -1,0 +1,1890 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>data module &mdash; nitorch  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> nitorch
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Quicklinks</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nitorchAPI.html">nitorch API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">All about us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indices.html">Indices and tables</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">nitorch</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>data module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/data.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-data">
+<span id="data-module"></span><h1>data module<a class="headerlink" href="#module-data" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="data.DataBunch">
+<em class="property">class </em><code class="sig-prename descclassname">data.</code><code class="sig-name descname">DataBunch</code><span class="sig-paren">(</span><em class="sig-param">source_dir: str</em>, <em class="sig-param">path: str</em>, <em class="sig-param">table: str</em>, <em class="sig-param">image_dir: str = None</em>, <em class="sig-param">mask: str = None</em>, <em class="sig-param">transforms: torchvision.transforms.transforms.Compose = Compose(     &lt;nitorch.transforms.ToTensor object&gt;     &lt;nitorch.transforms.IntensityRescale object&gt; )</em>, <em class="sig-param">labels_to_keep: list = None</em>, <em class="sig-param">prediction_type: str = 'classification'</em>, <em class="sig-param">get_file_path: callable = None</em>, <em class="sig-param">balance: bool = False</em>, <em class="sig-param">num_samples: int = None</em>, <em class="sig-param">num_training_samples: int = None</em>, <em class="sig-param">z_factor: float = 0.5</em>, <em class="sig-param">hold_out_size: float = None</em>, <em class="sig-param">val_size: float = 0.1</em>, <em class="sig-param">grouped: bool = False</em>, <em class="sig-param">cache_filename: str = None</em>, <em class="sig-param">force_to_shape: list = None</em>, <em class="sig-param">file_col='file_path'</em>, <em class="sig-param">label_col='DX'</em>, <em class="sig-param">ptid_col='PTID'</em>, <em class="sig-param">random_state: int = 42</em>, <em class="sig-param">separator: str = '</em>, <em class="sig-param">'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Organizes a collection of MRI images in a handy way.</p>
+<p>Without knowledge on data storage, this class organizes MRI images by only needing a single csv file.
+It builds training, validation and hold out datasets upon initialization which can be used for training
+models of any kind. Assigning data to the different dataset groups can be done based on arguments in many ways,
+respecting classes, grouping several scans at different time points according to their subject ID or balancing data.
+Downsampling, transformation, normalization is additionally supported. Moreover, the object configuration
+can be stored and loaded onto the disk and data can be saved (and loaded) as h5py-file for quicker access.
+Object can be shared to easily reproduce results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source_dir</strong> (<em>str</em>) – Path to source_dir folder, where table and image_dir can be found.</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Path where intermediary data will be stored (eg. cache).</p></li>
+<li><p><strong>table</strong> (<em>str</em>) – CSV file path <em>relative</em> to source_dir containing samples.
+The tables <em>must</em> contain ‘file_col’, ‘label_col’ and ‘ptid_col’ columns.</p></li>
+<li><p><strong>image_dir</strong> (<em>str</em>) – Image directory <em>relative</em> to source_dir, where the .nii files are.
+Set empty string (“”) if ‘image dir’ equals ‘source_dir’. Default: None</p></li>
+<li><p><strong>mask</strong> (<em>str</em>) – Path to binary brain mask in .nii format. This will be resized with z_factor. Default: None</p></li>
+<li><p><strong>transforms</strong> – A PyTorch Compose container object, with the transformations to apply to samples.
+Default: Compose([ToTensor(), IntensityRescale(masked=False, on_gpu=True)])</p></li>
+<li><p><strong>labels_to_keep</strong> (<em>list</em>) – List of labels to keep in the datasets. Defaults to None (all labels). Default: None</p></li>
+<li><p><strong>prediction_type</strong> (<em>str</em>) – Either “c” or “classification” for classification problems, or “r” or “regression” for
+regression problems. If regression is specified, labels are taken as they are and not translated to internal
+class IDs. Default: “c”</p></li>
+<li><p><strong>get_file_path</strong> (<em>callable</em>) – A function mapping the rows of table to the respective file paths of the samples. Default: None</p></li>
+<li><p><strong>balance</strong> (<em>bool</em>) – Boolean switch for enforcing balanced classes. If True dataset will be balanced before sampling (e.g. splitting)
+Default: False</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>) – Total number of samples available for sampling groups (e.g. test, validation, hold-out). Large datasets can
+therefore be reduced in size. Defaults value (None) uses all available images. (e.g. if dataset has
+14.000 datapoints, and ‘num_samples’=1000, dataset will be randomly reduced to 1000 samples.)
+Default: None</p></li>
+<li><p><strong>num_training_samples</strong> (<em>int</em>) – Reduces the number of training samples, but do not reduce size of the whole dataset
+(e.g. validation and hold-out remain large). Usually used for debugging or intensive grid searching.
+Default: None</p></li>
+<li><p><strong>z_factor</strong> (<em>float</em>) – Zoom factor applied to each image. Default: 0.5</p></li>
+<li><p><strong>hold_out_size</strong> (<em>float</em>) – Sets the relative size of the hold_out set. Use ‘num_samples’ to reduce dataset, otherwise ‘hold_out_size’
+is relative to the total number of available datapoints. Default: None</p></li>
+<li><p><strong>val_size</strong> (<em>float</em>) – Sets the relative size of the validation set. Use ‘num_samples’ to reduce dataset, otherwise ‘val_size’
+is relative to the total number of available datapoints. Default: 0.1</p></li>
+<li><p><strong>grouped</strong> (<em>bool</em>) – Boolean switch for enforcing grouping according to subjectID. Necessary if subjects have more than one
+scan available. Default: False</p></li>
+<li><p><strong>cache_filename</strong> (<em>str</em>) – Filename specifying a prefix of all stored files. File-extensions in ‘cache_filename’ will be discarded.
+If not specified “databunch” will be used as default value. Default: None</p></li>
+<li><p><strong>force_to_shape</strong> (<em>list</em>) – List, specifying for each dimension of the data the size. (e.g. ‘force_to_shape’=[80,80,80] will force images
+to have the shape of (80,80,80).)
+Default: None</p></li>
+<li><p><strong>file_col</strong> (<em>str</em>) – Column name in ‘table’ identifying the path to the .nii file of the sample. Default: “file_path”</p></li>
+<li><p><strong>label_col</strong> (<em>str</em>) – Column name in ‘table’ identifying the path to the label of the sample. Default: “DX”</p></li>
+<li><p><strong>ptid_col</strong> (<em>str</em>) – Column name in ‘table’ identifying the path to the patient ID of the sample. Default: “PTID”</p></li>
+<li><p><strong>random_state</strong> (<em>int</em>) – Random state to enforce reproducibility for train/test splitting. Default: 42</p></li>
+<li><p><strong>separator</strong> (<em>str</em>) – Separator used to load ‘table’ and to eventually store csv splits. Default: “,”</p></li>
+<li><p><strong>kwargs</strong> – Arbitrarily many Pairs of (key, value) which will stored in the object.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="data.DataBunch.source_dir">
+<code class="sig-name descname">source_dir</code><a class="headerlink" href="#data.DataBunch.source_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to source_dir folder, where table and image_dir can be found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.path">
+<code class="sig-name descname">path</code><a class="headerlink" href="#data.DataBunch.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path where intermediary data will be stored (eg. cache).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.table">
+<code class="sig-name descname">table</code><a class="headerlink" href="#data.DataBunch.table" title="Permalink to this definition">¶</a></dt>
+<dd><p>CSV file path <em>relative</em> to source_dir containing samples.
+The tables <em>must</em> contain ‘file_col’, ‘label_col’ and ‘ptid_col’ columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.image_dir">
+<code class="sig-name descname">image_dir</code><a class="headerlink" href="#data.DataBunch.image_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Image directory <em>relative</em> to source_dir, where the .nii files are.
+Set empty string (“”) if ‘image dir’ equals ‘source_dir’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._mask">
+<code class="sig-name descname">_mask</code><a class="headerlink" href="#data.DataBunch._mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to binary brain mask in .nii format. This will be resized with z_factor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._transforms">
+<code class="sig-name descname">_transforms</code><a class="headerlink" href="#data.DataBunch._transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyTorch Compose container object, with the transformations to apply to samples.
+Defaults to using ToTensor() and IntensityRescaling() into [0,1].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._labels_to_keep">
+<code class="sig-name descname">_labels_to_keep</code><a class="headerlink" href="#data.DataBunch._labels_to_keep" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of labels to keep in the datasets. Defaults to None (all labels).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._prediction_type">
+<code class="sig-name descname">_prediction_type</code><a class="headerlink" href="#data.DataBunch._prediction_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Either “c” or “classification” for classification problems, or “r” or “regression” for
+regression problems. If regression is specified, labels are taken as they are and not translated to internal
+class IDs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._get_file_path">
+<code class="sig-name descname">_get_file_path</code><a class="headerlink" href="#data.DataBunch._get_file_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function mapping the rows of table to the respective file paths of the samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._balance">
+<code class="sig-name descname">_balance</code><a class="headerlink" href="#data.DataBunch._balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean switch for enforcing balanced classes. If True dataset will be balanced before sampling (e.g. splitting)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._num_samples">
+<code class="sig-name descname">_num_samples</code><a class="headerlink" href="#data.DataBunch._num_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total number of samples available for sampling groups (e.g. test, validation, hold-out). Large datasets can
+therefore be reduced in size. Defaults value (None) uses all available images. (e.g. if dataset has
+14.000 datapoints, and ‘num_samples’=1000, dataset will be randomly reduced to 1000 samples.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._num_training_samples">
+<code class="sig-name descname">_num_training_samples</code><a class="headerlink" href="#data.DataBunch._num_training_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reduces the number of training samples, but do not reduce size of the whole dataset
+(e.g. validation and hold-out remain large). Usually used for debugging or intensive grid searching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._z_factor">
+<code class="sig-name descname">_z_factor</code><a class="headerlink" href="#data.DataBunch._z_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zoom factor applied to each image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._hold_out_size">
+<code class="sig-name descname">_hold_out_size</code><a class="headerlink" href="#data.DataBunch._hold_out_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the relative size of the hold_out set. Use ‘num_samples’ to reduce dataset, otherwise ‘hold_out_size’
+is relative to the total number of available datapoints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._val_size">
+<code class="sig-name descname">_val_size</code><a class="headerlink" href="#data.DataBunch._val_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the relative size of the validation set. Use ‘num_samples’ to reduce dataset, otherwise ‘val_size’
+is relative to the total number of available datapoints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._grouped">
+<code class="sig-name descname">_grouped</code><a class="headerlink" href="#data.DataBunch._grouped" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean switch for enforcing grouping according to subjectID. Necessary if subjects have more than one
+scan available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._cache_filename">
+<code class="sig-name descname">_cache_filename</code><a class="headerlink" href="#data.DataBunch._cache_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filename specifying a prefix of all stored files. File-extensions in ‘cache_filename’ will be discarded.
+If not specified “databunch” will be used as default value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._force_to_shape">
+<code class="sig-name descname">_force_to_shape</code><a class="headerlink" href="#data.DataBunch._force_to_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>List, specifying for each dimension of the data the size. (e.g. ‘force_to_shape’=[80,80,80] will force images
+to have the shape of (80,80,80).)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._file_col">
+<code class="sig-name descname">_file_col</code><a class="headerlink" href="#data.DataBunch._file_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name in ‘table’ identifying the path to the .nii file of the sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._label_col">
+<code class="sig-name descname">_label_col</code><a class="headerlink" href="#data.DataBunch._label_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name in ‘table’ identifying the path to the label of the sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch._ptid_col">
+<code class="sig-name descname">_ptid_col</code><a class="headerlink" href="#data.DataBunch._ptid_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Column name in ‘table’ identifying the path to the patient ID of the sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.random_state">
+<code class="sig-name descname">random_state</code><a class="headerlink" href="#data.DataBunch.random_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Random state to enforce reproducibility for train/test splitting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.separator">
+<code class="sig-name descname">separator</code><a class="headerlink" href="#data.DataBunch.separator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Separator used to load ‘table’ and to eventually store csv splits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.kwargs">
+<code class="sig-name descname">kwargs</code><a class="headerlink" href="#data.DataBunch.kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arbitrarily many Pairs of (key, value) which will stored in the object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.DEFAULT_FILE">
+<code class="sig-name descname">DEFAULT_FILE</code><a class="headerlink" href="#data.DataBunch.DEFAULT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default column in csv where filenames are stored: “file_path”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.DEFAULT_LABEL">
+<code class="sig-name descname">DEFAULT_LABEL</code><a class="headerlink" href="#data.DataBunch.DEFAULT_LABEL" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default column in csv where labels are stored: “DX”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.DEFAULT_PTID">
+<code class="sig-name descname">DEFAULT_PTID</code><a class="headerlink" href="#data.DataBunch.DEFAULT_PTID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default column in csv where patient IDs are stored: “PTID”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.CACHE_NAME">
+<code class="sig-name descname">CACHE_NAME</code><a class="headerlink" href="#data.DataBunch.CACHE_NAME" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default cache name: “databunch”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.show_stats">
+<code class="sig-name descname">show_stats</code><a class="headerlink" href="#data.DataBunch.show_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>If disabled, stats are not shown</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.loaded_cache">
+<code class="sig-name descname">loaded_cache</code><a class="headerlink" href="#data.DataBunch.loaded_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should not be changed - Indicates an initialization via cached object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.load_h5py">
+<code class="sig-name descname">load_h5py</code><a class="headerlink" href="#data.DataBunch.load_h5py" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should not be changed - When enabled, data is loaded in h5py format. Automatically set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.mean">
+<code class="sig-name descname">mean</code><a class="headerlink" href="#data.DataBunch.mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean value which will be applied for all datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.std">
+<code class="sig-name descname">std</code><a class="headerlink" href="#data.DataBunch.std" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard deviation which will be used for all datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.use_sample">
+<code class="sig-name descname">use_sample</code><a class="headerlink" href="#data.DataBunch.use_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of samples to use for normalization process. Default: None (all samples).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.shape">
+<code class="sig-name descname">shape</code><a class="headerlink" href="#data.DataBunch.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape of the data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.df_orig">
+<code class="sig-name descname">df_orig</code><a class="headerlink" href="#data.DataBunch.df_orig" title="Permalink to this definition">¶</a></dt>
+<dd><p>DataFrame resulting in preprocessing of the csv from the source folder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.df">
+<code class="sig-name descname">df</code><a class="headerlink" href="#data.DataBunch.df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task specific dataframe. This dataframe is used for group assignemnt. Depending on attributes from the
+initialization process this is a subsample from ‘df_orig’ or balanced etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.df_trn">
+<code class="sig-name descname">df_trn</code><a class="headerlink" href="#data.DataBunch.df_trn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task specific dataframe containing all training samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.df_val">
+<code class="sig-name descname">df_val</code><a class="headerlink" href="#data.DataBunch.df_val" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task specific dataframe containing all validation samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.df_ho">
+<code class="sig-name descname">df_ho</code><a class="headerlink" href="#data.DataBunch.df_ho" title="Permalink to this definition">¶</a></dt>
+<dd><p>Task specific dataframe containing all hold-out samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.train_ds">
+<code class="sig-name descname">train_ds</code><a class="headerlink" href="#data.DataBunch.train_ds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dataset in either MRIDataset or H5pyDataset format. Contains all the training samples.
+Data accassable via indexing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>MRIDataset/H5pyDataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.val_ds">
+<code class="sig-name descname">val_ds</code><a class="headerlink" href="#data.DataBunch.val_ds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dataset in either MRIDataset or H5pyDataset format. Contains all the validation samples.
+Data accassable via indexing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>MRIDataset/H5pyDataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.ho_ds">
+<code class="sig-name descname">ho_ds</code><a class="headerlink" href="#data.DataBunch.ho_ds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dataset in either MRIDataset or H5pyDataset format. Contains all the hold-out samples.
+Data accassable via indexing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>MRIDataset/H5pyDataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.classes">
+<code class="sig-name descname">classes</code><a class="headerlink" href="#data.DataBunch.classes" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of available classes in Task specific dataframe (‘df’). Only set in a classification task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.label2id">
+<code class="sig-name descname">label2id</code><a class="headerlink" href="#data.DataBunch.label2id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary translating between class label and internal integer ID. Only set in a classification task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.id2label">
+<code class="sig-name descname">id2label</code><a class="headerlink" href="#data.DataBunch.id2label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary translating between internal integer ID and class label. Only set in a classification task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.train_dl">
+<code class="sig-name descname">train_dl</code><a class="headerlink" href="#data.DataBunch.train_dl" title="Permalink to this definition">¶</a></dt>
+<dd><p>DataLoader of the training dataset. Organizes data in batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>DataLoader</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.val_dl">
+<code class="sig-name descname">val_dl</code><a class="headerlink" href="#data.DataBunch.val_dl" title="Permalink to this definition">¶</a></dt>
+<dd><p>DataLoader of the validation dataset. Organizes data in batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>DataLoader</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.DataBunch.ho_dl">
+<code class="sig-name descname">ho_dl</code><a class="headerlink" href="#data.DataBunch.ho_dl" title="Permalink to this definition">¶</a></dt>
+<dd><p>DataLoader of the hold-out dataset. Organizes data in batches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>DataLoader</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.from_csv">
+<code class="sig-name descname">from_csv</code><span class="sig-paren">(</span><em class="sig-param">folder: str</em>, <em class="sig-param">source_dir: str</em>, <em class="sig-param">load_filename: str = None</em>, <em class="sig-param">kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.from_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialization via csv. The CSVs with ‘load_filename’ as prefix available in ‘folder’ are taken.
+CSV containing train subject <em>MUST</em> be available under ‘folder’ (e.g. if  ‘load_filename’=”test”,
+csv called “test_train.csv”, “test_val.csv”, “test_hold.csv” will be used for initialization.)
+All other arguments are similar to usual initialization process.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.from_disk">
+<code class="sig-name descname">from_disk</code><span class="sig-paren">(</span><em class="sig-param">load_path: str</em>, <em class="sig-param">save_path: str</em>, <em class="sig-param">cache_filename: str</em>, <em class="sig-param">load_h5py: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.from_disk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialization via cached object. When specified, data is additionally loaded from disk in H5pyDataset format.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.apply_changes">
+<code class="sig-name descname">apply_changes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.apply_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies all changes made to that object after initialization or the last call of ‘apply_changes()’.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.reset_changes">
+<code class="sig-name descname">reset_changes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.reset_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets all changes made to that object after the last call of ‘apply_changes()’ or initialization.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.drop_h5py">
+<code class="sig-name descname">drop_h5py</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.drop_h5py" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switches back to MRIDataset after loading an H5pyDataset.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.reshuffle_datasets">
+<code class="sig-name descname">reshuffle_datasets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.reshuffle_datasets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reassignes subjects to train and validation set, leaving hold-out set untouched.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.build_dataloaders">
+<code class="sig-name descname">build_dataloaders</code><span class="sig-paren">(</span><em class="sig-param">bs: int = 8</em>, <em class="sig-param">normalize: bool = False</em>, <em class="sig-param">use_samples: int = None</em>, <em class="sig-param">num_workers: int = None</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.build_dataloaders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Organises Datasets (either MRIDataset or H5pyDataset) in batch sizes, applying normalization first.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.save_df">
+<code class="sig-name descname">save_df</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em>, <em class="sig-param">separator: str = &quot;</em>, <em class="sig-param">&quot;</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.save_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves dataframes (train, val, hold) on the disk using the prefix provided under ‘filename’.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.save_h5py">
+<code class="sig-name descname">save_h5py</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.save_h5py" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves all MRIDatasets to disk in h5py format, using the prefix provided under ‘filename’.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.load_h5py_ds">
+<code class="sig-name descname">load_h5py_ds</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.load_h5py_ds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads all available H5pyDataset from the disk, using the prefix provided under ‘filename’.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.print_stats">
+<code class="sig-name descname">print_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.print_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the basic statistics of the groups.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.show_sample">
+<code class="sig-name descname">show_sample</code><span class="sig-paren">(</span><em class="sig-param">cmap=&quot;gray&quot;</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.show_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows a random sample after zooming.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the objects dict using cached file. Using the prefix provided under ‘filename’.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the object to disk using the prefix provided under ‘filename’.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">CACHE_NAME</code><em class="property"> = 'databunch'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">DEFAULT_FILE</code><em class="property"> = 'file_path'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">DEFAULT_LABEL</code><em class="property"> = 'DX'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="sig-name descname">DEFAULT_PTID</code><em class="property"> = 'PTID'</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">apply_changes</code><span class="sig-paren">(</span><em class="sig-param">safe: bool = True</em><span class="sig-paren">)</span></dt>
+<dd><p>Applies changes to the object. Depending on the changes groups (e.g. test, val, hold) are re-assigned.</p>
+<p>If attributes of the object are altered after initialization this function applies the changes by
+executing necessary routines. E.g. if for example the labels are changed, dataframes, splits and datasets are
+rebuild, whereas a change in the mask attribute only renews the datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>safe</strong> – If set, user must agree before changes are made affecting the groups, else not.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.balance">
+<em class="property">property </em><code class="sig-name descname">balance</code><a class="headerlink" href="#data.DataBunch.balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the balance option.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The balance option of the object.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">build_dataloaders</code><span class="sig-paren">(</span><em class="sig-param">bs: int = 8</em>, <em class="sig-param">normalize: bool = False</em>, <em class="sig-param">use_samples: int = None</em>, <em class="sig-param">num_workers: int = None</em>, <em class="sig-param">show_progress: bool = False</em><span class="sig-paren">)</span></dt>
+<dd><p>Build DataLoaders.</p>
+<blockquote>
+<div><p>Builds DataLoaders with batch-size (bs), optionally normalizing the datasets.
+Optionally performs downsampling to reduce normalization processing time.</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bs</strong> (<em>int</em>) – Number of images to build a batch. Default: 8</p></li>
+<li><p><strong>normalize</strong> (<em>bool</em>) – If enabled, datasets will be normalized. Default: False</p></li>
+<li><p><strong>use_samples</strong> (<em>int</em>) – Number of samples included in the normalization process. Default: None (all)</p></li>
+<li><p><strong>num_workers</strong> – Number of workers. Default: None (1)</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em>) – If set, shows the progress of the normalization process. Default: False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.cache_filename">
+<em class="property">property </em><code class="sig-name descname">cache_filename</code><a class="headerlink" href="#data.DataBunch.cache_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the cache_filename</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The chache_filename.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">drop_h5py</code><span class="sig-paren">(</span><em class="sig-param">safe: bool = True</em><span class="sig-paren">)</span></dt>
+<dd><p>Switches from H5pyDataset to MRIDataset. This re-assignes the datasets, including hold-out set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>safe</strong> (<em>bool</em>) – If set, user must agree before changes are made affecting the groups, else not.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.file_col">
+<em class="property">property </em><code class="sig-name descname">file_col</code><a class="headerlink" href="#data.DataBunch.file_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get file_col</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the file column of…</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.force_to_shape">
+<em class="property">property </em><code class="sig-name descname">force_to_shape</code><a class="headerlink" href="#data.DataBunch.force_to_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the force_to_shape</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The force_to_shape. List containing for each dimension a value to which the images are cropped.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_csv</code><span class="sig-paren">(</span><em class="sig-param">folder: str</em>, <em class="sig-param">source_dir: str</em>, <em class="sig-param">path: str</em>, <em class="sig-param">table: str</em>, <em class="sig-param">load_filename: str = None</em>, <em class="sig-param">image_dir: str = None</em>, <em class="sig-param">mask: str = None</em>, <em class="sig-param">transforms: torchvision.transforms.transforms.Compose = Compose(     &lt;nitorch.transforms.ToTensor object&gt;     &lt;nitorch.transforms.IntensityRescale object&gt; )</em>, <em class="sig-param">labels_to_keep: list = None</em>, <em class="sig-param">prediction_type: str = 'classification'</em>, <em class="sig-param">get_file_path: callable = None</em>, <em class="sig-param">balance: bool = False</em>, <em class="sig-param">num_samples: int = None</em>, <em class="sig-param">num_training_samples: int = None</em>, <em class="sig-param">z_factor: float = 0.5</em>, <em class="sig-param">hold_out_size: float = None</em>, <em class="sig-param">val_size: float = 0.1</em>, <em class="sig-param">grouped: bool = False</em>, <em class="sig-param">cache_filename: str = None</em>, <em class="sig-param">force_to_shape: list = None</em>, <em class="sig-param">file_col='file_path'</em>, <em class="sig-param">label_col='DX'</em>, <em class="sig-param">ptid_col='PTID'</em>, <em class="sig-param">random_state: int = 42</em>, <em class="sig-param">separator: str = '</em>, <em class="sig-param">'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>” Initializes the object using splits in csv-files.</p>
+<p>Uses CSVs available in ‘folder’ to initialize databunch object. Uses “X_train.csv”, “X_val.csv”, “X_hold.csv”
+for initialization.  At least “X_train.csv” <em>MUST</em> be available under ‘folder’. Prefix “X” can be set
+with parameter ‘load_filename’. A source_dir containing the images and specified in ‘image_dir’ and a csv table
+describing the whole dataset <em>MUST</em> be specified too. Moreover, a path <em>MUST</em> be set where to store intermediate
+files and results.</p>
+<p class="rubric">Notes</p>
+<p>CSVs available in ‘folder’ are <em>NOT</em> checked for correct format. Can lead to unexpected errors!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder</strong> (<em>str</em>) – Path where to find “X_train.csv”, “X_val.csv”, “X_hold.csv”. At least “X_train.csv” necessary for successful
+initialization process.  Prefix “X” can be set with parameter ‘load_filename’.</p></li>
+<li><p><strong>load_filename</strong> (<em>str</em>) – Sets the name - prefix for the CSV files. (e.g. if ‘load_filename’ = “test”, initialization routine will
+look for “test_train.csv”, “test_val.csv”, “test_hold.csv” files).
+Default: None, corresponding to “databunch”</p></li>
+<li><p><strong>source_dir</strong> (<em>str</em>) – Path to source_dir folder, where table and image_dir can be found.</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Path where intermediary data will be stored (eg. cache).</p></li>
+<li><p><strong>table</strong> (<em>str</em>) – CSV file path <em>relative</em> to source_dir containing samples.
+The tables <em>must</em> contain ‘file_col’, ‘label_col’ and ‘ptid_col’ columns.</p></li>
+<li><p><strong>image_dir</strong> (<em>str</em>) – Image directory <em>relative</em> to source_dir, where the .nii files are.
+Set empty string (“”) if ‘image dir’ equals ‘source_dir’. Default: None</p></li>
+<li><p><strong>mask</strong> (<em>str</em>) – Path to binary brain mask in .nii format. This will be resized with z_factor. Default: None</p></li>
+<li><p><strong>transforms</strong> – A PyTorch Compose container object, with the transformations to apply to samples.
+Defaults to using ToTensor() and IntensityRescaling() into [0,1].</p></li>
+<li><p><strong>labels_to_keep</strong> (<em>list</em>) – List of labels to keep in the datasets. Defaults to None (all labels). Default: None</p></li>
+<li><p><strong>prediction_type</strong> (<em>str</em>) – Either “c” or “classification” for classification problems, or “r” or “regression” for
+regression problems. If regression is specified, labels are taken as they are and not translated to internal
+class IDs. Default: “c”</p></li>
+<li><p><strong>get_file_path</strong> (<em>callable</em>) – A function mapping the rows of table to the respective file paths of the samples. Default: None</p></li>
+<li><p><strong>balance</strong> (<em>bool</em>) – Boolean switch for enforcing balanced classes.
+If True dataset will be balanced before sampling (e.g. splitting). Default: False</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>) – Total number of samples available for sampling groups (e.g. test, validation, hold-out). Large datasets can
+therefore be reduced in size. Defaults value (None) uses all available images. (e.g. if dataset has
+14.000 datapoints, and ‘num_samples’=1000, dataset will be randomly reduced to 1000 samples.)
+Default: None (all)</p></li>
+<li><p><strong>num_training_samples</strong> (<em>int</em>) – Reduces the number of training samples, but do not reduce size of the whole dataset
+(e.g. validation and hold-out remain large). Usually used for debugging or intensive grid searching.
+Default: None (all)</p></li>
+<li><p><strong>z_factor</strong> (<em>float</em>) – Zoom factor applied to each image. Default: None</p></li>
+<li><p><strong>hold_out_size</strong> (<em>float</em>) – Sets the relative size of the hold_out set. Use ‘num_samples’ to reduce dataset, otherwise ‘hold_out_size’
+is relative to the total number of available datapoints. Default: None</p></li>
+<li><p><strong>val_size</strong> (<em>float</em>) – Sets the relative size of the validation set. Use ‘num_samples’ to reduce dataset, otherwise ‘val_size’
+is relative to the total number of available datapoints. Default: 0.1</p></li>
+<li><p><strong>grouped</strong> (<em>bool</em>) – Boolean switch for enforcing grouping according to subjectID. Necessary if subjects have more than one
+scan available. Default: False</p></li>
+<li><p><strong>cache_filename</strong> (<em>str</em>) – Filename specifying a prefix of all stored files. File-extensions in ‘cache_filename’ will be discarded.
+If not specified “databunch” will be used as default value.</p></li>
+<li><p><strong>force_to_shape</strong> (<em>list</em>) – List, specifying for each dimension of the data the size. (e.g. ‘force_to_shape’=[80,80,80] will
+force images to have the shape of (80,80,80).) Default: None</p></li>
+<li><p><strong>file_col</strong> (<em>str</em>) – Column name in ‘table’ identifying the path to the .nii file of the sample. Default: “file_path”</p></li>
+<li><p><strong>label_col</strong> (<em>str</em>) – Column name in ‘table’ identifying the path to the label of the sample. Default: “DX”</p></li>
+<li><p><strong>ptid_col</strong> (<em>str</em>) – Column name in ‘table’ identifying the path to the patient ID of the sample. Default: “PTID”</p></li>
+<li><p><strong>random_state</strong> (<em>int</em>) – Random state to enforce reproducibility for train/test splitting. Default: 42</p></li>
+<li><p><strong>separator</strong> (<em>str</em>) – Separator used to load ‘table’ and to eventually store csv splits. Default: “,”</p></li>
+<li><p><strong>kwargs</strong> – Arbitrarily many pairs of (key, value) which will stored in the object.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The initialized Databunch object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#data.DataBunch" title="data.DataBunch">DataBunch</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<em class="property">classmethod </em><code class="sig-name descname">from_disk</code><span class="sig-paren">(</span><em class="sig-param">load_path: str</em>, <em class="sig-param">save_path: str</em>, <em class="sig-param">load_filename: str = None</em>, <em class="sig-param">load_h5py: bool = False</em><span class="sig-paren">)</span></dt>
+<dd><p>Initializes new object by loading a cached objects dict from disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>load_path</strong> (<em>str</em>) – The path where the cached databunch object is stored.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em>) – The path which will be used for the new object to store intermediate files and results to.</p></li>
+<li><p><strong>load_filename</strong> (<em>str</em>) – The filename of the cached object. If not set, default CACHE_NAME will be used (e.g. “databunch”)</p></li>
+<li><p><strong>load_h5py</strong> (<em>bool</em>) – Option to directly load h5py files. Must be available in ‘load_path’. Correspond to calling
+function ‘load_h5py_ds()’ after initialization.
+Default: False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The initialized Databunch object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#data.DataBunch" title="data.DataBunch">DataBunch</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.get_file_path">
+<em class="property">property </em><code class="sig-name descname">get_file_path</code><a class="headerlink" href="#data.DataBunch.get_file_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the get_file_path function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The get_file_path function.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>callable/None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.grouped">
+<em class="property">property </em><code class="sig-name descname">grouped</code><a class="headerlink" href="#data.DataBunch.grouped" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the grouped option.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The grouped option.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.hold_out_size">
+<em class="property">property </em><code class="sig-name descname">hold_out_size</code><a class="headerlink" href="#data.DataBunch.hold_out_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the hold_out_size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The hold out size.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float/None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<em class="property">property </em><code class="sig-name descname">image_dir</code></dt>
+<dd><p>Gets the image_dir.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The image_dir.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.label_col">
+<em class="property">property </em><code class="sig-name descname">label_col</code><a class="headerlink" href="#data.DataBunch.label_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the label column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The label column.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.labels_to_keep">
+<em class="property">property </em><code class="sig-name descname">labels_to_keep</code><a class="headerlink" href="#data.DataBunch.labels_to_keep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the labels to keep</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The labels to keep.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list/None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em><span class="sig-paren">)</span></dt>
+<dd><p>Loads a cached DataBunch object from disk.</p>
+<p>Loads cached DataBunch object from ‘path’. Filename is set according to function arguments or default
+object attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Prefix for the filename. (e.g. if ‘filename’=”test”, output file will be named “test.pkl”).
+Default is ‘filename’=”databunch”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">load_h5py_ds</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em><span class="sig-paren">)</span></dt>
+<dd><p>Loads a cached H5pyDataset.</p>
+<p>Loads a cached H5pyDataset. Filename is set according to function arguments or default object attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Prefix for the filename. (e.g. if ‘filename’=”test”, function will look for files which are named
+“test_train.h5py”,”test_val.h5py”, “test_hold.h5py”)
+Default ‘filename’= None = “databunch”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.mask">
+<em class="property">property </em><code class="sig-name descname">mask</code><a class="headerlink" href="#data.DataBunch.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the mask.</p>
+<p class="rubric">Notes</p>
+<p>Changing the mask also sets the mask_path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The mask, either an numpy array or None.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray/None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.normalize">
+<code class="sig-name descname">normalize</code><span class="sig-paren">(</span><em class="sig-param">use_samples: int = None</em>, <em class="sig-param">show_progress: bool = False</em><span class="sig-paren">)</span><a class="headerlink" href="#data.DataBunch.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes the dataset with mean and std calculated on the training set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>use_samples</strong> (<em>int</em>) – Number of samples included in the normalization process. Default: None (all)</p></li>
+<li><p><strong>show_progress</strong> (<em>int</em>) – If set, shows the progress of the normalization process. Default: False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.num_samples">
+<em class="property">property </em><code class="sig-name descname">num_samples</code><a class="headerlink" href="#data.DataBunch.num_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the num_samples used to reduce the dataset-size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of samples used to reduce dataset-size.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.num_training_samples">
+<em class="property">property </em><code class="sig-name descname">num_training_samples</code><a class="headerlink" href="#data.DataBunch.num_training_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of training samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The number of training samples.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<em class="property">property </em><code class="sig-name descname">path</code></dt>
+<dd><p>Gets the path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The path the object is initialized to.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.prediction_type">
+<em class="property">property </em><code class="sig-name descname">prediction_type</code><a class="headerlink" href="#data.DataBunch.prediction_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the prediction type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The prediction type.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">print_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Print statistics about the patients and images.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.ptid_col">
+<em class="property">property </em><code class="sig-name descname">ptid_col</code><a class="headerlink" href="#data.DataBunch.ptid_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the patient ID column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The patient ID column.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">reset_changes</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Resets all changes made to the object after the last sucessful call of ‘apply_changes()’.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">reshuffle_datasets</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Reshuffles the datasets.</p>
+<p>Reshuffles the datasets, thereby reassigning subjects in group train and test, but keeping subjects in
+the hold out dataset (if any). Renews the normalization process for the new training group.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em><span class="sig-paren">)</span></dt>
+<dd><p>Cache the entire DataBunch object.</p>
+<p>Caches the entire DataBunch object to ‘path’. Filename is set according to function arguments or default
+object attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Prefix for the filename. (e.g. if ‘filename’=”test”, output file will be named “test.pkl”).
+Default is ‘filename’= None = “databunch”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">save_df</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em>, <em class="sig-param">separator: str = '</em>, <em class="sig-param">'</em><span class="sig-paren">)</span></dt>
+<dd><p>Saves dataframes used to define datasets as CSV files to disk.</p>
+<p>Saves dataframes used to define datasets as CSV files to disk. Filename is set according to function
+arguments or default object attributes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Prefix for the filename. (e.g. if ‘filename’=”test”, output files will be named “test_train.csv”
+“test_val.csv”, “test_hold.csv”)
+Default: ‘filename’= None = “databunch”.</p></li>
+<li><p><strong>separator</strong> (<em>str</em>) – Separator used to create CSV files. Default: “,”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">save_h5py</code><span class="sig-paren">(</span><em class="sig-param">filename: str = None</em><span class="sig-paren">)</span></dt>
+<dd><p>Saves image and label data-matrix to disk using h5py file format.</p>
+<p>Saves image and label data-matrix to disk using h5py file format. Filename is set according to function
+arguments or default object attributes.</p>
+<p class="rubric">Notes</p>
+<p>This might take a lot time!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Prefix for the filename. (e.g. if ‘filename’=”test”, output files will be named “test_train.h5py”
+“test_val.h5py”, “test_hold.h5py”)
+Default: ‘filename’= None = “databunch”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">show_sample</code><span class="sig-paren">(</span><em class="sig-param">cmap='gray'</em><span class="sig-paren">)</span></dt>
+<dd><p>Shows a random training sample after zooming, masking and tranformations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmap</strong> (<em>str</em>) – Color map which should be applied to the plot. Default: “gray”</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<em class="property">property </em><code class="sig-name descname">source_dir</code></dt>
+<dd><p>Gets the source_dir.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The source_dir.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.transforms">
+<em class="property">property </em><code class="sig-name descname">transforms</code><a class="headerlink" href="#data.DataBunch.transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the transformation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The transformation(s) which shell be applied to the datasets.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Compose</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.val_size">
+<em class="property">property </em><code class="sig-name descname">val_size</code><a class="headerlink" href="#data.DataBunch.val_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the val_size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The validation size.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float/None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.DataBunch.z_factor">
+<em class="property">property </em><code class="sig-name descname">z_factor</code><a class="headerlink" href="#data.DataBunch.z_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the z_factor.</p>
+<p class="rubric">Notes</p>
+<p>Changing the z_factor also changes the mask.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The z_factor if set or None</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float/None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="data.H5pyDataset">
+<em class="property">class </em><code class="sig-prename descclassname">data.</code><code class="sig-name descname">H5pyDataset</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">y</em>, <em class="sig-param">transform=None</em>, <em class="sig-param">mask=None</em>, <em class="sig-param">z_factor=None</em>, <em class="sig-param">dtype=&lt;class 'numpy.float32'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#data.H5pyDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
+<p>Dataset for data X and label y.</p>
+<p>Abstract class for a dataset with data X and label y. Optionally applies transformation, masking,
+and zooming to the data. If specified, normalization will be executed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>ndarray</em>) – Data matrix, favourably a numpy array</p></li>
+<li><p><strong>y</strong> (<em>ndarray</em>) – Label matrix, favourably a numpy array</p></li>
+<li><p><strong>transform</strong> – Transformation to the data. See nitorch.transforms for example classes. Default: None</p></li>
+<li><p><strong>mask</strong> – Mask applicable to the data. Should have same size as ‘X’. Default: None</p></li>
+<li><p><strong>z_factor</strong> (<em>float</em>) – Zooming factor. Value between 0 and 1. Default: None</p></li>
+<li><p><strong>dtype</strong> – Data type. Data will be converted to the specified format. See numpy dtype for mor information.
+Default: np.float32</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="data.H5pyDataset.X">
+<code class="sig-name descname">X</code><a class="headerlink" href="#data.H5pyDataset.X" title="Permalink to this definition">¶</a></dt>
+<dd><p>Data matrix, favourably a numpy array</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.H5pyDataset.y">
+<code class="sig-name descname">y</code><a class="headerlink" href="#data.H5pyDataset.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>Label matrix, favourably a numpy array</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.H5pyDataset.transform">
+<code class="sig-name descname">transform</code><a class="headerlink" href="#data.H5pyDataset.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation to the data. See nitorch.transforms for example classes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.H5pyDataset.mask">
+<code class="sig-name descname">mask</code><a class="headerlink" href="#data.H5pyDataset.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask applicable to the data. Should have same size as ‘X’.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.H5pyDataset.z_factor">
+<code class="sig-name descname">z_factor</code><a class="headerlink" href="#data.H5pyDataset.z_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zooming factor. Value between 0 and 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.H5pyDataset.dtype">
+<code class="sig-name descname">dtype</code><a class="headerlink" href="#data.H5pyDataset.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Data type. Data will be converted to the specified format. See numpy dtype for mor information.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.H5pyDataset.mean">
+<code class="sig-name descname">mean</code><a class="headerlink" href="#data.H5pyDataset.mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>The mean of the dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.H5pyDataset.std">
+<code class="sig-name descname">std</code><a class="headerlink" href="#data.H5pyDataset.std" title="Permalink to this definition">¶</a></dt>
+<dd><p>The standard deviation of the dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.H5pyDataset.fit_normalization">
+<code class="sig-name descname">fit_normalization</code><span class="sig-paren">(</span><em class="sig-param">num_sample=None</em>, <em class="sig-param">show_progress=False</em><span class="sig-paren">)</span><a class="headerlink" href="#data.H5pyDataset.fit_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets normalization parameters ‘mean’ and ‘std’.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">fit_normalization</code><span class="sig-paren">(</span><em class="sig-param">num_sample=None</em>, <em class="sig-param">show_progress=False</em><span class="sig-paren">)</span></dt>
+<dd><p>Calculate the voxel-wise mean and std across the dataset for normalization.</p>
+<p>Calculate the voxel-wise mean and std across the dataset for normalization thereby setting attributes mean
+and std of the Dataset object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_sample</strong> (<em>int</em>) – If None, calculate the values across the complete dataset, otherwise sample a number of images.
+Default: None</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em>) – When set, a progress bar during the calculation is shown. Default: False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="data.MRIDataset">
+<em class="property">class </em><code class="sig-prename descclassname">data.</code><code class="sig-name descname">MRIDataset</code><span class="sig-paren">(</span><em class="sig-param">filenames: list</em>, <em class="sig-param">labels: list</em>, <em class="sig-param">z_factor: float = None</em>, <em class="sig-param">mask: numpy.ndarray = None</em>, <em class="sig-param">transform=None</em>, <em class="sig-param">force_to_shape=None</em><span class="sig-paren">)</span><a class="headerlink" href="#data.MRIDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.dataset.Dataset</span></code></p>
+<p>Dataset that consists of MRI images and labels.</p>
+<p>Abstract class that accesses the data during runtime. Data consists of image and label. Optionally applies
+transformation, zooming, masking, cropping to the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenames</strong> (<em>list</em>) – All filenames (full paths) of the dataset.</p></li>
+<li><p><strong>labels</strong> (<em>list</em>) – All labels of the corresponding filename.</p></li>
+<li><p><strong>mask</strong> (<em>np.ndarray</em>) – Mask applicable to the image. Default: None</p></li>
+<li><p><strong>force_to_shape</strong> (<em>list</em>) – Shape the data is supposed to cropped to. List containing for each data-dimension the corresponding value.
+Default: None</p></li>
+<li><p><strong>transform</strong> – Transformation applicable to the image. See nitorch.transforms for more information. Default: None</p></li>
+<li><p><strong>z_factor</strong> (<em>float</em>) – Zooming factor applicable to the image. Default: None</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="data.MRIDataset.filenames">
+<code class="sig-name descname">filenames</code><a class="headerlink" href="#data.MRIDataset.filenames" title="Permalink to this definition">¶</a></dt>
+<dd><p>All filenames (full paths) of the dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.labels">
+<code class="sig-name descname">labels</code><a class="headerlink" href="#data.MRIDataset.labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>All labels of the corresponding filename.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.mask">
+<code class="sig-name descname">mask</code><a class="headerlink" href="#data.MRIDataset.mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask applicable to the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.force_to_shape">
+<code class="sig-name descname">force_to_shape</code><a class="headerlink" href="#data.MRIDataset.force_to_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape the data is supposed to cropped to. List containing for each data-dimension the corresponding value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.transform">
+<code class="sig-name descname">transform</code><a class="headerlink" href="#data.MRIDataset.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformation applicable to the image. See nitorch.transforms for more information.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.z_factor">
+<code class="sig-name descname">z_factor</code><a class="headerlink" href="#data.MRIDataset.z_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zooming factor applicable to the image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.num_inputs">
+<code class="sig-name descname">num_inputs</code><a class="headerlink" href="#data.MRIDataset.num_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Value always set to ‘1’. Necessary for sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.num_targets">
+<code class="sig-name descname">num_targets</code><a class="headerlink" href="#data.MRIDataset.num_targets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Value always set to ‘1’. Necessary for sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.mean">
+<code class="sig-name descname">mean</code><a class="headerlink" href="#data.MRIDataset.mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default 0, should be set via  ‘fit_normalization’ method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.std">
+<code class="sig-name descname">std</code><a class="headerlink" href="#data.MRIDataset.std" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default 1, should be set via  ‘fit_normalization’ method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.shape">
+<code class="sig-name descname">shape</code><a class="headerlink" href="#data.MRIDataset.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape of the data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.label_counts">
+<code class="sig-name descname">label_counts</code><a class="headerlink" href="#data.MRIDataset.label_counts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary containing the counts of each label</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.MRIDataset.class_weights">
+<code class="sig-name descname">class_weights</code><a class="headerlink" href="#data.MRIDataset.class_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weights for each class. On default uniform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.MRIDataset.get_image_shape">
+<code class="sig-name descname">get_image_shape</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data.MRIDataset.get_image_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the shape of the image(s).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.MRIDataset.fit_normalization">
+<code class="sig-name descname">fit_normalization</code><span class="sig-paren">(</span><em class="sig-param">num_sample=None</em>, <em class="sig-param">show_progress=False</em><span class="sig-paren">)</span><a class="headerlink" href="#data.MRIDataset.fit_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets normalization parameters ‘mean’ and ‘std’.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.MRIDataset.get_raw_image">
+<code class="sig-name descname">get_raw_image</code><span class="sig-paren">(</span><em class="sig-param">idx: int</em><span class="sig-paren">)</span><a class="headerlink" href="#data.MRIDataset.get_raw_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the unrpocessed image at certain index.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">fit_normalization</code><span class="sig-paren">(</span><em class="sig-param">num_sample: int = None</em>, <em class="sig-param">show_progress: bool = False</em><span class="sig-paren">)</span></dt>
+<dd><p>Calculates the voxel-wise mean and std across the dataset for normalization.</p>
+<p>Iterates through the object and determines the mean and std of each voxel across the dataset. Performs
+downsampling if specified. Additionally shows a progress bar when specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_sample</strong> (<em>int</em>) – Number of samples used for the normalization calculation. Can reduce calculation time, especially
+when the dataset is large. Default: None</p></li>
+<li><p><strong>show_progress</strong> (<em>bool</em>) – Indicates whether to show progress bar or not. Default: False</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">get_image_shape</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Determines the shape of the MRI images.</p>
+<p>Loads the first image in the dataset and determine its shape. Each image in the dataset is expected to have
+equal size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The shape of the first image.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>shape</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">get_raw_image</code><span class="sig-paren">(</span><em class="sig-param">idx: int</em><span class="sig-paren">)</span></dt>
+<dd><p>Return the raw image at a specific index (i.e. no normalization, no transformation)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – Index of the image to access.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The raw masked, zoomed and cropped image.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="data.balanced_subsample">
+<code class="sig-prename descclassname">data.</code><code class="sig-name descname">balanced_subsample</code><span class="sig-paren">(</span><em class="sig-param">y</em>, <em class="sig-param">size=None</em><span class="sig-paren">)</span><a class="headerlink" href="#data.balanced_subsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Balanced sample according to y.</p>
+<p>Balances samples either equally or according to a certain size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> – Labels to balance over.</p></li>
+<li><p><strong>size</strong> – size each label should have. e.g. 0.2 means 20% off all samples. Default: None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of indices belonging to a balanced subsample.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.get_image_filepath">
+<code class="sig-prename descclassname">data.</code><code class="sig-name descname">get_image_filepath</code><span class="sig-paren">(</span><em class="sig-param">df_row</em>, <em class="sig-param">source_dir=''</em><span class="sig-paren">)</span><a class="headerlink" href="#data.get_image_filepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the filepath of the image that is described in the row of the data table.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_row</strong> – A row of a pandas data table.</p></li>
+<li><p><strong>source_dir</strong> – The source directory the image can be found. Default: “”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the filepath of the image of the row of the data table.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.load_nifti">
+<code class="sig-prename descclassname">data.</code><code class="sig-name descname">load_nifti</code><span class="sig-paren">(</span><em class="sig-param">file_path: str</em>, <em class="sig-param">dtype=&lt;class 'numpy.float32'&gt;</em>, <em class="sig-param">incl_header: bool = False</em>, <em class="sig-param">z_factor=None</em>, <em class="sig-param">mask: numpy.ndarray = None</em>, <em class="sig-param">force_to_shape: list = None</em>, <em class="sig-param">remove_nan: bool = True</em><span class="sig-paren">)</span><a class="headerlink" href="#data.load_nifti" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a volumetric image in nifti format (extensions .nii, .nii.gz etc.) as a 3D numpy.ndarray.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_path</strong> (<em>str</em>) – Absolute path to the nifti file.</p></li>
+<li><p><strong>dtype</strong> – Datatype of the loaded numpy.ndarray. Default: np.float32</p></li>
+<li><p><strong>incl_header</strong> (<em>bool</em>) – If True, the nifTI object of the image is also returned. Default: False</p></li>
+<li><p><strong>z_factor</strong> – The zoom factor along the axes. If a float, zoom is the same for each axis. If a sequence,
+zoom should contain one value for each axis. Default: None</p></li>
+<li><p><strong>mask</strong> (<em>np.ndarray</em>) – A mask with the same shape as the original image. If provided then the mask is element-wise
+multiplied with the image ndarray. Default: None</p></li>
+<li><p><strong>force_to_shape</strong> (<em>list</em>) – 3-dimensional desired shape of the nifti. if specified, nifti will be forced to have these dimension by
+cutting the edges of the images, evenly on both sides of each dimension. Default: None</p></li>
+<li><p><strong>remove_nan</strong> (<em>bool</em>) – If True, NaN values will be converted to num. Default: None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>3D numpy.ndarray with axis order (saggital x coronal x axial)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If z_factor is not float.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.show_brain">
+<code class="sig-prename descclassname">data.</code><code class="sig-name descname">show_brain</code><span class="sig-paren">(</span><em class="sig-param">img</em>, <em class="sig-param">cut_coords=None</em>, <em class="sig-param">figsize=(10</em>, <em class="sig-param">5)</em>, <em class="sig-param">cmap='nipy_spectral'</em>, <em class="sig-param">draw_cross=True</em>, <em class="sig-param">return_fig=False</em><span class="sig-paren">)</span><a class="headerlink" href="#data.show_brain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays 2D cross-sections of a 3D image along all 3 axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>numpy.ndarray/nibabel.NiftiImage/str</em>) – either a 3-dimensional numpy.ndarray, a nibabel.Nifti1Image object or a path to the image file
+stored in nifTI format.</p></li>
+<li><p><strong>cut_coords</strong> – The voxel coordinates of the axes where the cross-section cuts will be performed.
+Should be a 3-tuple: (x, y, z). Default is the center = img_shape/2</p></li>
+<li><p><strong>figsize</strong> – matplotlib figsize. Default: (10,5).</p></li>
+<li><p><strong>cmap</strong> – matplotlib colormap to be used. Default: “nipy_spectral”</p></li>
+<li><p><strong>draw_cross</strong> – Draws horizontal and vertical lines which show where the cross-sections have been performed. Default: True</p></li>
+<li><p><strong>return_fig</strong> – Additionally retunrs the figure when set. Default: False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The figure object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Fabian Eitel, Roshan Rane, Jan Philipp Albrecht
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

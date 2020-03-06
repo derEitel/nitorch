@@ -1,0 +1,659 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>callbacks module &mdash; nitorch  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> nitorch
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">callbacks module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">nitorch</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>callbacks module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/callbacks.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-callbacks">
+<span id="callbacks-module"></span><h1>callbacks module<a class="headerlink" href="#module-callbacks" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="callbacks.CAE_VisualizeTraining">
+<em class="property">class </em><code class="sig-prename descclassname">callbacks.</code><code class="sig-name descname">CAE_VisualizeTraining</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">max_train_iters</em>, <em class="sig-param">show_epochs_list=[]</em>, <em class="sig-param">plotFeatures=True</em>, <em class="sig-param">plot_pdf_path=''</em>, <em class="sig-param">cmap='nipy_spectral'</em><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.CAE_VisualizeTraining" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#callbacks.Callback" title="callbacks.Callback"><code class="xref py py-class docutils literal notranslate"><span class="pre">callbacks.Callback</span></code></a></p>
+<p>Callback that prints the model dimensions, visualizes CAE encoder outputs,
+original image and reconstructed image during training.</p>
+<p class="rubric">Notes</p>
+<p>The forward() function of the CAE model using this callback
+must return a (decoder_output, encoder_output) tuple.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – The pytorch model.</p></li>
+<li><p><strong>max_train_iters</strong> (<em>int</em>) – The maximum number of training iterations.</p></li>
+<li><p><strong>show_epochs_list</strong> (<em>list</em>) – list of epochs to visualise. Default: [] (Visualize no epochs)</p></li>
+<li><p><strong>plotFeatures</strong> (<em>bool</em>) – Flag whether to plot features (True) or not (False). Default: True</p></li>
+<li><p><strong>plot_pdf_path</strong> (<em>str</em>) – A path where to save figures ploted in a pdf. Default: “” (Do not plot into pdf)</p></li>
+<li><p><strong>cmap</strong> – A color map. Default: “nipy_spectral”</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="callbacks.CAE_VisualizeTraining.model">
+<code class="sig-name descname">model</code><a class="headerlink" href="#callbacks.CAE_VisualizeTraining.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>The pytorch model.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.CAE_VisualizeTraining.max_train_iters">
+<code class="sig-name descname">max_train_iters</code><a class="headerlink" href="#callbacks.CAE_VisualizeTraining.max_train_iters" title="Permalink to this definition">¶</a></dt>
+<dd><p>The maximum number of training iterations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.CAE_VisualizeTraining.show_epochs_list">
+<code class="sig-name descname">show_epochs_list</code><a class="headerlink" href="#callbacks.CAE_VisualizeTraining.show_epochs_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of epochs to visualise</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.CAE_VisualizeTraining.plotFeatures">
+<code class="sig-name descname">plotFeatures</code><a class="headerlink" href="#callbacks.CAE_VisualizeTraining.plotFeatures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flag whether to plot features (True) or not (False).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.CAE_VisualizeTraining.plot_pdf_path">
+<code class="sig-name descname">plot_pdf_path</code><a class="headerlink" href="#callbacks.CAE_VisualizeTraining.plot_pdf_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>A path where to save figures ploted in a pdf.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.CAE_VisualizeTraining.cmap">
+<code class="sig-name descname">cmap</code><a class="headerlink" href="#callbacks.CAE_VisualizeTraining.cmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>A color map.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="callbacks.Callback">
+<em class="property">class </em><code class="sig-prename descclassname">callbacks.</code><code class="sig-name descname">Callback</code><a class="headerlink" href="#callbacks.Callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract class for callbacks.</p>
+<dl class="method">
+<dt id="callbacks.Callback.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.Callback.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that resets all attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="callbacks.Callback.final">
+<code class="sig-name descname">final</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.Callback.final" title="Permalink to this definition">¶</a></dt>
+<dd><p>calls <cite>reset</cite>. Should be executed when training is about to finish</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">final</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="callbacks.EarlyStopping">
+<em class="property">class </em><code class="sig-prename descclassname">callbacks.</code><code class="sig-name descname">EarlyStopping</code><span class="sig-paren">(</span><em class="sig-param">patience</em>, <em class="sig-param">retain_metric</em>, <em class="sig-param">mode</em>, <em class="sig-param">ignore_before=0</em>, <em class="sig-param">window=None</em>, <em class="sig-param">info=False</em><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.EarlyStopping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#callbacks.Callback" title="callbacks.Callback"><code class="xref py py-class docutils literal notranslate"><span class="pre">callbacks.Callback</span></code></a></p>
+<p>Stops training when a monitored quantity has stopped improving.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>patience</strong> (<em>int</em>) – Number of iterations without improvement after which to stop.</p></li>
+<li><p><strong>retain_metric</strong> – The metric which will be monitored.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – Defines if you want to maximise or minimise your metric. “min”, “max” allowed.</p></li>
+<li><p><strong>ignore_before</strong> (<em>int</em>) – Does not start the first window until this epoch.
+Can be useful when training spikes a lot in early epochs. Default: 0</p></li>
+<li><p><strong>window</strong> (<em>int</em>) – If set to integer number “x”, quantity will be monitored in a window of size x.
+Training will be stopped when mean quantity in a window has stopped improving.
+Default: None (Do not use window approach)</p></li>
+<li><p><strong>info</strong> (<em>bool</em>) – prints in combination with window mode information about current best window quantities. Default: False</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.patience">
+<code class="sig-name descname">patience</code><a class="headerlink" href="#callbacks.EarlyStopping.patience" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of iterations without improvement after which to stop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.retain_metric">
+<code class="sig-name descname">retain_metric</code><a class="headerlink" href="#callbacks.EarlyStopping.retain_metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>The metric which will be monitored.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.mode">
+<code class="sig-name descname">mode</code><a class="headerlink" href="#callbacks.EarlyStopping.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines if you want to maximise or minimise your metric. “min”, “max” allowed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.ignore_before">
+<code class="sig-name descname">ignore_before</code><a class="headerlink" href="#callbacks.EarlyStopping.ignore_before" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does not start the first window until this epoch.
+Can be useful when training spikes a lot in early epochs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.window">
+<code class="sig-name descname">window</code><a class="headerlink" href="#callbacks.EarlyStopping.window" title="Permalink to this definition">¶</a></dt>
+<dd><p>If set to integer number “x”, quantity will be monitored in a window of size x.
+Training will be stopped when mean quantity in a window has stopped improving.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.best_res">
+<code class="sig-name descname">best_res</code><a class="headerlink" href="#callbacks.EarlyStopping.best_res" title="Permalink to this definition">¶</a></dt>
+<dd><p>The best <cite>retain_metric</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.best_epoch">
+<code class="sig-name descname">best_epoch</code><a class="headerlink" href="#callbacks.EarlyStopping.best_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>The epoch in which <cite>best_res</cite> was obtained.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.best_mean_res">
+<code class="sig-name descname">best_mean_res</code><a class="headerlink" href="#callbacks.EarlyStopping.best_mean_res" title="Permalink to this definition">¶</a></dt>
+<dd><p>The best mean result of window. Only if <cite>window</cite> is set.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.best_window_start">
+<code class="sig-name descname">best_window_start</code><a class="headerlink" href="#callbacks.EarlyStopping.best_window_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Epoch where the best window (of epoch training metrics) starts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.EarlyStopping.info">
+<code class="sig-name descname">info</code><a class="headerlink" href="#callbacks.EarlyStopping.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>prints in combination with window mode information about current best window quantities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="callbacks.EarlyStopping.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.EarlyStopping.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets all parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="callbacks.EarlyStopping.final">
+<code class="sig-name descname">final</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.EarlyStopping.final" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls <cite>reset</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">final</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Performs a reset of the object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Resets after training. Useful for cross validation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="callbacks.ModelCheckpoint">
+<em class="property">class </em><code class="sig-prename descclassname">callbacks.</code><code class="sig-name descname">ModelCheckpoint</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">retain_metric='loss'</em>, <em class="sig-param">prepend=''</em>, <em class="sig-param">num_iters=-1</em>, <em class="sig-param">ignore_before=0</em>, <em class="sig-param">store_best=False</em>, <em class="sig-param">mode='max'</em>, <em class="sig-param">window=None</em>, <em class="sig-param">info=False</em><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.ModelCheckpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#callbacks.Callback" title="callbacks.Callback"><code class="xref py py-class docutils literal notranslate"><span class="pre">callbacks.Callback</span></code></a></p>
+<p>Monitors training process.</p>
+<p>Saves model parameters after certain iterations or/and finds best parameters in all training steps.
+Optionally, saves parameters to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – The path where to store results.</p></li>
+<li><p><strong>retain_metric</strong> – The metric which will be monitored. Default: “loss”</p></li>
+<li><p><strong>prepend</strong> (<em>str</em>) – String to prepend the filename with. Default: “”.</p></li>
+<li><p><strong>num_iters</strong> (<em>int</em>) – Number of iterations after which to store the model.
+If set to -1, it will only store the last iteration’s model. Default: -1</p></li>
+<li><p><strong>ignore_before</strong> (<em>int</em>) – Ignore early iterations and do not execute callback function. Default: 0</p></li>
+<li><p><strong>store_best</strong> (<em>bool</em>) – Switch whether to save the best model during training. Default: False</p></li>
+<li><p><strong>mode</strong> – Specifies the best metric value. “max” or “min” are allowed. Default: “max”</p></li>
+<li><p><strong>window</strong> (<em>int</em>) – If set to integer number “x”, retain_metric will be monitored in a window of size x.
+Best model will be chosen according to best mean window result of all windows in retain_metric.
+Default: None (Do not use window approach)</p></li>
+<li><p><strong>info</strong> (<em>bool</em>) – Prints in combination with window mode information about current best window quantities. Default: False</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.path">
+<code class="sig-name descname">path</code><a class="headerlink" href="#callbacks.ModelCheckpoint.path" title="Permalink to this definition">¶</a></dt>
+<dd><p>The path where to store results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.prepend">
+<code class="sig-name descname">prepend</code><a class="headerlink" href="#callbacks.ModelCheckpoint.prepend" title="Permalink to this definition">¶</a></dt>
+<dd><p>String to prepend the filename with.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.num_iters">
+<code class="sig-name descname">num_iters</code><a class="headerlink" href="#callbacks.ModelCheckpoint.num_iters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of iterations after which to store the model.
+If set to -1, it will only store the last iteration’s model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.ignore_before">
+<code class="sig-name descname">ignore_before</code><a class="headerlink" href="#callbacks.ModelCheckpoint.ignore_before" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ignore early iterations and do not execute callback function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.best_model">
+<code class="sig-name descname">best_model</code><a class="headerlink" href="#callbacks.ModelCheckpoint.best_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the best model.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.best_res">
+<code class="sig-name descname">best_res</code><a class="headerlink" href="#callbacks.ModelCheckpoint.best_res" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the best <cite>retain_metric</cite> result.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.best_mean_res">
+<code class="sig-name descname">best_mean_res</code><a class="headerlink" href="#callbacks.ModelCheckpoint.best_mean_res" title="Permalink to this definition">¶</a></dt>
+<dd><p><cite>retain_metric</cite> result.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.best_window_start">
+<code class="sig-name descname">best_window_start</code><a class="headerlink" href="#callbacks.ModelCheckpoint.best_window_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the starting position of the best window of size <cite>window</cite> over all epochs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.store_best">
+<code class="sig-name descname">store_best</code><a class="headerlink" href="#callbacks.ModelCheckpoint.store_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flag indicating whether best model will be saved to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.retain_metric">
+<code class="sig-name descname">retain_metric</code><a class="headerlink" href="#callbacks.ModelCheckpoint.retain_metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>The retain metric. “How to choose best models?” Could be “loss” for example.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.mode">
+<code class="sig-name descname">mode</code><a class="headerlink" href="#callbacks.ModelCheckpoint.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modus at which <cite>retain_metric</cite> is best. Can either be “min” or “max”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.window">
+<code class="sig-name descname">window</code><a class="headerlink" href="#callbacks.ModelCheckpoint.window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Window size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="callbacks.ModelCheckpoint.info">
+<code class="sig-name descname">info</code><a class="headerlink" href="#callbacks.ModelCheckpoint.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints in combination with window mode information about current best window quantities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="callbacks.ModelCheckpoint.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.ModelCheckpoint.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets all parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="callbacks.ModelCheckpoint.final">
+<code class="sig-name descname">final</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.ModelCheckpoint.final" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores the best model to disk and calls <cite>reset</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">final</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Stores best model to disk and resets results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – Variable many arguments.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p>Reset module after training. Useful for cross validation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="callbacks.ModelCheckpoint.save_model">
+<em class="property">static </em><code class="sig-name descname">save_model</code><span class="sig-paren">(</span><em class="sig-param">trainer</em>, <em class="sig-param">full_path</em><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.ModelCheckpoint.save_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts a model of a trainer object and writes it to disk.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trainer</strong> – The trainer object.</p></li>
+<li><p><strong>full_path</strong> – Path where to store the state dict of the model.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="callbacks.visualize_feature_maps">
+<code class="sig-prename descclassname">callbacks.</code><code class="sig-name descname">visualize_feature_maps</code><span class="sig-paren">(</span><em class="sig-param">features</em>, <em class="sig-param">return_fig=False</em><span class="sig-paren">)</span><a class="headerlink" href="#callbacks.visualize_feature_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualizing 3D-features during training for custom-callbacks functions.</p>
+<p>Can be used together with the argument ‘training_time_callback’ in nitorch’s Trainer class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>features</strong> – a tensor of features to visualize.</p></li>
+<li><p><strong>return_fig</strong> (<em>bool</em>) – Flag to indicate whether to return the pyplot figure.
+Default: False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The pyplot figure if <cite>return_fig</cite> set to True else nothing.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>fig</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Fabian Eitel, Roshan Rane, Jan Philipp Albrecht
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

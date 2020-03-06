@@ -9,7 +9,34 @@ def predict(
         criterion,
         **kwargs
 ):
-    """ Predict according to loss and prediction type."""
+    """Predict according to loss and prediction type.
+
+    Parameters
+    ----------
+    all_outputs
+        All outputs of a forward process of a model.
+    all_labels
+        All labels of the corresponding inputs to the outputs.
+    prediction_type
+        Prediction type. "binary", "classification", "regression", "reconstruction" or "variational".
+    criterion
+        Criterion, e.g. "loss"-function. Could for example be "nn.BCEWithLogitsLoss".
+    kwargs
+        Variable arguments.
+
+    Returns
+    -------
+    all_preds
+        All predictions.
+    all_labels
+        All labels.
+
+    Raises
+    ------
+    NotImplementedError
+        If `prediction_type` invalid.
+
+    """
     if prediction_type == "binary":
         all_preds = binary_classif_inference(all_outputs, criterion=criterion, **kwargs)
 
@@ -30,6 +57,23 @@ def binary_classif_inference(
         criterion,
         **kwargs
 ):
+    """Binary classification inference.
+
+    Parameters
+    ----------
+    all_outputs
+        All outputs of a forward process of a model.
+    criterion
+        Criterion, e.g. "loss"-function. Could for example be "nn.BCEWithLogitsLoss".
+    kwargs
+        Variable arguments.
+
+    Returns
+    -------
+    all_preds
+        All predictions.
+
+    """
     if isinstance(criterion, nn.BCEWithLogitsLoss):
         all_outputs = torch.sigmoid(all_outputs)
 
@@ -48,6 +92,27 @@ def multi_classif_inference(
         criterion,
         **kwargs
 ):
+    """Multi classification inference.
+
+    Parameters
+    ----------
+    all_outputs
+        All outputs of a forward process of a model.
+    all_labels
+        All labels of the corresponding inputs to the outputs.
+    criterion
+        Criterion, e.g. "loss"-function. Could for example be "nn.BCEWithLogitsLoss".
+    kwargs
+        Variable arguments.
+
+    Returns
+    -------
+    all_preds
+        All predictions.
+    all_labels
+        All labels.
+
+    """
     all_preds = torch.argmax(all_outputs.data, 1)   
     # convert the labels from one-hot vectors to class variables for metric calculations
     if isinstance(criterion, (nn.BCELoss, nn.BCEWithLogitsLoss)):

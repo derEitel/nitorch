@@ -1,0 +1,931 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Motivation &mdash; nitorch  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="DataBunch" href="loading_data.html" />
+    <link rel="prev" title="Tutorials" href="tutorials.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> nitorch
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Quicklinks</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="tutorials.html#getting-started">Getting started</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Motivation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#a-small-example">A small example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#loading-data">Loading Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#using-callbacks">Using Callbacks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorials.html#visualizing">Visualizing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nitorchAPI.html">nitorch API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="about.html">All about us</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indices.html">Indices and tables</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">nitorch</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="tutorials.html">Tutorials</a> &raquo;</li>
+        
+      <li>Motivation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/getting_started.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="motivation">
+<span id="getting-started"></span><h1>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h1>
+<p>Nitorch aims to not only speed up your model training and evaluation routines, but also to ensure a scientific standard.
+By loading data, training and evaluating models, nitorch assures correctness of the methods used as well as
+reproducibility and comparability of routines within a project, but also across studies.</p>
+</div>
+<div class="section" id="a-small-example">
+<h1>A small example<a class="headerlink" href="#a-small-example" title="Permalink to this headline">¶</a></h1>
+<p>The following will give you an idea how to combine nitorch in your daily work:
+Let’s assume we want to train a simple model using our OASIS example dataset.
+(<a class="reference external" href="https://github.com/derEitel/nitorch/data/OASIS_BIDS_example_data">https://github.com/derEitel/nitorch/data/OASIS_BIDS_example_data</a>)</p>
+<p>Let’s start with necessary dependencies. Make sure you have the following packages available.
+Also you should have successfully completed nitorch installation.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">nibabel</span> <span class="kn">as</span> <span class="nn">nib</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="kn">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch.optim</span> <span class="kn">as</span> <span class="nn">optim</span>
+<span class="kn">from</span> <span class="nn">nitorch.data</span> <span class="kn">import</span> <span class="n">DataBunch</span>
+<span class="kn">from</span> <span class="nn">nitorch.trainer</span> <span class="kn">import</span> <span class="n">Trainer</span>
+<span class="kn">from</span> <span class="nn">nitorch.initialization</span> <span class="kn">import</span> <span class="n">weights_init</span>
+<span class="kn">from</span> <span class="nn">nitorch.metrics</span> <span class="kn">import</span> <span class="n">binary_balanced_accuracy</span>
+</pre></div>
+</td></tr></table></div>
+<p>We first define a simple model. We therefore use a practical base class which will soon be integrated
+in the nitorch library.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseModels</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A base class for pytorch modules.</span>
+
+<span class="sd">    This class allows easy setup of complex pytorch models.</span>
+<span class="sd">    Further, its functionality allows to start and stop the forward process of data from any arbitrary layer</span>
+<span class="sd">    of the model.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    return_after : str</span>
+<span class="sd">        The name of the layer after which to stop the forward process and prematurely return modeled data.</span>
+<span class="sd">        Can only be a name listed in attribute &#39;operation_sequence&#39;.</span>
+<span class="sd">        Default behavior is to forward data without prematurely returning.</span>
+<span class="sd">        (Forward till end of model architecture) Default: None</span>
+<span class="sd">    start_from : str</span>
+<span class="sd">        The name of the layer at which to start the forward process.</span>
+<span class="sd">        Can only be a name listed in attribute &#39;operation_sequence&#39;.</span>
+<span class="sd">        Default behavior is to forward data beginning in the</span>
+<span class="sd">        first layer of the model architecture. Default: None</span>
+<span class="sd">    operation_sequence : list</span>
+<span class="sd">        The sequence in which the layers will be used in the forward process.</span>
+<span class="sd">    debug : int</span>
+<span class="sd">        A flag to enable debugging. Prints additional information about data size.</span>
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    forward()</span>
+<span class="sd">        Defines what actually happens to the data in the forward process.</span>
+<span class="sd">    get_num_params()</span>
+<span class="sd">        Get the number of parameters which require a gradient (trainable parameters).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_after</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_from</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operation_sequence</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">_update_operation_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_from</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation_sequence</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_from</span><span class="p">)</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operation_sequence</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_after</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation_sequence</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_after</span><span class="p">)</span>
+        <span class="n">updated_operation_sequence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation_sequence</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">updated_operation_sequence</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Forward function of the model. Defines what actually &quot;happens&quot; with the data during modelling.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : torch.tensor</span>
+<span class="sd">            The data to forward.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.tensor</span>
+<span class="sd">            The forwarded (modeled) data.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">op_sqn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_operation_sequence</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">operation</span> <span class="ow">in</span> <span class="n">op_sqn</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">operation</span><span class="p">)(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">get_num_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the number of parameters which require a gradient (trainable parameters).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Number of trainable (can be optimized) parameters.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">trainable_params</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="n">num_trainable</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">size</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">trainable_params</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">num_trainable</span>
+
+
+<span class="k">class</span> <span class="nc">Flatten</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Layer which flattens the data when called.</span>
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    forward()</span>
+<span class="sd">        Defines what actually happens to the data in the forward process.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">DemonstationModel</span><span class="p">(</span><span class="n">BaseModels</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Simple Convolutional Neuronal Network</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    return_after : str</span>
+<span class="sd">        The name of the layer after which to stop the forward process and prematurely return modeled data.</span>
+<span class="sd">        Can only be a name listed in attribute &#39;operation_sequence&#39;.</span>
+<span class="sd">        Default behavior is to forward data without prematurely returning.</span>
+<span class="sd">        (Forward till end of model architecture) Default: None</span>
+<span class="sd">    start_from : str</span>
+<span class="sd">        The name of the layer at which to start the forward process.</span>
+<span class="sd">        Can only be a name listed in attribute &#39;operation_sequence&#39;.</span>
+<span class="sd">        Default behavior is to forward data beginning in the</span>
+<span class="sd">        first layer of the model architecture. Default: None</span>
+<span class="sd">    debug : int</span>
+<span class="sd">        A flag to enable debugging. Prints additional information about data size.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Conv_1 : nn.Conv3d</span>
+<span class="sd">        3D Convultion layer.</span>
+<span class="sd">    Conv_1_mp : nn.MaxPool3d</span>
+<span class="sd">        3D Maxpool layer.</span>
+<span class="sd">    dense_1 : nn.Linear</span>
+<span class="sd">        Linear layer.</span>
+<span class="sd">    flatten : Flatten</span>
+<span class="sd">        Flatten layer.</span>
+<span class="sd">    get_class : nn.Sigmoid</span>
+<span class="sd">        a sigmoid layer.</span>
+<span class="sd">    return_after : str</span>
+<span class="sd">        The name of the layer after which to stop the forward process and prematurely return modeled data.</span>
+<span class="sd">        Can only be a name listed in attribute &#39;operation_sequence&#39;.</span>
+<span class="sd">        Default behavior is to forward data without prematurely returning.</span>
+<span class="sd">        (Forward till end of model architecture) Default: None</span>
+<span class="sd">    start_from : str</span>
+<span class="sd">        The name of the layer at which to start the forward process.</span>
+<span class="sd">        Can only be a name listed in attribute &#39;operation_sequence&#39;.</span>
+<span class="sd">        Default behavior is to forward data beginning in the</span>
+<span class="sd">        first layer of the model architecture. Default: None</span>
+<span class="sd">    operation_sequence : list</span>
+<span class="sd">        The sequence in which the layers will be used in the forward process.</span>
+<span class="sd">    debug : int</span>
+<span class="sd">        A flag to enable debugging. Prints additional information about data size.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">return_after</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">start_from</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BaseModels</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Conv_1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv3d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Conv_1_mp</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool3d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">return_indices</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dense_1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">22528</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">activation_1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span> <span class="o">=</span> <span class="n">Flatten</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_class</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_after</span> <span class="o">=</span> <span class="n">return_after</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_from</span> <span class="o">=</span> <span class="n">start_from</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operation_sequence</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Conv_1&quot;</span><span class="p">,</span>
+                                   <span class="s2">&quot;activation_1&quot;</span><span class="p">,</span>
+                                   <span class="s2">&quot;Conv_1_mp&quot;</span><span class="p">,</span>
+                                   <span class="s2">&quot;flatten&quot;</span><span class="p">,</span>
+                                   <span class="s2">&quot;dense_1&quot;</span><span class="p">,</span>
+                                   <span class="s2">&quot;get_class&quot;</span><span class="p">]</span>
+</pre></div>
+</td></tr></table></div>
+<p>And now the actual important task. Training and evaluating the model. We simply need the following to get started:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main3</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Main routine.&quot;&quot;&quot;</span>
+
+    <span class="c1"># set a source_dir to the data</span>
+    <span class="n">source_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">NITORCH_DIR</span><span class="p">,</span> <span class="s2">&quot;data/OASIS_BIDS_example_data/&quot;</span><span class="p">)</span>
+
+    <span class="c1"># configure the DataBunch</span>
+    <span class="n">oasis_dbunch</span> <span class="o">=</span> <span class="n">DataBunch</span><span class="p">(</span>
+        <span class="n">source_dir</span><span class="o">=</span><span class="n">source_dir</span><span class="p">,</span>
+        <span class="n">image_dir</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>  <span class="c1"># necessary for a relative path in the csv</span>
+        <span class="n">table</span><span class="o">=</span><span class="n">f</span><span class="s2">&quot;OASIS_example.csv&quot;</span><span class="p">,</span>
+        <span class="n">separator</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">source_dir</span><span class="p">,</span> <span class="s2">&quot;results&quot;</span><span class="p">),</span>
+        <span class="n">file_col</span><span class="o">=</span><span class="s2">&quot;path&quot;</span><span class="p">,</span>
+        <span class="n">label_col</span><span class="o">=</span><span class="s2">&quot;labels_simplified&quot;</span><span class="p">,</span>
+        <span class="n">ptid_col</span><span class="o">=</span><span class="s2">&quot;subjectID&quot;</span><span class="p">,</span>
+        <span class="n">labels_to_keep</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;clinical dementia&quot;</span><span class="p">,</span> <span class="s2">&quot;healthy&quot;</span><span class="p">],</span>
+        <span class="n">z_factor</span><span class="o">=</span><span class="mf">0.2</span>  <span class="c1"># large zooming for demonstration purposes</span>
+    <span class="p">)</span>
+    <span class="c1"># built the DataLoader</span>
+    <span class="n">oasis_dbunch</span><span class="o">.</span><span class="n">build_dataloaders</span><span class="p">(</span><span class="n">bs</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">oasis_dbunch</span><span class="o">.</span><span class="n">show_sample</span><span class="p">()</span>
+</pre></div>
+</td></tr></table></div>
+<p>Result would be the following:</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre></div></td><td class="code"><div class="highlight"><pre><span></span>Found 20 images in OASIS_example.csv
+Found 3 labels: [&#39;healthy&#39;, &#39;clinical dementia&#39;, &#39;unknown&#39;]
+Dropped 1 samples that were not in [&#39;clinical dementia&#39;, &#39;healthy&#39;]
+Final dataframe contains 19 samples from 6 patients
+Building datasets
+Scan-wise stratified train/test splitting with val_size = 0.1
+A patient having scans at multiple time points might appear in the val and train split!
+         IMAGES    clinical dementia    healthy    PATIENTS    clinical dementia    healthy
+-----  --------  -------------------  ---------  ----------  -------------------  ---------
+Train        17                    9          8           6                    3          3
+Val           2                    1          1           2                    1          1
+Total        19                   10          9           6                    3          3
+Data shape: (35, 51, 51)
+NOTE: data have been downsized by a factor of 0.2
+DataBunch initialized at ../data/OASIS_BIDS_example_data/results
+Building dataloaders
+No. training/test samples: 8.5
+Dataset not normalized, performance might be significantly hurt!
+</pre></div>
+</td></tr></table></div>
+<a class="reference internal image-reference" href="_images/small_example_1.png"><img alt="example data" class="align-center" src="_images/small_example_1.png" style="width: 500px;" /></a>
+<p>We now use our model class definition from above to get an instance of our DemonstationModel.
+We initialize the weights by simply calling <code class="code docutils literal notranslate"><span class="pre">my_net.apply</span></code> with <code class="code docutils literal notranslate"><span class="pre">weights_init</span></code> from
+the nitorch libarary. After choosing a suited criterion, optimizer and a metric
+(additional to loss), we setup a trainer and simply run the training.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27</pre></div></td><td class="code"><div class="highlight"><pre><span></span>    <span class="c1"># use a DemonstationModel CNN suited for our needs</span>
+    <span class="n">my_net</span> <span class="o">=</span> <span class="n">DemonstationModel</span><span class="p">()</span>
+
+    <span class="c1"># applys function &quot;weights_init&quot; for each layer</span>
+    <span class="n">my_net</span> <span class="o">=</span> <span class="n">my_net</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">weights_init</span><span class="p">)</span>
+
+    <span class="c1"># choose a criterion and an optimizer and metric</span>
+    <span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BCELoss</span><span class="p">()</span>
+    <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">my_net</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+    <span class="n">metric</span> <span class="o">=</span> <span class="p">[</span><span class="n">binary_balanced_accuracy</span><span class="p">]</span>
+
+    <span class="c1"># define the Trainer</span>
+    <span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span>
+        <span class="n">my_net</span><span class="p">,</span>
+        <span class="n">criterion</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="p">,</span>
+        <span class="n">metrics</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span>
+        <span class="n">prediction_type</span><span class="o">=</span><span class="s2">&quot;binary&quot;</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>  <span class="c1"># default device is &quot;cuda&quot;, but for demonstration purposes CPU is sufficient!</span>
+    <span class="p">)</span>
+
+    <span class="c1"># simply run the trainer</span>
+    <span class="n">net</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">train_model</span><span class="p">(</span>
+        <span class="n">train_loader</span><span class="o">=</span><span class="n">oasis_dbunch</span><span class="o">.</span><span class="n">train_dl</span><span class="p">,</span>
+        <span class="n">val_loader</span><span class="o">=</span><span class="n">oasis_dbunch</span><span class="o">.</span><span class="n">val_dl</span><span class="p">,</span>
+        <span class="n">num_epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>The trainer functionality reports for every epoch (first number in []-brackets) and data-counter
+(second number in []-brackets) the training loss, as well as the validation metrics for the validation
+data set. Additionally, the total runtime is tracked.</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">0</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.84335</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.76980</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.95071</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.76692</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">0</span><span class="n">m</span><span class="p">:</span><span class="mi">7</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">1.28704</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">1.11777</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.90237</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.86487</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.80806</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">0</span><span class="n">m</span><span class="p">:</span><span class="mi">17</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">60.00</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">1.02584</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.81401</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.85946</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.79937</span>
+<span class="p">[</span><span class="mi">2</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.82474</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">0</span><span class="n">m</span><span class="p">:</span><span class="mi">28</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">47.50</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.57556</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.62246</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.61600</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.60460</span>
+<span class="p">[</span><span class="mi">3</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.59020</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">0</span><span class="n">m</span><span class="p">:</span><span class="mi">38</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">75.00</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.80410</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">4</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.75554</span>
+<span class="p">[</span><span class="mi">4</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.61666</span>
+<span class="p">[</span><span class="mi">4</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.53448</span>
+<span class="p">[</span><span class="mi">4</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.57154</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">0</span><span class="n">m</span><span class="p">:</span><span class="mi">48</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">58.33</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.97156</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">1.08375</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.80387</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.68879</span>
+<span class="p">[</span><span class="mi">5</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.68390</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">0</span><span class="n">m</span><span class="p">:</span><span class="mi">58</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">55.00</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.76843</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">6</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.37092</span>
+<span class="p">[</span><span class="mi">6</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.42336</span>
+<span class="p">[</span><span class="mi">6</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.40216</span>
+<span class="p">[</span><span class="mi">6</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.37170</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">1</span><span class="n">m</span><span class="p">:</span><span class="mi">8</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">77.50</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.60067</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">7</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.75128</span>
+<span class="p">[</span><span class="mi">7</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.58992</span>
+<span class="p">[</span><span class="mi">7</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.58823</span>
+<span class="p">[</span><span class="mi">7</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.53519</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">1</span><span class="n">m</span><span class="p">:</span><span class="mi">18</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">75.00</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.52003</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">8</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.23744</span>
+<span class="p">[</span><span class="mi">8</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.39957</span>
+<span class="p">[</span><span class="mi">8</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.38014</span>
+<span class="p">[</span><span class="mi">8</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.40209</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">1</span><span class="n">m</span><span class="p">:</span><span class="mi">29</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">87.50</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.36000</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">100.00</span> <span class="o">%</span>
+<span class="p">[</span><span class="mi">9</span><span class="p">,</span>     <span class="mi">2</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.32260</span>
+<span class="p">[</span><span class="mi">9</span><span class="p">,</span>     <span class="mi">4</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.39109</span>
+<span class="p">[</span><span class="mi">9</span><span class="p">,</span>     <span class="mi">6</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.39596</span>
+<span class="p">[</span><span class="mi">9</span><span class="p">,</span>     <span class="mi">8</span><span class="p">]</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.37484</span>
+<span class="n">Time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">1</span><span class="n">m</span><span class="p">:</span><span class="mi">39</span><span class="n">s</span>
+<span class="n">train</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">80.00</span> <span class="o">%</span>
+<span class="n">val</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.59600</span>
+<span class="n">val</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+<span class="n">Total</span> <span class="n">time</span> <span class="n">elapsed</span><span class="p">:</span> <span class="mi">0</span><span class="n">h</span><span class="p">:</span><span class="mi">1</span><span class="n">m</span><span class="p">:</span><span class="mi">41</span><span class="n">s</span>
+<span class="nb">eval</span> <span class="n">loss</span><span class="p">:</span> <span class="mf">0.59600</span>
+<span class="nb">eval</span> <span class="n">binary_balanced_accuracy</span><span class="p">:</span> <span class="mf">50.00</span> <span class="o">%</span>
+</pre></div>
+</td></tr></table></div>
+<p>Nitorch offers the possibility to visualize what has happend during training:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span></span>    <span class="c1"># let&#39;s look at what happened</span>
+    <span class="n">trainer</span><span class="o">.</span><span class="n">visualize_training</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>By calling <code class="code docutils literal notranslate"><span class="pre">trainer.visualize_training</span></code> with the <code class="code docutils literal notranslate"><span class="pre">report</span></code> we got as a result of the
+<code class="code docutils literal notranslate"><span class="pre">train_model</span></code> call, we get the following visualization:</p>
+<a class="reference internal image-reference" href="_images/small_example_2.png"><img alt="training and validation loss" class="align-center" src="_images/small_example_2.png" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="_images/small_example_3.png"><img alt="training and validation binary balanced accuracy" class="align-center" src="_images/small_example_3.png" style="width: 400px;" /></a>
+<p>Usually, after training a model is validated using different data than involved in the training process.
+Since our dataset is very small we demonstrate the evaluation behavior with the same data we used during
+training.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Do not use data involved in training for model evaluation as done here for demonstration purposes!</p>
+</div>
+<p>Nevertheless, the following lines would lead to a model evaluation:</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span>    <span class="c1"># we could use evaluate_model function with a dataset different than those used for training to evaluate our model</span>
+    <span class="c1"># Since our dataset is very small and serves as demonstration only we will use the same data twice.</span>
+    <span class="c1"># Notice: Do not use the same data twice!</span>
+    <span class="n">trainer</span><span class="o">.</span><span class="n">evaluate_model</span><span class="p">(</span><span class="n">oasis_dbunch</span><span class="o">.</span><span class="n">val_dl</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<p>Since our <code class="code docutils literal notranslate"><span class="pre">prediction_type</span></code> is set to <code class="code docutils literal notranslate"><span class="pre">binary</span></code> we get results back as confusion matrix:</p>
+<a class="reference internal image-reference" href="_images/small_example_4.png"><img alt="model evaluation confusion matrix" class="align-center" src="_images/small_example_4.png" style="width: 400px;" /></a>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The evaluation dataset is so small, there are only control patients in the set. Always make sure the dataset is balanced. Nitorch offers a option for that as well! See data class documentation for further details.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="loading_data.html" class="btn btn-neutral float-right" title="DataBunch" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="tutorials.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Fabian Eitel, Roshan Rane, Jan Philipp Albrecht
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

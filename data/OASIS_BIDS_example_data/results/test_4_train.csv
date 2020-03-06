@@ -1,0 +1,13 @@
+	path	labels_simplified	subjectID
+5	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30007/ses-d1636/anat/sub-OAS30007_ses-d1636_T1w.nii.gz	clinical dementia	OAS30007
+16	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30071/ses-d0055/anat/sub-OAS30071_ses-d0055_T1w.nii.gz	healthy	OAS30071
+14	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30027/ses-d2394/anat/sub-OAS30027_ses-d2394_T1w.nii.gz	clinical dementia	OAS30027
+15	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30071/ses-d0018/anat/sub-OAS30071_ses-d0018_T1w.nii.gz	healthy	OAS30071
+17	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30072/ses-d0218/anat/sub-OAS30072_ses-d0218_run-01_T1w.nii.gz	clinical dementia	OAS30072
+13	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30027/ses-d1300/anat/sub-OAS30027_ses-d1300_run-01_T1w.nii.gz	clinical dementia	OAS30027
+9	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30026/ses-d0048/anat/sub-OAS30026_ses-d0048_T1w.nii.gz	healthy	OAS30026
+18	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30072/ses-d1379/anat/sub-OAS30072_ses-d1379_run-01_T1w.nii.gz	clinical dementia	OAS30072
+6	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30007/ses-d1641/anat/sub-OAS30007_ses-d1641_T1w.nii.gz	clinical dementia	OAS30007
+4	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30007/ses-d0061/anat/sub-OAS30007_ses-d0061_run-01_T1w.nii.gz	clinical dementia	OAS30007
+8	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30007/ses-d2722/anat/sub-OAS30007_ses-d2722_T1w.nii.gz	clinical dementia	OAS30007
+11	/home/jpa/PycharmProjects/DML/nitroch_development/nitorch/data/OASIS_BIDS_example_data/sub-OAS30026/ses-d0696/anat/sub-OAS30026_ses-d0696_T1w.nii.gz	healthy	OAS30026
