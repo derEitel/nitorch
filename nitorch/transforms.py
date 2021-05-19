@@ -731,6 +731,121 @@ class AxialRotate(Rotate):
         super().__init__(axis=2, deg=deg)
 
 
+class Rotate90:
+    """Rotate the input along a given axis.
+
+    Attributes
+    ----------
+    axis : int
+        axis to rotate. Default: 0.
+    incl_270 : boolean
+        if true rotates by both 270 and 90 degrees,
+        otherwise rotations only by 90 degress. Default: True.
+
+    """
+
+    def __init__(self, axis=0, incl_270=True):
+        """Initialization routine.
+
+        Raises
+        ------
+        AssertionError
+            if `deg` has not length of three.
+
+        """
+        if axis == 0:
+            self.axes = (1, 0)
+        elif axis == 1:
+            self.axes = (2, 1)
+        elif axis == 2:
+            self.axes = (0, 2)
+
+        self.incl_270 = incl_270
+
+    def __call__(self, image):
+        """Calling procedure.
+
+        Parameters
+        ----------
+        image : numpy.ndarray
+            The image to rotate.
+
+        Returns
+        -------
+        numpy.ndarray
+            Rotated image.
+
+        """
+        k = 1
+        if self.incl_270:
+            rand = np.random.rand()
+            # randomly rotate by 270 degrees
+            if rand > 0.5:
+                k = 3
+        augmented = np.rot90(image, k=k, axes=self.axes).copy()
+        return augmented
+
+
+class SagittalRotate90(Rotate90):
+    """Rotate image's sagittal axis (x-axis).
+
+    Notes
+    -----
+        Expects input shape (X, Y, Z).
+
+    Attributes
+    ----------
+    incl_270 : boolean
+        if true rotates by both 270 and 90 degrees,
+        otherwise rotations only by 90 degress. Default: True.
+
+    """
+
+    def __init__(self, incl_270=True):
+        """Initialization routine."""
+        super().__init__(axis=0, incl_270=incl_270)
+
+
+class CoronalRotate90(Rotate90):
+    """Rotate image's coronal axis (y-axis).
+
+    Notes
+    -----
+        Expects input shape (X, Y, Z).
+
+    Attributes
+    ----------
+    incl_270 : boolean
+        if true rotates by both 270 and 90 degrees,
+        otherwise rotations only by 90 degress. Default: True.
+
+    """
+
+    def __init__(self, incl_270=True):
+        """Initialization routine."""
+        super().__init__(axis=1, incl_270=incl_270)
+
+
+class AxialRotate90(Rotate90):
+    """Rotate image's axial axis (z-axis).
+
+    Notes
+    -----
+        Expects input shape (X, Y, Z).
+
+    Attributes
+    ----------
+    incl_270 : boolean
+        if true rotates by both 270 and 90 degrees,
+        otherwise rotations only by 90 degress. Default: True.
+
+    """
+
+    def __init__(self, incl_270=True):
+        """Initialization routine."""
+        super().__init__(axis=2, incl_270=incl_270)
+
+
 class Translate:
     """Translate the input along a given axis.
 
