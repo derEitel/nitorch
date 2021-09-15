@@ -116,7 +116,7 @@ class ModelCheckpoint(Callback):
             num_iters=-1,
             ignore_before=0,
             store_best=False,
-            mode="max",
+            mode="min",
             window=None,
             info=False
     ):
@@ -175,7 +175,7 @@ class ModelCheckpoint(Callback):
                 epoch += 1
                 # store model recurrently if set
                 if epoch % self.num_iters == 0:
-                    name = self.prepend + "training_epoch_{}.h5".format(epoch)
+                    name = self.prepend + "model-epoch{}.h5".format(epoch)
                     full_path = os.path.join(self.path, name)
                     self.save_model(trainer, full_path)
 
@@ -189,8 +189,8 @@ class ModelCheckpoint(Callback):
                     else:
                         current_res = trainer.val_metrics[self.retain_metric.__name__][-1]
                 except KeyError:
-                    print("Couldn't find {} in validation metrics. Using \
-                        loss instead.".format(self.retain_metric))
+                    print("[ModelCheckpoint] Couldn't find {} in validation metrics. Using \
+loss instead.".format(self.retain_metric))
                     current_res = trainer.val_metrics["loss"][-1]
 
                 # update
@@ -212,7 +212,7 @@ class ModelCheckpoint(Callback):
                             window_val_metrics = trainer.val_metrics[self.retain_metric.__name__][start:]
                     except KeyError:
                         print(
-                            "Couldn't find {} in validation metrics. Using \
+                            "[ModelCheckpoint] Couldn't find {} in validation metrics. Using \
                             loss instead.".format(
                                 self.retain_metric
                             )
@@ -257,7 +257,7 @@ class ModelCheckpoint(Callback):
                         self.best_res = self._current_window_best_res
                         self.best_model = copy.deepcopy(self._state_dict_storage[self._current_window_best_model_save_idx])
                         if self.info:
-                            print("Found a window with better validation metric mean:")
+                            print("[ModelCheckpoint] Found a window with better validation metric mean:")
                             print("\t metric mean: {}".format(mean_window_res))
                             print("\t epoch start: {}".format(self.best_window_start))
                             print("\t best result: {}".format(self.best_res))
@@ -277,29 +277,24 @@ class ModelCheckpoint(Callback):
 
         """
         epoch = kwargs["epoch"] + 1
-        if epoch >= self.ignore_before:
-            name = self.prepend + "training_epoch_{}_FINAL.h5".format(epoch)
+        if epoch >= self.ignore_before and not self.store_best:
+            name = self.prepend + f"model-epoch{epoch}-final.h5"
             full_path = os.path.join(self.path, name)
             self.save_model(kwargs["trainer"], full_path)
         else:
-            print("Minimum iterations to store model not reached.")
+            print("[ModelCheckpoint] Minimum iterations to store model not reached.")
 
         if self.best_model is not None:
             best_model = deepcopy(self.best_model)
             best_res = self.best_res
             if self.window is not None:
-                print("Best result during training: {:.2f}.\n In a window of size {} "
-                      "starting in epoch {} with best mean value of {} \n Saving model..".format(best_res,
-                                                                                                 self.window,
-                                                                                                 self.best_window_start,
-                                                                                                 self.best_mean_res))
+                print("[ModelCheckpoint] Best result during training: {:.2f}.\n In a window of size {} "
+                      "starting in epoch {} with best mean value of {} \n Saving model..".format(
+                          best_res, self.window, self.best_window_start, self.best_mean_res))
             else:
-                print(
-                    "Best result during training: {:.2f}. Saving model..".format(
-                        best_res
-                    )
-                )
-            name = self.prepend + "BEST_ITERATION.h5"
+                print("[ModelCheckpoint] Best result during training: {:.2f}. Saving model..".format(
+                        best_res))
+            name = self.prepend + "model-best.h5"
             torch.save(best_model, os.path.join(self.path, name))
         self.reset()
 
