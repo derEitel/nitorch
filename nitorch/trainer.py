@@ -3,6 +3,7 @@ import time
 import numpy as np
 import torch
 from torch import nn
+from torch.nn.utils import clip_grad_value_
 from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
@@ -309,9 +310,11 @@ class Trainer:
                     else:
                         # forward + backward + optimize
                         outputs = self.model(inputs)
-
+                        
                     loss = self.criterion(outputs, labels)
                     loss.backward()
+                    # clip gradients to avoid exploding gradients
+                    clip_grad_value_(self.model.parameters(), 0.8)
                     self.optimizer.step()
 
                     # update loss
@@ -360,7 +363,7 @@ class Trainer:
                                 )
                             else:
                                 outputs = self.model(inputs)
-
+                        
                             loss = self.criterion(outputs, labels)
 
                             running_loss_val.append(loss.item())
