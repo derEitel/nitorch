@@ -531,7 +531,7 @@ class EarlyStopping(Callback):
 
             else:
                 # end training run
-                trainer.stop_training = True
+                trainer._stop_training = True
                 if self.window is None:
                     print("Early stopping at epoch {}.\nBest model was at epoch {} with val metric score = {}".format(
                         epoch, self.best_epoch, self.best_res)

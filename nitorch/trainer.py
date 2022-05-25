@@ -295,9 +295,6 @@ class Trainer:
                 all_outputs = []
                 all_labels = []
 
-                if self.scheduler:
-                    self.scheduler.step(epoch)
-
                 for i, data in enumerate(train_loader):
                     inputs, labels = self.arrange_data(data, inputs_key, labels_key)
 
@@ -378,8 +375,12 @@ class Trainer:
                         phase="val"
                     )
                     del all_outputs, all_labels, running_loss_val
+                    # <end-of-one-epoch-loop>
 
-            # <end-of-epoch-loop>
+                if self.scheduler:
+                    self.scheduler.step()
+                    
+            # <end-of-all-epochs-loop>
             for callback in self.callbacks:
                 callback(self, epoch=epoch)
         # End training
@@ -594,7 +595,7 @@ class Trainer:
         metrics_dict["loss"].append(loss)
         # print the loss for val and eval phases
         if phase in ["val", "eval"]:
-            print("{} loss: {:.5f}".format(phase, loss))
+            print("{} loss: {:.5f}".format(phase, loss), flush=True)
 
         # calculate other metrics and add to the metrics_dict for all tasks
         for task_idx in range(len(all_outputs)):
