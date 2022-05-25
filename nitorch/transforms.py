@@ -218,17 +218,9 @@ class Normalize(object):
         Only set to scale std. Otherwise leave untouched.
 
     """
-    def __init__(self, mean, std=1, masked=True, eps=1e-10):
-        """Initialization routine
-
-
-
-        """
-        self.mean = mean
-        self.std = std
+    def __init__(self, masked=True, eps=1e-5):
         self.masked = masked
-        # set epsilon only if using std scaling
-        self.eps = eps if np.all(std) != 1 else 0
+        self.eps = eps
 
     def __call__(self, image):
         """Calling procedure.
@@ -244,64 +236,17 @@ class Normalize(object):
             The normalized image.
 
         """
-        if self.masked:
-            image = self.zero_masked_transform(image)
-        else:
-            image = self.apply_transform(image)
-        return image
-
-    def denormalize(self, image):
-        """Undo normalization procedure.
-
-        Parameters
-        ----------
-        image : torch.tensor/numpy.ndarray
-            The image to reverse normalization for.
-
-        Returns
-        -------
-        image : torch.tensor/numpy.ndarray
-            De-normalized image
-
-        """
-        image = image * (self.std + self.eps) + self.mean
-        return image
-
-    def apply_transform(self, image):
-        """Applies normalization to the image by using object attributes.
-
-        Parameters
-        ----------
-        image : torch.tensor/numpy.ndarray
-            The image to normalize.
-
-        Returns
-        -------
-        image : torch.tensor/numpy.ndarray
-            Normalized image.
-
-        """
-        return (image - self.mean) / (self.std + self.eps)
-
-    def zero_masked_transform(self, image):
-        """Apply normalization transformation for non-zero voxels only.
-
-        Parameters
-        ----------
-        image : torch.tensor/numpy.ndarray
-            The image to normalize.
-
-        Returns
-        -------
-        image : torch.tensor/numpy.ndarray
-            Normalized image.
-
-        """
-        img_mask = image == 0
+        mask=None
+        if self.masked: 
+            mask = (image <= self.eps)
         # do transform
-        image = self.apply_transform(image)
-        image[img_mask] = 0.0
+        image = self.apply_transform(image,  mask=mask)
+        if self.masked: image[mask] = 0.0
         return image
+
+    def apply_transform(self, image, mask):
+        image = (image - image.mean())/(image.std())
+        return image # mean>0 and min=0
 
 
 class IntensityRescale:
@@ -323,71 +268,37 @@ class IntensityRescale:
 
     """
 
-    def __init__(self, masked=True, on_gpu=False):
+    def __init__(self, masked=True, on_gpu=False, eps=1e-4):
         """Initialization process."""
 
         self.masked = masked
         self.on_gpu = on_gpu
+        self.eps    = eps
 
     def __call__(self, image):
         """Calling procedure
-
         Parameters
         ----------
-        image  : torch.tensor/numpy.ndarray
+        image  : torch.tensor ornumpy.ndarray
             Image to transform.
 
         Returns
         -------
-         image : torch.tensor/numpy.ndarray
+         image : torch.tensor or numpy.ndarray
             Transformed image.
-
         """
-        if self.masked:
-            image = self.zero_masked_transform(image)
-        else:
-            image = self.apply_transform(image)
-
+        if self.masked:  img_mask = (image <= self.eps)
+            # do transform
+        image = self.apply_transform(image)
+        
+        if self.masked: image[img_mask] = 0.0
         return image
 
     def apply_transform(self, image):
-        """Applys tranformation to input.
-
-        Parameters
-        ----------
-        image : torch.tensor/numpy.ndarray
-            The image to transform.
-
-        Returns
-        -------
-        torch.tensor/numpy.ndarray
-            Transformed image.
-
-        """
         if self.on_gpu:
             return normalize_float_torch(image, min=0)
         else:
             return normalize_float(image, min=0)
-
-    def zero_masked_transform(self, image):
-        """ Only apply transform where input is not zero.
-
-        Parameters
-        ----------
-        image
-            The image to transform.
-
-        Returns
-        -------
-        image
-            Transformed image.
-
-        """
-        img_mask = image == 0
-        # do transform
-        image = self.apply_transform(image)
-        image[img_mask] = 0.0
-        return image
 
 
 ########################################################################

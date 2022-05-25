@@ -1,7 +1,9 @@
+from os.path import join
 import time
 import numpy as np
 import torch
 from torch import nn
+from torch.nn.utils import clip_grad_value_
 from sklearn.metrics import confusion_matrix
 import itertools
 import matplotlib.pyplot as plt
@@ -293,9 +295,6 @@ class Trainer:
                 all_outputs = []
                 all_labels = []
 
-                if self.scheduler:
-                    self.scheduler.step(epoch)
-
                 for i, data in enumerate(train_loader):
                     inputs, labels = self.arrange_data(data, inputs_key, labels_key)
 
@@ -308,9 +307,11 @@ class Trainer:
                     else:
                         # forward + backward + optimize
                         outputs = self.model(inputs)
-
+                        
                     loss = self.criterion(outputs, labels)
                     loss.backward()
+                    # clip gradients to avoid exploding gradients
+                    clip_grad_value_(self.model.parameters(), 0.8)
                     self.optimizer.step()
 
                     # update loss
@@ -359,7 +360,7 @@ class Trainer:
                                 )
                             else:
                                 outputs = self.model(inputs)
-
+                        
                             loss = self.criterion(outputs, labels)
 
                             running_loss_val.append(loss.item())
@@ -374,8 +375,12 @@ class Trainer:
                         phase="val"
                     )
                     del all_outputs, all_labels, running_loss_val
+                    # <end-of-one-epoch-loop>
 
-            # <end-of-epoch-loop>
+                if self.scheduler:
+                    self.scheduler.step()
+                    
+            # <end-of-all-epochs-loop>
             for callback in self.callbacks:
                 callback(self, epoch=epoch)
         # End training
@@ -445,7 +450,7 @@ class Trainer:
         """
         for metric_name in report["train_metrics"].keys():
             # if metrics is not specified, plot everything, otherwise only plot the given metrics
-            if metrics is None or metric_name.split(" ")[-1] in metrics:
+            if metrics is None or metric_name.split(" ")[-1] in [m.__name__ for m in metrics]:
                 # todo: add x and y label description or use seaborn!
                 plt.figure()
                 plt.plot(report["train_metrics"][metric_name])
@@ -453,7 +458,7 @@ class Trainer:
                 plt.legend(["Train", "Val"])
                 plt.title(metric_name)
                 if save_fig_path:
-                    plt.savefig(save_fig_path + "_" + metric_name.replace(" ", "_"))
+                    plt.savefig(save_fig_path+f"training_{metric_name.replace(' ','')[:3]}.jpg")
                     plt.close()
                 else:
                     plt.show()
@@ -465,13 +470,14 @@ class Trainer:
             metrics=[],
             inputs_key="image",
             labels_key="label",
-            write_to_dir=''
+            write_to_dir='', 
+            return_results=False
     ):
         """Predict on the validation set.
 
         Parameters
         ----------
-        val_loader : torch.utils.data.DataLoader
+        val_loader: torch.utils.data.DataLoader
             The data which should be used for model evaluation.
         additional_gpu
             Lets you evaluate on a different GPU than training was performed on. Default: None
@@ -484,7 +490,7 @@ class Trainer:
             The default keys are "image" and "label".
         write_to_dir
             The outputs of the evaluation are written to files path provided. Default: ""
-
+        return_preds: If set to True, also returns model's output probabilities along with the true labels 
         """
         self.model.eval()
 
@@ -528,27 +534,19 @@ class Trainer:
             self._estimate_and_report_metrics(
                 all_outputs, all_labels, running_loss,
                 metrics_dict=results,
-                phase="eval"
+                phase="eval",
+                save_fig_path=write_to_dir
             )
-
-        # todo: that will not work because there is no plot to show.
-        #  _estimate_and_report_metrics() creates a plot but does not return anything.
-        # Suggestion: export functionality to _estimate_and_report_metrics where the figure is created
 
         if write_to_dir:
             results = {k: v[0] for k, v in results.items()}
-            with open(write_to_dir + "results.json", "w") as f:
+            with open(write_to_dir + "eval_results.json", "w") as f:
                 json.dump(results, f)
-
-            # compute confusion matrix if it is a binary classification task
-            if self.prediction_type == 'binary':
-                plt.savefig(write_to_dir + "confusion_matrix.png")
-                plt.close()
-        else:
-            if self.prediction_type == 'binary':
-                plt.show()
-
+            
         self.model.train()
+        
+        if return_results: return all_outputs, all_labels, results
+        
 
     def _estimate_and_report_metrics(
             self,
@@ -556,7 +554,8 @@ class Trainer:
             all_labels,
             running_loss,
             metrics_dict,
-            phase
+            phase,
+            save_fig_path=""
     ):
         """ Function executed at the end of an epoch.
 
@@ -596,7 +595,7 @@ class Trainer:
         metrics_dict["loss"].append(loss)
         # print the loss for val and eval phases
         if phase in ["val", "eval"]:
-            print("{} loss: {:.5f}".format(phase, loss))
+            print("{} loss: {:.5f}".format(phase, loss), flush=True)
 
         # calculate other metrics and add to the metrics_dict for all tasks
         for task_idx in range(len(all_outputs)):
@@ -634,6 +633,8 @@ class Trainer:
             # plot confusion graph if it is a binary classification
             if phase == "eval" and self.prediction_type[task_idx] == "binary":
                 # todo: add x and y label description or use seaborn!
+                all_label = np.array([inp.cpu().numpy().item() for inp in all_label])
+                all_pred = np.array([inp.cpu().numpy().item() for inp in all_pred])
                 cm = confusion_matrix(all_label, all_pred)
                 plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
 
@@ -643,20 +644,23 @@ class Trainer:
                 plt.xticks(tick_marks, classes, rotation=45)
                 plt.yticks(tick_marks, classes)
 
-                fmt = "d"
                 thresh = cm.max() / 2.
                 for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
                     plt.text(
                         j,
                         i,
-                        format(cm[i, j], fmt),
+                        format(cm[i, j], "d"),
                         horizontalalignment="center",
                         color="white" if cm[i, j] > thresh else "black",
                     )
                 plt.title("Confusion Matrix")
                 plt.ylabel("True label")
                 plt.xlabel("Predicted label")
+                
+                if save_fig_path:
+                    plt.savefig(save_fig_path + "eval_cmat.jpg")
                 plt.show()
+                
 
     def _extract_region(self, x, region_mask):
 
